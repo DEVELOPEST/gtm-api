@@ -1,0 +1,17 @@
+[package]
+name = "gtm-api"
+version = "0.1.0"
+authors = ["mjurge"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.6"
+serde = "1.0.117"
+diesel = { version = "1.4.5" , features = ["postgres"] }
+
+[dependencies.rocket_contrib]
+version = "0.4.2"
+default-features = false
+features = ["json", "diesel_postgres_pool"]
