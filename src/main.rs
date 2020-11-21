@@ -1,3 +1,5 @@
+use gtm_api;
+
 fn main() {
-    println!("Hello, world!");
+    gtm_api::rocket().launch();
 }

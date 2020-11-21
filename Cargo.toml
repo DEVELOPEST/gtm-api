@@ -8,8 +8,16 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.6"
-serde = "1.0.117"
-diesel = { version = "1.4.5" , features = ["postgres"] }
+rocket_cors = { version = "0.5.1", default-features = false }
+serde = { version = "1.0.117", features = ["derive"] }
+serde_json = "1.0.44"
+rust-crypto = "0.2.36"
+chrono = { version = "0.4.10", features = ["serde"] }
+diesel = { version = "1.4.5" , features = ["postgres", "chrono"] }
+validator = "0.10.0"
+validator_derive = "0.10.0"
+dotenv = "0.15.0"
+
 
 [dependencies.rocket_contrib]
 version = "0.4.2"
