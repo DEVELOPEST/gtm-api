@@ -1,7 +1,0 @@
-[ver:1,total:1620]
-.gtm/Cargo-> Run gtm-api.app:904,1606896000:904,r
-Cargo.toml:360,1606896000:360,r
-README.md:210,1606896000:210,m
-.cargo/config:122,1606896000:122,d
-src/routes/users.rs:12,1606896000:12,r
-src/main.rs:12,1606896000:12,r
