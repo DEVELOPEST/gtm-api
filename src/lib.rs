@@ -44,7 +44,9 @@ pub fn rocket() -> rocket::Rocket {
             "/api",
             routes![
                 routes::users::post_users,
-                routes::users::get_user
+                routes::users::get_user,
+                // routes::commits::post_commits,
+                routes::repositories::post_repositories
             ],
         )
         .attach(db::Conn::fairing())
