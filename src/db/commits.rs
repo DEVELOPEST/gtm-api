@@ -7,6 +7,8 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
+use crate::models::repository::Repository;
+use std::cmp::Ordering;
 
 
 #[derive(Insertable)]
@@ -18,6 +20,18 @@ struct NewCommit<'a> {
     message: &'a str,
     hash: &'a str,
     timestamp: i64,
+}
+
+pub fn find_last_by_repository_id(
+    conn: &PgConnection,
+    repository_id: i32
+) -> Commit {
+    commits::table
+        .filter(commits::repository_id.eq(repository_id))
+        .order(commits::timestamp.desc())
+        .limit(1)
+        .get_result::<Commit>(conn)
+        .expect("Cannot load commit")
 }
 
 pub fn create_all(
