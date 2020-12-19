@@ -14,7 +14,9 @@ pub struct NewRepository {
 
 #[derive(Deserialize, Validate)]
 pub struct NewRepositoryData {
-    url: Option<String>,
+    username: Option<String>,
+    provider: Option<String>,
+    repo: Option<String>,
     #[validate(length(min = 1))]
     sync_url: Option<String>,
     #[validate(length(min = 1))]
@@ -24,7 +26,7 @@ pub struct NewRepositoryData {
 }
 
 #[post("/repositories", format = "json", data = "<new_repository>")]
-pub fn post_repositories(
+pub fn post_repository(
     //auth: Auth,
     new_repository: Json<NewRepository>,
     conn: db::Conn,
@@ -32,14 +34,46 @@ pub fn post_repositories(
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
-    let url = extractor.extract("url", new_repository.url);
+    let username = extractor.extract("username", new_repository.username);
+    let provider = extractor.extract("provider", new_repository.provider);
+    let repo = extractor.extract("repo", new_repository.repo);
     let sync_url = extractor.extract("sync_url", new_repository.sync_url);
     let access_token = extractor.extract("access_token", new_repository.access_token);
     extractor.check()?;
 
     let repository = db::repositories::create(
         &conn,
-        &url,
+        &username,
+        &provider,
+        &repo,
+        &sync_url,
+        &access_token,
+        new_repository.commits,
+    );
+    Ok(json!({ "repository": repository }))
+}
+
+#[put("/repositories", format = "json", data = "<new_repository>")]
+pub fn put_repository(
+    //auth: Auth,
+    new_repository: Json<NewRepository>,
+    conn: db::Conn,
+) -> Result<JsonValue, Errors> {
+    let new_repository = new_repository.into_inner().repository;
+
+    let mut extractor = FieldValidator::validate(&new_repository);
+    let username = extractor.extract("username", new_repository.username);
+    let provider = extractor.extract("provider", new_repository.provider);
+    let repo = extractor.extract("repo", new_repository.repo);
+    let sync_url = extractor.extract("sync_url", new_repository.sync_url);
+    let access_token = extractor.extract("access_token", new_repository.access_token);
+    extractor.check()?;
+
+    let repository = db::repositories::update(
+        &conn,
+        &username,
+        &provider,
+        &repo,
         &sync_url,
         &access_token,
         new_repository.commits,
