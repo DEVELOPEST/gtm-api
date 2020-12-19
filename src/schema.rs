@@ -40,7 +40,9 @@ table! {
 table! {
     repositories (id) {
         id -> Int4,
-        url -> Text,
+        username -> Text,
+        provider -> Text,
+        repo -> Text,
         sync_url -> Text,
         access_token -> Text,
         added_at -> Timestamptz,

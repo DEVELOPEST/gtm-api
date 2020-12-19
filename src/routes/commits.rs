@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use validator::Validate;
 use crate::routes::files::NewFileData;
+use crate::db;
+use rocket_contrib::json::{Json, JsonValue};
 
 #[derive(Deserialize, Validate)]
 pub struct NewCommitData {
@@ -15,4 +17,18 @@ pub struct NewCommitData {
     pub time: Option<i64>,
     #[serde(rename = "files")]
     pub files: Vec<NewFileData>,
+}
+
+
+#[get("/commits/<provider>/<username>/<repo>/hash")]
+pub fn get_commit_hash(
+    //auth: Auth,
+    provider: String,
+    username: String,
+    repo: String,
+    conn: db::Conn,
+) -> JsonValue {
+    let repository = db::repositories::find(&conn, &username, &provider, &repo);
+    let last_commit = db::commits::find_last_by_repository_id(&conn, repository.id);
+    json!({ "hash": last_commit.hash })
 }

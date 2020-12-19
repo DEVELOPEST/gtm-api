@@ -20,10 +20,13 @@ CREATE TABLE git_groups (
 
 CREATE TABLE repositories (
   id SERIAL PRIMARY KEY,
-  url TEXT NOT NULL,
+  username TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  repo TEXT NOT NULL,
   sync_url TEXT NOT NULL,
   access_token TEXT NOT NULL,
-  added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  CONSTRAINT repo_identifier UNIQUE (username, provider, repo)
 );
 
 CREATE TABLE commits (
