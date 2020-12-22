@@ -1,10 +1,9 @@
 use crate::models::user::User;
 use crate::schema::users;
-use crypto::scrypt::{scrypt_check, scrypt_simple, ScryptParams};
+use crypto::scrypt::{scrypt_simple, ScryptParams};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
-use serde::Deserialize;
 use diesel::{Insertable};
 
 #[derive(Insertable)]
