@@ -2,7 +2,7 @@ use serde::Deserialize;
 use validator::Validate;
 use crate::routes::files::NewFileData;
 use crate::db;
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::{JsonValue};
 
 #[derive(Deserialize, Validate)]
 pub struct NewCommitData {
