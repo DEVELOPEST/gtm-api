@@ -1,9 +1,7 @@
 // use crate::auth::Auth;
-use chrono::{Duration, Utc};
 use serde::Serialize;
 use diesel::{Queryable};
 
-type Url = String;
 
 #[derive(Queryable, Serialize)]
 pub struct User {
@@ -20,7 +18,7 @@ pub struct UserAuth<'a> {
 }
 
 impl User {
-    pub fn to_user_auth(&self, secret: &[u8]) -> UserAuth {
+    pub fn to_user_auth(&self, _secret: &[u8]) -> UserAuth {
         // let exp = Utc::now() + Duration::days(60); // TODO: move to config
         // let token = Auth {
         //     id: self.id,

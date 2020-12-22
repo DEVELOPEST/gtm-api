@@ -20,27 +20,38 @@ CREATE TABLE git_groups (
 
 CREATE TABLE repositories (
   id SERIAL PRIMARY KEY,
-  url TEXT NOT NULL,
+  username TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  repo TEXT NOT NULL,
   sync_url TEXT NOT NULL,
   access_token TEXT NOT NULL,
-  added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  CONSTRAINT repo_identifier UNIQUE (username, provider, repo)
 );
 
 CREATE TABLE commits (
   id SERIAL PRIMARY KEY,
-  repository INTEGER REFERENCES repositories ON DELETE CASCADE,
+  repository_id INTEGER NOT NULL REFERENCES repositories ON DELETE CASCADE,
   hash TEXT NOT NULL,
   message TEXT NOT NULL,
   email TEXT NOT NULL,
-  timestamp TIMESTAMP WITH TIME ZONE NOT NULL
+  branch TEXT NOT NULL,
+  timestamp BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE files (
   id SERIAL PRIMARY KEY,
-  commit INTEGER REFERENCES commits ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  time BIGINT NOT NULL,
-  lines_added BIGINT NOT NULL,
-  lines_deleted BIGINT NOT NULL,
-  lines_changed BIGINT NOT NULL
+  commit INTEGER NOT NULL REFERENCES commits ON DELETE CASCADE,
+  path TEXT NOT NULL,
+  status TEXT NOT NULL,
+  time BIGINT NOT NULL DEFAULT 0,
+  lines_added BIGINT NOT NULL DEFAULT 0,
+  lines_deleted BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE timeline (
+  id SERIAL PRIMARY KEY,
+  file INTEGER NOT NULL REFERENCES files ON DELETE CASCADE,
+  timestamp BIGINT NOT NULL DEFAULT 0,
+  time BIGINT NOT NULL DEFAULT 0
 );
