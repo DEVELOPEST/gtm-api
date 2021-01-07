@@ -38,4 +38,4 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            DEVELOPEST/gtm-api:latest
+            developest/gtm-api:latest
