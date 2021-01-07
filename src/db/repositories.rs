@@ -35,6 +35,8 @@ pub fn update(
         commits,
         repository.id
     );
+
+    // TODO: Update sync_url and access_token
     repository.attach(commits_vec)
 }
 
