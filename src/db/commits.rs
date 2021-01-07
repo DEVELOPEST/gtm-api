@@ -7,9 +7,6 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
-use crate::models::repository::Repository;
-use std::cmp::Ordering;
-
 
 #[derive(Insertable)]
 #[table_name = "commits"]
