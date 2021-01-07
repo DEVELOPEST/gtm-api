@@ -1,4 +1,6 @@
 # gtm-api
+![Develop](https://github.com/DEVELOPEST/gtm-api/workflows/Develop/badge.svg)
+![Deploy](https://github.com/DEVELOPEST/gtm-api/workflows/Deploy/badge.svg)
 
 ## Endpoints 
 
