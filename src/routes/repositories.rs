@@ -14,12 +14,13 @@ pub struct NewRepository {
 
 #[derive(Deserialize, Validate)]
 pub struct NewRepositoryData {
-    username: Option<String>,
+    #[validate(length(min = 1))]
+    user: Option<String>,
+    #[validate(length(min = 1))]
     provider: Option<String>,
+    #[validate(length(min = 1))]
     repo: Option<String>,
-    #[validate(length(min = 1))]
     sync_url: Option<String>,
-    #[validate(length(min = 1))]
     access_token: Option<String>,
     #[serde(rename = "commits")]
     commits: Vec<NewCommitData>,
@@ -34,7 +35,7 @@ pub fn post_repository(
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
-    let username = extractor.extract("username", new_repository.username);
+    let user = extractor.extract("user", new_repository.user);
     let provider = extractor.extract("provider", new_repository.provider);
     let repo = extractor.extract("repo", new_repository.repo);
     let sync_url = extractor.extract("sync_url", new_repository.sync_url);
@@ -43,7 +44,7 @@ pub fn post_repository(
 
     let repository = db::repositories::create(
         &conn,
-        &username,
+        &user,
         &provider,
         &repo,
         &sync_url,
@@ -62,7 +63,7 @@ pub fn put_repository(
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
-    let username = extractor.extract("username", new_repository.username);
+    let user = extractor.extract("user", new_repository.user);
     let provider = extractor.extract("provider", new_repository.provider);
     let repo = extractor.extract("repo", new_repository.repo);
     let sync_url = extractor.extract("sync_url", new_repository.sync_url);
@@ -71,7 +72,7 @@ pub fn put_repository(
 
     let repository = db::repositories::update(
         &conn,
-        &username,
+        &user,
         &provider,
         &repo,
         &sync_url,
