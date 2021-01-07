@@ -2,7 +2,7 @@ name: Deploy
 on:
   workflow_run:
     workflows: ["Build"]
-    # branches: ["main"]
+    branches: ["main"]
     types:
       - completed
 jobs:
@@ -23,11 +23,25 @@ jobs:
           sudo docker pull ghcr.io/developest/gtm-api:latest
       - name: Stop old container
         run: |
-          sudo docker stop ${{ env.CONTAINER_NAME }}
+          sudo docker stop ${{ env.CONTAINER_NAME }} || true
       - name: Run new container
         run: |
           sudo docker run \
             --name ${{ env.CONTAINER_NAME }} \
-            --rm \
-            -p 8000:8000
+            --network="api-internal-network" \
+            -e DATABASE_URL=$DATABASE_URL \
+            -e SECRET_KEY=$SECRET_KEY \
+            -v /etc/gtm/gtm-api:/gtm/gtm-api \
+            -p 8000:8000 \
             -d ghcr.io/developest/gtm-api:latest
+  clean-up:
+    name: Clean up
+    needs: ['Deploy']
+    runs-on: self-hosted
+    steps:
+      - name: Docker prune
+        run: |
+          sudo docker system prune -af
+      - name: Show running containers
+        run: |
+          sudo docker ps
