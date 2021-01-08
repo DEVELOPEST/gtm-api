@@ -6,7 +6,7 @@ use crate::models::commit::CommitJson;
 #[derive(Queryable)]
 pub struct Repository {
     pub id: i32,
-    pub username: String,
+    pub user: String,
     pub provider: String,
     pub repo: String,
     pub sync_url: String,
@@ -18,7 +18,7 @@ impl Repository {
     pub fn attach(self, commits: Vec<CommitJson>) -> RepositoryJson {
         RepositoryJson {
             id: self.id,
-            user: self.username,
+            user: self.user,
             provider: self.provider,
             repo: self.repo,
             sync_url: self.sync_url,
