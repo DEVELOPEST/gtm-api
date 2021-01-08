@@ -1,5 +1,5 @@
 use crate::models::timeline::{Timeline, TimelineJson};
-use crate::models::hour_data::{HourData, HourDataJson};
+use crate::models::hour_data::{HourDataJson};
 use crate::models::hour_data_dwh::{HourDataDWH};
 use crate::schema::timeline;
 use crate::schema::commits;
@@ -13,7 +13,6 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
-use diesel::expression::sql_literal::sql;
 use crate::mappers::timeline::{map_day_data};
 
 #[derive(FromForm, Default)]
