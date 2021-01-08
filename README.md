@@ -5,11 +5,12 @@
 ## Endpoints 
 
 ### Commits 
-- GET `/commits/<provider>/<username>/<repo>/hash`
+- GET `/commits/<provider>/<user>/<repo>/hash`
 
 ### Repositories 
 - POST `/repositories`
 - PUT `/repositories`
+- POST `/repositories/<group_name>/groups`
 
 ### Users
 - POST `/users`
