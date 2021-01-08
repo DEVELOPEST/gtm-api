@@ -1,8 +1,12 @@
-use crate::models::timeline::{Timeline, TimelineJson, HourDataJson};
+use crate::models::timeline::{Timeline, TimelineJson};
+use crate::models::hour_data::{HourData, HourDataJson};
+use crate::models::hour_data_dwh::{HourDataDWH};
 use crate::schema::timeline;
 use crate::schema::commits;
 use crate::schema::files;
 use crate::schema::repositories;
+use crate::schema::groups;
+use crate::schema::group_repository_members;
 use crate::errors::{FieldValidator};
 use crate::routes::timelines::NewTimelineData;
 use diesel;
@@ -56,20 +60,21 @@ pub fn create_all(
 
 pub fn get_day(
     conn: &PgConnection,
-    repo: &str,
+    group_name: &str,
     period: &Period
 ) -> Vec<HourDataJson> {
     let day_timeline = timeline::table
         .inner_join(files::table)
         .inner_join(commits::table.on(files::commit.eq(commits::id)))
         .inner_join(repositories::table.on(repositories::id.eq(commits::repository_id)))
-        .filter(repositories::repo.eq(repo)
+        .inner_join(group_repository_members::table.on(group_repository_members::repository.eq(repositories::id)))
+        .inner_join(groups::table.on(groups::id.eq(group_repository_members::group)))
+        .filter(groups::name.eq(group_name)
             .and(timeline::timestamp.ge(period.start.unwrap())
                 .and(timeline::timestamp.lt(period.end.unwrap()))))
         .order(timeline::timestamp.asc())
-        .select((repositories::repo, repositories::username, timeline::time, timeline::timestamp ))
-        .load::<(String, String, i64, i64)>(conn)
+        .select((repositories::user, timeline::time, timeline::timestamp ))
+        .load::<HourDataDWH>(conn)
         .expect("Cannot get day timeline");
     map_day_data(day_timeline, period.start.unwrap(), period.end.unwrap())
 }
-

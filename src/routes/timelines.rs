@@ -13,13 +13,13 @@ pub struct NewTimelineData {
     pub time: Option<i64>,
 }
 
-#[get("/<repo>/timeline?<params..>")]
+#[get("/<group_name>/timeline?<params..>")]
 pub fn get_day_timeline(
     //auth: Auth,
-    repo: String,
+    group_name: String,
     params: Form<Period>,
     conn: db::Conn,
 ) -> JsonValue {
-    let day_timeline = db::timelines::get_day(&conn, &repo, &params);
+    let day_timeline = db::timelines::get_day(&conn, &group_name, &params);
     json!({ "timeline": day_timeline })
 }
