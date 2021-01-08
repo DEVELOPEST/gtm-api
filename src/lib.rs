@@ -21,6 +21,8 @@ mod errors;
 mod models;
 mod routes;
 mod schema;
+mod mappers;
+mod helpers;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -48,6 +50,7 @@ pub fn rocket() -> rocket::Rocket {
                 routes::commits::get_commit_hash,
                 routes::repositories::post_repository,
                 routes::repositories::put_repository,
+                routes::timelines::get_day_timeline,
             ],
         )
         .attach(db::Conn::fairing())

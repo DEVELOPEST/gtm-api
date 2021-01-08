@@ -83,7 +83,7 @@ pub fn exists(conn: &PgConnection, username: &str, provider: &str, repo: &str) -
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))))
         .get_result(conn)
-        .expect("Error loading favorited")
+        .expect("Error loading repository")
 }
 
 pub fn find(conn: &PgConnection, username: &str, provider: &str, repo: &str) -> Repository {

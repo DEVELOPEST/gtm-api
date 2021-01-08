@@ -1,12 +1,22 @@
-use crate::models::timeline::{Timeline, TimelineJson};
+use crate::models::timeline::{Timeline, TimelineJson, HourDataJson};
 use crate::schema::timeline;
+use crate::schema::commits;
+use crate::schema::files;
+use crate::schema::repositories;
 use crate::errors::{FieldValidator};
 use crate::routes::timelines::NewTimelineData;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
+use diesel::expression::sql_literal::sql;
+use crate::mappers::timeline::{map_day_data};
 
+#[derive(FromForm, Default)]
+pub struct Period {
+    start: Option<i64>,
+    end: Option<i64>,
+}
 
 #[derive(Insertable)]
 #[table_name = "timeline"]
@@ -43,3 +53,23 @@ pub fn create_all(
     }
     vec
 }
+
+pub fn get_day(
+    conn: &PgConnection,
+    repo: &str,
+    period: &Period
+) -> Vec<HourDataJson> {
+    let day_timeline = timeline::table
+        .inner_join(files::table)
+        .inner_join(commits::table.on(files::commit.eq(commits::id)))
+        .inner_join(repositories::table.on(repositories::id.eq(commits::repository_id)))
+        .filter(repositories::repo.eq(repo)
+            .and(timeline::timestamp.ge(period.start.unwrap())
+                .and(timeline::timestamp.lt(period.end.unwrap()))))
+        .order(timeline::timestamp.asc())
+        .select((repositories::repo, repositories::username, timeline::time, timeline::timestamp ))
+        .load::<(String, String, i64, i64)>(conn)
+        .expect("Cannot get day timeline");
+    map_day_data(day_timeline, period.start.unwrap(), period.end.unwrap())
+}
+
