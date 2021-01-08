@@ -5,6 +5,7 @@ use crate::errors::{Errors, FieldValidator};
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
+use crate::models::group::Group;
 
 
 #[derive(Deserialize)]
@@ -97,10 +98,10 @@ pub struct RepositoryData {
     repo: Option<String>,
 }
 
-#[post("/repositories/<git_group_name>/git_groups", format = "json", data = "<repository>")]
+#[post("/repositories/<group_name>/groups", format = "json", data = "<repository>")]
 pub fn post_repository_to_group(
     //auth: Auth,
-    git_group_name: String,
+    group_name: String,
     repository: Json<Repository>,
     conn: db::Conn,
 ) -> Result<JsonValue, Errors> {
@@ -114,12 +115,12 @@ pub fn post_repository_to_group(
 
     if db::repositories::exists(&conn, &user, &provider, &repo) {
         let repository = db::repositories::find(&conn, &user, &provider, &repo);
-        if db::git_groups::exists(&conn, &git_group_name) {
-            let git_group = db::git_groups::find(&conn, &git_group_name);
+        if !db::groups::exists(&conn, &group_name) {
+            db::groups::create(&conn, &group_name);
         }
-        let git_group = db::git_groups::create(&conn, &git_group_name);
-        db::git_groups_repositories::create(&conn, repository.id, git_group.id );
+        let group = db::groups::find(&conn, &group_name);
+        db::groups_repositories::create(&conn, repository.id, group.id );
     }
-
+    // TODO return something useful
     Ok(json!({}))
 }

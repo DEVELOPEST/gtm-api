@@ -23,14 +23,14 @@ table! {
 }
 
 table! {
-    git_group_repository_members (repository, git_group) {
+    group_repository_members (repository, group) {
         repository -> Int4,
-        git_group -> Int4,
+        group -> Int4,
     }
 }
 
 table! {
-    git_groups (id) {
+    groups (id) {
         id -> Int4,
         name -> Text,
         added_at -> Timestamptz,
@@ -68,9 +68,9 @@ table! {
 }
 
 table! {
-    user_git_group_members (user, git_group) {
+    user_group_members (user, group) {
         user -> Int4,
-        git_group -> Int4,
+        group -> Int4,
     }
 }
 
@@ -84,21 +84,21 @@ table! {
 
 joinable!(commits -> repositories (repository_id));
 joinable!(files -> commits (commit));
-joinable!(git_group_repository_members -> git_groups (git_group));
-joinable!(git_group_repository_members -> repositories (repository));
+joinable!(group_repository_members -> groups (group));
+joinable!(group_repository_members -> repositories (repository));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
-joinable!(user_git_group_members -> git_groups (git_group));
-joinable!(user_git_group_members -> users (user));
+joinable!(user_group_members -> groups (group));
+joinable!(user_group_members -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
     files,
-    git_group_repository_members,
-    git_groups,
+    group_repository_members,
+    groups,
     repositories,
     timeline,
     tokens,
-    user_git_group_members,
+    user_group_members,
     users,
 );
