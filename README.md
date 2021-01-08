@@ -10,6 +10,7 @@
 ### Repositories 
 - POST `/repositories`
 - PUT `/repositories`
+- POST `/repositories/<group_name>/groups`
 
 ### Users
 - POST `/users`
