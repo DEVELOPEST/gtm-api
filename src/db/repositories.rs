@@ -11,7 +11,7 @@ use diesel::{Insertable};
 #[derive(Insertable)]
 #[table_name = "repositories"]
 struct NewRepository<'a> {
-    username: &'a str,
+    user: &'a str,
     provider: &'a str,
     repo: &'a str,
     sync_url: &'a str,
@@ -20,7 +20,7 @@ struct NewRepository<'a> {
 
 pub fn update(
     conn: &PgConnection,
-    username: &str,
+    user: &str,
     provider: &str,
     repo: &str,
     sync_url: &str,
@@ -28,7 +28,7 @@ pub fn update(
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
 
-    let repository = db::repositories::find(&conn, &username, &provider, &repo);
+    let repository = db::repositories::find(&conn, &user, &provider, &repo);
 
     let commits_vec = db::commits::create_all(
         &conn,
@@ -42,7 +42,7 @@ pub fn update(
 
 pub fn create(
     conn: &PgConnection,
-    username: &str,
+    user: &str,
     provider: &str,
     repo: &str,
     sync_url: &str,
@@ -50,15 +50,15 @@ pub fn create(
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
     let new_repository = &NewRepository {
-        username,
+        user,
         provider,
         repo,
         sync_url,
         access_token,
     };
 
-    if exists(conn, username, provider, repo) {
-        remove_repo(conn, username, provider, repo);
+    if exists(conn, user, provider, repo) {
+        remove_repo(conn, user, provider, repo);
     }
 
     let repository = diesel::insert_into(repositories::table)
@@ -74,29 +74,29 @@ pub fn create(
     repository.attach(commits_vec)
 }
 
-pub fn exists(conn: &PgConnection, username: &str, provider: &str, repo: &str) -> bool {
+pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bool {
     use diesel::dsl::exists;
     use diesel::select;
 
     select(exists(repositories::table
-        .filter(repositories::username.eq(username)
+        .filter(repositories::user.eq(user)
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))))
         .get_result(conn)
         .expect("Error loading favorited")
 }
 
-pub fn find(conn: &PgConnection, username: &str, provider: &str, repo: &str) -> Repository {
+pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Repository {
     repositories::table
-        .filter(repositories::username.eq(username)
+        .filter(repositories::user.eq(user)
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))
         .get_result::<Repository>(conn)
         .expect("Cannot load repository")
 }
 
-pub fn remove_repo(conn: &PgConnection, username: &str, provider: &str, repo: &str) {
-    diesel::delete(repositories::table.filter(repositories::username.eq(username)
+pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) {
+    diesel::delete(repositories::table.filter(repositories::user.eq(user)
         .and(repositories::provider.eq(provider)
             .and(repositories::repo.eq(repo)))))
         .execute(conn)

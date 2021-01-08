@@ -81,3 +81,45 @@ pub fn put_repository(
     );
     Ok(json!({ "repository": repository }))
 }
+
+#[derive(Deserialize)]
+pub struct Repository {
+    repository: RepositoryData,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct RepositoryData {
+    #[validate(length(min = 1))]
+    user: Option<String>,
+    #[validate(length(min = 1))]
+    provider: Option<String>,
+    #[validate(length(min = 1))]
+    repo: Option<String>,
+}
+
+#[post("/repositories/<git_group_name>/git_groups", format = "json", data = "<repository>")]
+pub fn post_repository_to_group(
+    //auth: Auth,
+    git_group_name: String,
+    repository: Json<Repository>,
+    conn: db::Conn,
+) -> Result<JsonValue, Errors> {
+    let repository = repository.into_inner().repository;
+
+    let mut extractor = FieldValidator::validate(&repository);
+    let user = extractor.extract("user", repository.user);
+    let provider = extractor.extract("provider", repository.provider);
+    let repo = extractor.extract("repo", repository.repo);
+    extractor.check()?;
+
+    if db::repositories::exists(&conn, &user, &provider, &repo) {
+        let repository = db::repositories::find(&conn, &user, &provider, &repo);
+        if db::git_groups::exists(&conn, &git_group_name) {
+            let git_group = db::git_groups::find(&conn, &git_group_name);
+        }
+        let git_group = db::git_groups::create(&conn, &git_group_name);
+        db::git_groups_repositories::create(&conn, repository.id, git_group.id );
+    }
+
+    Ok(json!({}))
+}

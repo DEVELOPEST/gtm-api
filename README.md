@@ -5,7 +5,7 @@
 ## Endpoints 
 
 ### Commits 
-- GET `/commits/<provider>/<username>/<repo>/hash`
+- GET `/commits/<provider>/<user>/<repo>/hash`
 
 ### Repositories 
 - POST `/repositories`

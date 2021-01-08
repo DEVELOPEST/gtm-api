@@ -48,6 +48,7 @@ pub fn rocket() -> rocket::Rocket {
                 routes::commits::get_commit_hash,
                 routes::repositories::post_repository,
                 routes::repositories::put_repository,
+                routes::repositories::post_repository_to_group,
             ],
         )
         .attach(db::Conn::fairing())

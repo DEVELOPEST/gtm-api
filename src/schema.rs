@@ -40,7 +40,7 @@ table! {
 table! {
     repositories (id) {
         id -> Int4,
-        username -> Text,
+        user -> Text,
         provider -> Text,
         repo -> Text,
         sync_url -> Text,
