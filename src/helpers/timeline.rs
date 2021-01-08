@@ -1,4 +1,4 @@
-use crate::models::timeline::HourData;
+use crate::models::hour_data::HourData;
 
 pub fn generate_hour_base_data(
     start: i64,

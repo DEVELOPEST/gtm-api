@@ -5,3 +5,5 @@ pub mod timeline;
 pub mod file;
 pub mod group;
 pub mod group_repository;
+pub mod hour_data;
+pub mod hour_data_dwh;
