@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use validator::Validate;
-use crate::routes::files::NewFileData;
 use crate::db;
 use rocket_contrib::json::{JsonValue};
 use rocket::request::Form;

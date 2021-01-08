@@ -5,7 +5,6 @@ use crate::errors::{Errors, FieldValidator};
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
-use crate::models::group::Group;
 
 
 #[derive(Deserialize)]
