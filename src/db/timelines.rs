@@ -15,11 +15,7 @@ use diesel::prelude::*;
 use diesel::{Insertable};
 use crate::mappers::timeline::{map_day_data};
 
-#[derive(FromForm, Default)]
-pub struct Period {
-    start: Option<i64>,
-    end: Option<i64>,
-}
+
 
 #[derive(Insertable)]
 #[table_name = "timeline"]
@@ -60,7 +56,8 @@ pub fn create_all(
 pub fn get_day(
     conn: &PgConnection,
     group_name: &str,
-    period: &Period
+    start: i64,
+    end: i64,
 ) -> Vec<HourDataJson> {
     let day_timeline = timeline::table
         .inner_join(files::table)
@@ -69,11 +66,11 @@ pub fn get_day(
         .inner_join(group_repository_members::table.on(group_repository_members::repository.eq(repositories::id)))
         .inner_join(groups::table.on(groups::id.eq(group_repository_members::group)))
         .filter(groups::name.eq(group_name)
-            .and(timeline::timestamp.ge(period.start.unwrap())
-                .and(timeline::timestamp.lt(period.end.unwrap()))))
+            .and(timeline::timestamp.ge(start)
+                .and(timeline::timestamp.lt(end))))
         .order(timeline::timestamp.asc())
         .select((repositories::user, timeline::time, timeline::timestamp ))
         .load::<HourDataDWH>(conn)
         .expect("Cannot get day timeline");
-    map_day_data(day_timeline, period.start.unwrap(), period.end.unwrap())
+    map_day_data(day_timeline, start)
 }
