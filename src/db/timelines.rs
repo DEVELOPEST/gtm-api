@@ -58,6 +58,8 @@ pub fn get_day(
     group_name: &str,
     start: i64,
     end: i64,
+    timezone: &str,
+    interval: &str,
 ) -> Vec<HourDataJson> {
     let day_timeline = timeline::table
         .inner_join(files::table)
@@ -72,5 +74,5 @@ pub fn get_day(
         .select((repositories::user, timeline::time, timeline::timestamp ))
         .load::<HourDataDWH>(conn)
         .expect("Cannot get day timeline");
-    map_day_data(day_timeline, start)
+    map_day_data(day_timeline, start, end, timezone, interval)
 }
