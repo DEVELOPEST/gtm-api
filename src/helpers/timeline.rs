@@ -1,20 +1,24 @@
-use chrono::{DateTime};
+use chrono::{DateTime, Utc, TimeZone};
+use chrono_tz::Tz;
 
 use crate::models::hour_data::HourData;
+use std::time::{UNIX_EPOCH, Duration};
 
-pub fn generate_hour_base_data(
+pub fn generate_hour_base_data<Tz: TimeZone>(
     start: i64,
     end: i64,
-    timezone: &str,
+    timezone: &Tz,
     interval: &str,
-) -> Vec<HourData> {
+) -> Vec<HourData<Tz>> {
     // TODO Validation for timezone and range
-    let start_str = format!("{} {}", start, timezone);
-    let end_str = format!("{} {}", end, timezone);
-    let start_date = DateTime::parse_from_str(&start_str, "%s %Z")
-        .unwrap();
-    let end_date = DateTime::parse_from_str(&end_str, "%s %Z")
-        .unwrap();
+    let d_start = UNIX_EPOCH + Duration::from_secs(start as u64);
+    let d_end = UNIX_EPOCH + Duration::from_secs(end as u64);
+    let start_date = DateTime::<Utc>::from(d_start);
+    let end_date = DateTime::<Utc>::from(d_end);
+
+    let start_tz = start_date.with_timezone(timezone);
+    let end_tz = end_date.with_timezone(timezone);
+
     let step = step_from_interval(interval);
     let time_diff = end_date - start_date;
     let steps = time_diff.num_seconds() / step;
@@ -23,8 +27,8 @@ pub fn generate_hour_base_data(
 
     for x in 0..steps {
         hour_data.push(HourData {
-            start: start + step * x,
-            end: start + step * (x + 1),
+            start: start_tz.clone() + chrono::Duration::seconds(step * x),
+            end: end_tz.clone() + chrono::Duration::seconds(step * (x + 1) - 1),
             hour: x as i32,
             time: 0,
             users: Vec::new(),

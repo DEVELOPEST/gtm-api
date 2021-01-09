@@ -1,15 +1,16 @@
+use chrono::{DateTime, TimeZone};
 use serde::Serialize;
 
 #[derive(Debug)]
-pub struct HourData {
-    pub start: i64,
-    pub end: i64,
+pub struct HourData<Tz: TimeZone> {
+    pub start: DateTime<Tz>,
+    pub end: DateTime<Tz>,
     pub hour: i32,
     pub time: i64,
-    pub users: Vec<String>
+    pub users: Vec<String>,
 }
 
-impl HourData {
+impl<Tz: TimeZone> HourData<Tz> {
     pub fn attach(self) -> HourDataJson {
         HourDataJson {
             hour: self.hour,
