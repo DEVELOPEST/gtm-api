@@ -1,4 +1,8 @@
 use chrono_tz::Tz;
+use chrono::{DateTime, Utc, TimeZone, Datelike};
+
+use crate::models::interval::Interval;
+use std::time::{UNIX_EPOCH, Duration};
 
 use crate::helpers::timeline::generate_intervals;
 use crate::models::interval::IntervalJson;
@@ -12,7 +16,9 @@ pub fn map_timeline(
     interval: &str,
 ) -> Vec<IntervalJson> {
     let tz: Tz = timezone.parse().unwrap();
-    let mut intervals = generate_intervals(start, end, &tz, interval);
+    let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
+    let end_tz = get_datetime_tz_from_seconds(end, &tz);
+    let mut intervals = generate_intervals(start_tz, end_tz, &tz, interval);
     for item in data {
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
@@ -26,4 +32,8 @@ pub fn map_timeline(
     }
     
     intervals.into_iter().map(|x| x.attach()).collect()
+}
+
+pub fn get_datetime_tz_from_seconds(seconds: i64, timezone: &Tz) -> DateTime<Tz> {
+    DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(seconds as u64)).with_timezone(timezone)
 }

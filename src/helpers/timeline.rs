@@ -5,20 +5,11 @@ use crate::models::interval::Interval;
 use std::time::{UNIX_EPOCH, Duration};
 
 pub fn generate_intervals<Tz: TimeZone>(
-    start: i64,
-    end: i64,
+    start_tz: DateTime<Tz>,
+    end_tz: DateTime<Tz>,
     timezone: &Tz,
     interval: &str,
 ) -> Vec<Interval<Tz>> {
-    // TODO Validation for timezone and range
-    let d_start = UNIX_EPOCH + Duration::from_secs(start as u64);
-    let d_end = UNIX_EPOCH + Duration::from_secs(end as u64);
-    let start_date = DateTime::<Utc>::from(d_start);
-    let end_date = DateTime::<Utc>::from(d_end);
-
-    let start_tz = start_date.with_timezone(timezone);
-    let end_tz = end_date.with_timezone(timezone);
-
     let mut intervals = Vec::new();
     let mut current_start_tz = start_tz.clone();
     let mut current_end_tz = get_next_interval_start(start_tz, interval);
@@ -43,7 +34,7 @@ fn get_next_interval_start<Tz: TimeZone>(
     interval: &str
 ) -> DateTime<Tz> {
     if interval == "HOUR" || interval == "DAY" || interval == "WEEK" {
-        return date_time_tz.clone() + chrono::Duration::seconds(step_from_interval(interval));
+        return date_time_tz.clone() + get_interval_duration(interval);
     }
     get_next_month(date_time_tz)
 }
@@ -56,10 +47,10 @@ fn get_next_month<Tz: TimeZone>(
     )
 }
 
-fn step_from_interval(interval: &str) -> i64 {
+fn get_interval_duration(interval: &str) -> chrono::Duration {
     return match interval {
-        "HOUR" => 60 * 60,
-        "DAY" => 60 * 60 * 24,
-        _ => 60 * 60 * 24 * 7
+        "HOUR" => chrono::Duration::seconds(60 * 60),
+        "DAY" => chrono::Duration::seconds(60 * 60 * 24),
+        _ => chrono::Duration::seconds(60 * 60 * 24 * 7)
     }
 }

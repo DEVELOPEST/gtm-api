@@ -1,4 +1,6 @@
 use validator::{Validate, ValidationError, ValidationErrors};
+use chrono_tz::Tz;
+use rocket::http::route::Source::Data;
 
 #[derive(Debug)]
 pub struct Errors {
@@ -57,5 +59,28 @@ impl FieldValidator {
                 .add(field_name, ValidationError::new("can't be blank"));
             T::default()
         })
+    }
+
+    pub fn validate_timeline_period(
+        &mut self,
+        start: i64,
+        end :i64,
+        interval: &str,
+        timezone: &str)
+    {
+        if start < 0 || start > end {
+            self.errors
+                .add("period", ValidationError::new("Invalid period!"));
+        }
+
+        if end - start > (370 * 24 * 60 * 60) { // little over year
+            self.errors
+                .add("period", ValidationError::new("Too long period!"));
+        }
+
+        if !(interval == "HOUR" || interval == "DAY" || interval == "WEEK" || interval == "MONTH")  {
+            self.errors
+                .add("interval", ValidationError::new("Invalid interval!"));
+        }
     }
 }

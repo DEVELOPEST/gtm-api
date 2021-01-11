@@ -1,4 +1,4 @@
-#[derive(Queryable)]
+#[derive(Queryable, Debug)]
 pub struct TimelineDWH {
     pub user: String,
     pub time: i64,

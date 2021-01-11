@@ -74,5 +74,6 @@ pub fn get_timeline(
         .select((repositories::user, timeline::time, timeline::timestamp ))
         .load::<TimelineDWH>(conn)
         .expect("Cannot get day timeline");
+    println!("{:?}", day_timeline);
     map_timeline(day_timeline, start, end, timezone, interval)
 }
