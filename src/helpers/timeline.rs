@@ -1,15 +1,15 @@
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, Utc, TimeZone, Datelike};
 use chrono_tz::Tz;
 
-use crate::models::hour_data::HourData;
+use crate::models::interval::Interval;
 use std::time::{UNIX_EPOCH, Duration};
 
-pub fn generate_hour_base_data<Tz: TimeZone>(
+pub fn generate_intervals<Tz: TimeZone>(
     start: i64,
     end: i64,
     timezone: &Tz,
     interval: &str,
-) -> Vec<HourData<Tz>> {
+) -> Vec<Interval<Tz>> {
     // TODO Validation for timezone and range
     let d_start = UNIX_EPOCH + Duration::from_secs(start as u64);
     let d_end = UNIX_EPOCH + Duration::from_secs(end as u64);
@@ -19,30 +19,47 @@ pub fn generate_hour_base_data<Tz: TimeZone>(
     let start_tz = start_date.with_timezone(timezone);
     let end_tz = end_date.with_timezone(timezone);
 
-    let step = step_from_interval(interval);
-    let time_diff = end_date - start_date;
-    let steps = time_diff.num_seconds() / step;
+    let mut intervals = Vec::new();
+    let mut current_start_tz = start_tz.clone();
+    let mut current_end_tz = get_next_interval_start(start_tz, interval);
 
-    let mut hour_data = Vec::new();
-
-    for x in 0..steps {
-        hour_data.push(HourData {
-            start: start_tz.clone() + chrono::Duration::seconds(step * x),
-            end: end_tz.clone() + chrono::Duration::seconds(step * (x + 1) - 1),
-            hour: x as i32,
+    while end_tz.ge(&current_start_tz) {
+        intervals.push(Interval {
+            start: current_start_tz.clone(),
+            end: current_end_tz.clone() + chrono::Duration::seconds(-1),
             time: 0,
             users: Vec::new(),
         });
+
+        current_start_tz = get_next_interval_start(current_start_tz, interval);
+        current_end_tz = get_next_interval_start(current_end_tz, interval);
     }
-    hour_data
+
+    intervals
+}
+
+fn get_next_interval_start<Tz: TimeZone>(
+    date_time_tz: DateTime<Tz>,
+    interval: &str
+) -> DateTime<Tz> {
+    if interval == "HOUR" || interval == "DAY" || interval == "WEEK" {
+        return date_time_tz.clone() + chrono::Duration::seconds(step_from_interval(interval));
+    }
+    get_next_month(date_time_tz)
+}
+
+fn get_next_month<Tz: TimeZone>(
+    date_time_tz: DateTime<Tz>,
+) -> DateTime<Tz> {
+    date_time_tz.with_month(date_time_tz.month() + 1).unwrap_or(
+        date_time_tz.with_year(date_time_tz.year() + 1).unwrap().with_month(1).unwrap()
+    )
 }
 
 fn step_from_interval(interval: &str) -> i64 {
     return match interval {
-        "hour" => 60 * 60,
-        "day" => 60 * 60 * 24,
-        "week" => 60 * 60 * 24 * 7,
-        "year" => 60 * 60 * 24 * 365,
-        _ => 60 * 60
+        "HOUR" => 60 * 60,
+        "DAY" => 60 * 60 * 24,
+        _ => 60 * 60 * 24 * 7
     }
 }

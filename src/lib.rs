@@ -51,7 +51,7 @@ pub fn rocket() -> rocket::Rocket {
                 routes::repositories::post_repository,
                 routes::repositories::put_repository,
                 routes::repositories::post_repository_to_group,
-                routes::timelines::get_day_timeline,
+                routes::timelines::get_timeline,
             ],
         )
         .attach(db::Conn::fairing())

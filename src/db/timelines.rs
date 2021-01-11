@@ -1,6 +1,6 @@
 use crate::models::timeline::{Timeline, TimelineJson};
-use crate::models::hour_data::{HourDataJson};
-use crate::models::hour_data_dwh::{HourDataDWH};
+use crate::models::interval::{IntervalJson};
+use crate::models::timeline_dwh::{TimelineDWH};
 use crate::schema::timeline;
 use crate::schema::commits;
 use crate::schema::files;
@@ -13,7 +13,7 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
-use crate::mappers::timeline::{map_day_data};
+use crate::mappers::timeline::{map_timeline};
 
 
 
@@ -53,14 +53,14 @@ pub fn create_all(
     vec
 }
 
-pub fn get_day(
+pub fn get_timeline(
     conn: &PgConnection,
     group_name: &str,
     start: i64,
     end: i64,
     timezone: &str,
     interval: &str,
-) -> Vec<HourDataJson> {
+) -> Vec<IntervalJson> {
     let day_timeline = timeline::table
         .inner_join(files::table)
         .inner_join(commits::table.on(files::commit.eq(commits::id)))
@@ -72,7 +72,7 @@ pub fn get_day(
                 .and(timeline::timestamp.lt(end))))
         .order(timeline::timestamp.asc())
         .select((repositories::user, timeline::time, timeline::timestamp ))
-        .load::<HourDataDWH>(conn)
+        .load::<TimelineDWH>(conn)
         .expect("Cannot get day timeline");
-    map_day_data(day_timeline, start, end, timezone, interval)
+    map_timeline(day_timeline, start, end, timezone, interval)
 }
