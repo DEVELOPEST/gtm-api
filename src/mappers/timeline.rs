@@ -1,29 +1,29 @@
 use chrono_tz::Tz;
 
-use crate::helpers::timeline::generate_hour_base_data;
-use crate::models::hour_data::HourDataJson;
-use crate::models::hour_data_dwh::HourDataDWH;
+use crate::helpers::timeline::generate_intervals;
+use crate::models::interval::IntervalJson;
+use crate::models::timeline_dwh::TimelineDWH;
 
-pub fn map_day_data(
-    data: Vec<HourDataDWH>,
+pub fn map_timeline(
+    data: Vec<TimelineDWH>,
     start: i64,
     end: i64,
     timezone: &str,
     interval: &str,
-) -> Vec<HourDataJson> {
+) -> Vec<IntervalJson> {
     let tz: Tz = timezone.parse().unwrap();
-    let mut hour_data = generate_hour_base_data(start, end, &tz, interval);
+    let mut intervals = generate_intervals(start, end, &tz, interval);
     for item in data {
-        for i in 0..hour_data.len() {
-            if hour_data[i].start.timestamp() <= item.timestamp && item.timestamp < hour_data[i].end.timestamp() {
-                hour_data[i].time = hour_data[i].time + item.time;
-                if !hour_data[i].users.contains(&item.user) {
-                    hour_data[i].users.push(item.user.to_string());
+        for i in 0..intervals.len() {
+            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
+                intervals[i].time = intervals[i].time + item.time;
+                if !intervals[i].users.contains(&item.user) {
+                    intervals[i].users.push(item.user.to_string());
                 }
                 break;
             }
         }
     }
     
-    hour_data.into_iter().map(|x| x.attach()).collect()
+    intervals.into_iter().map(|x| x.attach()).collect()
 }

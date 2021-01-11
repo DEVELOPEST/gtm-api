@@ -19,7 +19,7 @@ pub struct Period {
 }
 
 #[get("/<group_name>/timeline?<params..>")]
-pub fn get_day_timeline(
+pub fn get_timeline(
     //auth: Auth,
     group_name: String,
     params: Form<Period>,
@@ -30,6 +30,6 @@ pub fn get_day_timeline(
     let end = params.end.unwrap_or(start + 24 * 60 * 60);
     let interval = params.interval.clone().unwrap_or("TODO".to_string());
     let timezone = params.timezone.clone().unwrap_or("UTC".to_string());
-    let day_timeline = db::timelines::get_day(&conn, &group_name, start, end, &timezone, &interval);
-    json!({ "timeline": day_timeline })
+    let timeline = db::timelines::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
+    json!({ "timeline": timeline })
 }
