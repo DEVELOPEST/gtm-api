@@ -1,2 +1,6 @@
 [ver:1,total:120]
 .gtm/Cargo-> Run gtm-api.app:120,1610391600:60,1610395200:60,r
+
+[ver:1,total:480]
+.gtm/Cargo-> Run gtm-api.app:468,1610391600:468,r
+src/models/interval.rs:12,1610391600:12,m
