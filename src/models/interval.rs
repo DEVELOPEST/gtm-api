@@ -1,4 +1,4 @@
-use chrono::{DateTime, TimeZone};
+use chrono::{DateTime, TimeZone, FixedOffset, Offset};
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -10,10 +10,10 @@ pub struct Interval<Tz: TimeZone> {
 }
 
 impl<Tz: TimeZone> Interval<Tz> {
-    pub fn attach(self) -> IntervalJson {
+    pub fn attach(&self) -> IntervalJson {
         IntervalJson {
-            start: format!("{:?}", self.start),
-            end: format!("{:?}", self.end),
+            start: format!("{:?}{}", self.start.naive_local(), self.start.offset().fix()),
+            end: format!("{:?}{}", self.end.naive_local(), self.end.offset().fix()),
             time: if self.time == 0 { 0 } else { self.time / self.users.len() as i64},
             users: self.users.len() as i32,
         }

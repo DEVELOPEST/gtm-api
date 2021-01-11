@@ -1,6 +1,4 @@
 use validator::{Validate, ValidationError, ValidationErrors};
-use chrono_tz::Tz;
-use rocket::http::route::Source::Data;
 
 #[derive(Debug)]
 pub struct Errors {

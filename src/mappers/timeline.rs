@@ -1,7 +1,6 @@
 use chrono_tz::Tz;
-use chrono::{DateTime, Utc, TimeZone, Datelike};
+use chrono::{DateTime, Utc};
 
-use crate::models::interval::Interval;
 use std::time::{UNIX_EPOCH, Duration};
 
 use crate::helpers::timeline::generate_intervals;
@@ -18,7 +17,7 @@ pub fn map_timeline(
     let tz: Tz = timezone.parse().unwrap();
     let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
     let end_tz = get_datetime_tz_from_seconds(end, &tz);
-    let mut intervals = generate_intervals(start_tz, end_tz, &tz, interval);
+    let mut intervals = generate_intervals(start_tz, end_tz, interval);
     for item in data {
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
