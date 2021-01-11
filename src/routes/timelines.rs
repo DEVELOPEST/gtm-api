@@ -1,8 +1,13 @@
 use serde::Deserialize;
+use crate::errors::{Errors, FieldValidator};
 use validator::Validate;
 use crate::db;
 use rocket_contrib::json::{JsonValue};
 use rocket::request::Form;
+use chrono::{NaiveDate, DateTime, Datelike};
+use rocket::http::route::Source::Data;
+use chrono::format::strftime;
+
 
 #[derive(Deserialize, Validate)]
 pub struct NewTimelineData {
@@ -10,7 +15,7 @@ pub struct NewTimelineData {
     pub time: Option<i64>,
 }
 
-#[derive(FromForm, Default)]
+#[derive(FromForm, Default, Validate, Deserialize)]
 pub struct Period {
     start: Option<i64>,
     end: Option<i64>,
@@ -24,12 +29,18 @@ pub fn get_timeline(
     group_name: String,
     params: Form<Period>,
     conn: db::Conn,
-) -> JsonValue {
-    // TODO input validation
-    let start = params.start.unwrap_or(-1);
-    let end = params.end.unwrap_or(start + 24 * 60 * 60);
-    let interval = params.interval.clone().unwrap_or("TODO".to_string());
-    let timezone = params.timezone.clone().unwrap_or("UTC".to_string());
+) -> Result<JsonValue, Errors> {
+    let period = params.into_inner();
+
+    let mut validator = FieldValidator::validate(&period);
+    let start = validator.extract("start", period.start);
+    let end = validator.extract("end", period.end);
+    let interval = validator.extract("interval", period.interval);
+    let timezone = validator.extract("timezone", period.timezone);
+    validator.validate_timeline_period(start, end, &interval, &timezone);
+    validator.check()?;
+
+
     let timeline = db::timelines::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
-    json!({ "timeline": timeline })
+    Ok(json!({ "timeline": timeline }))
 }
