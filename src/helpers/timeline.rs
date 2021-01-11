@@ -1,13 +1,23 @@
-use chrono::{DateTime, Utc, TimeZone, Datelike};
-use chrono_tz::Tz;
+use chrono::{Datelike, DateTime, TimeZone, Offset};
 
 use crate::models::interval::Interval;
-use std::time::{UNIX_EPOCH, Duration};
+use std::fmt;
+use serde::export::Formatter;
+
+pub trait DateTimeExt<Tz: TimeZone> {
+    fn next_month(&self) -> DateTime<Tz>;
+}
+
+impl<Tz: TimeZone> DateTimeExt<Tz> for DateTime<Tz> {
+    fn next_month(&self) -> DateTime<Tz> {
+        self.with_month(self.month() + 1)
+            .unwrap_or(self.with_year(self.year() + 1).unwrap().with_month(1).unwrap())
+    }
+}
 
 pub fn generate_intervals<Tz: TimeZone>(
     start_tz: DateTime<Tz>,
     end_tz: DateTime<Tz>,
-    timezone: &Tz,
     interval: &str,
 ) -> Vec<Interval<Tz>> {
     let mut intervals = Vec::new();
@@ -36,21 +46,13 @@ fn get_next_interval_start<Tz: TimeZone>(
     if interval == "HOUR" || interval == "DAY" || interval == "WEEK" {
         return date_time_tz.clone() + get_interval_duration(interval);
     }
-    get_next_month(date_time_tz)
-}
-
-fn get_next_month<Tz: TimeZone>(
-    date_time_tz: DateTime<Tz>,
-) -> DateTime<Tz> {
-    date_time_tz.with_month(date_time_tz.month() + 1).unwrap_or(
-        date_time_tz.with_year(date_time_tz.year() + 1).unwrap().with_month(1).unwrap()
-    )
+    date_time_tz.next_month()
 }
 
 fn get_interval_duration(interval: &str) -> chrono::Duration {
     return match interval {
-        "HOUR" => chrono::Duration::seconds(60 * 60),
-        "DAY" => chrono::Duration::seconds(60 * 60 * 24),
-        _ => chrono::Duration::seconds(60 * 60 * 24 * 7)
+        "HOUR" => chrono::Duration::hours(1),
+        "DAY" => chrono::Duration::days(1),
+        _ => chrono::Duration::weeks(1)
     }
 }
