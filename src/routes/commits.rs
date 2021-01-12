@@ -30,5 +30,11 @@ pub fn get_commit_hash(
 ) -> JsonValue {
     let repository = db::repositories::find(&conn, &user, &provider, &repo);
     let last_commit = db::commits::find_last_by_repository_id(&conn, repository.id);
-    json!({ "hash": last_commit.hash })
+    let hashes = db::commits::find_all_by_repository_id(&conn, repository.id);
+    json!({
+    "hash": last_commit.hash ,
+    "timestamp": last_commit.time,
+    "tracked_commit_hashes": hashes
+    })
 }
+
