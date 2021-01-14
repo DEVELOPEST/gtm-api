@@ -4,6 +4,6 @@ pub mod repository;
 pub mod timeline;
 pub mod file;
 pub mod group;
-pub mod group_repository;
+pub mod group_relations;
 pub mod interval;
 pub mod timeline_dwh;

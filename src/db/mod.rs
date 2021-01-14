@@ -6,7 +6,7 @@ pub mod repositories;
 pub mod files;
 pub mod timelines;
 pub mod groups;
-pub mod groups_repositories;
+pub mod group_relations;
 
 #[database("diesel_postgres_pool")]
 pub struct Conn(PgConnection);
