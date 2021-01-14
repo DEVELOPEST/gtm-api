@@ -6,6 +6,7 @@ use crate::models::commit::CommitJson;
 #[derive(Queryable)]
 pub struct Repository {
     pub id: i32,
+    pub group: i32,
     pub user: String,
     pub provider: String,
     pub repo: String,

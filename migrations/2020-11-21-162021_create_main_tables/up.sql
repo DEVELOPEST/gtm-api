@@ -20,6 +20,7 @@ CREATE TABLE groups (
 
 CREATE TABLE repositories (
   id SERIAL PRIMARY KEY,
+  "group" INTEGER NOT NULL,
   "user" TEXT NOT NULL,
   provider TEXT NOT NULL,
   repo TEXT NOT NULL,

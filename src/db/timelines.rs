@@ -6,7 +6,6 @@ use crate::schema::commits;
 use crate::schema::files;
 use crate::schema::repositories;
 use crate::schema::groups;
-use crate::schema::group_repository_members;
 use crate::errors::{FieldValidator};
 use crate::routes::timelines::NewTimelineData;
 use diesel;
@@ -65,8 +64,9 @@ pub fn get_timeline(
         .inner_join(files::table)
         .inner_join(commits::table.on(files::commit.eq(commits::id)))
         .inner_join(repositories::table.on(repositories::id.eq(commits::repository_id)))
-        .inner_join(group_repository_members::table.on(group_repository_members::repository.eq(repositories::id)))
-        .inner_join(groups::table.on(groups::id.eq(group_repository_members::group)))
+        // TODO(Tavo): Recursive join group_group_member
+        // .inner_join(group_group_members::table.on(group_group_members::repository.eq(repositories::id)))
+        .inner_join(groups::table.on(groups::id.eq(repositories::group)))
         .filter(groups::name.eq(group_name)
             .and(timeline::timestamp.ge(start)
                 .and(timeline::timestamp.lt(end))))

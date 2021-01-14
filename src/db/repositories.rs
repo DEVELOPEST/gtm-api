@@ -11,6 +11,7 @@ use diesel::{Insertable};
 #[derive(Insertable)]
 #[table_name = "repositories"]
 struct NewRepository<'a> {
+    group: &'a i32,
     user: &'a str,
     provider: &'a str,
     repo: &'a str,
@@ -42,6 +43,7 @@ pub fn update(
 
 pub fn create(
     conn: &PgConnection,
+    group: &i32,
     user: &str,
     provider: &str,
     repo: &str,
@@ -50,6 +52,7 @@ pub fn create(
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
     let new_repository = &NewRepository {
+        group,
         user,
         provider,
         repo,
