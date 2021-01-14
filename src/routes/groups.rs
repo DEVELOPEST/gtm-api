@@ -44,8 +44,3 @@ pub fn post_group_parents(
     // TODO return something useful
     Ok(json!({}))
 }
-
-#[get("/groups/<group_name>")]
-pub fn get_group(group_name: String, conn: db::Conn) -> JsonValue {
-    json!(db::groups::find_all_repositories(&conn, &group_name))
-}

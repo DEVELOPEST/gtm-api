@@ -5,7 +5,9 @@ use crate::db;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+use diesel::{Insertable, sql_query, sql_types};
+use serde::Serialize;
+use crate::schema::group_group_members;
 
 
 #[derive(Insertable)]
@@ -104,4 +106,41 @@ pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) 
             .and(repositories::repo.eq(repo)))))
         .execute(conn)
         .expect("Cannot delete");
+}
+
+// #[derive(QueryableByName, Serialize)]
+// #[table_name = "group_group_members"]
+// pub struct Test {
+//     pub child: i32
+// }
+
+pub fn find_all_repositories(conn: &PgConnection, name: &str) -> Vec<Repository> {
+    sql_query("
+    WITH RECURSIVE q AS
+        (
+        SELECT  group_group_members.child, 0 AS depth
+        FROM    group_group_members
+        WHERE   group_group_members.parent = (
+            SELECT groups.id
+            FROM groups
+            WHERE groups.name = $1)
+        UNION ALL
+        SELECT  m.child, q.depth + 1
+        FROM    group_group_members m
+        JOIN    q
+        ON      m.parent = q.child
+        WHERE   q.depth < 100
+        )
+    SELECT * FROM repositories
+    WHERE repositories.group IN (
+        SELECT  q.child
+        FROM    q
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))")
+        .bind::<sql_types::Text, _>(name)
+        .load(conn)
+        .expect("Error finding repositories for group")
+
 }
