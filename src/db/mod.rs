@@ -8,5 +8,6 @@ pub mod timelines;
 pub mod groups;
 pub mod group_relations;
 
+
 #[database("diesel_postgres_pool")]
 pub struct Conn(PgConnection);

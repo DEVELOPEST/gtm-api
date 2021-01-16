@@ -1,5 +1,5 @@
 [development]
-port = 3000
+port = 8000
 
-[development.databases]
-postgres = { url = "postgres://rocket:rocket@localhost/rocket" }
+[global.databases]
+diesel_postgres_pool = { url = "postgres://rocket:rocket@localhost/rocket" }
