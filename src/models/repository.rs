@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use diesel;
 
 use crate::config::DATE_FORMAT;
 use crate::models::commit::CommitJson;
 use crate::schema::repositories;
 
-#[derive(Queryable, QueryableByName)]
+#[derive(Queryable, QueryableByName, Identifiable)]
 #[table_name = "repositories"]
 pub struct Repository {
     pub id: i32,

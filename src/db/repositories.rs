@@ -1,14 +1,12 @@
-use crate::models::repository::{Repository, RepositoryJson};
-use crate::schema::repositories;
-use crate::routes::commits::NewCommitData;
-use crate::db;
 use diesel;
+use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable, sql_query, sql_types};
-use serde::Serialize;
-use crate::schema::group_group_members;
 
+use crate::db;
+use crate::models::repository::{Repository, RepositoryJson};
+use crate::routes::commits::NewCommitData;
+use crate::schema::repositories;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -30,16 +28,20 @@ pub fn update(
     access_token: &str,
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
-
     let repository = db::repositories::find(&conn, &user, &provider, &repo);
 
     let commits_vec = db::commits::create_all(
         &conn,
         commits,
-        repository.id
+        repository.id,
     );
 
-    // TODO: Update sync_url and access_token
+    // TODO: Validate this update logic
+    let _ = diesel::update(&repository).set((
+        repositories::sync_url.eq(sync_url),
+        repositories::access_token.eq(access_token)
+    )).execute(conn);
+
     repository.attach(commits_vec)
 }
 
@@ -108,13 +110,7 @@ pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) 
         .expect("Cannot delete");
 }
 
-// #[derive(QueryableByName, Serialize)]
-// #[table_name = "group_group_members"]
-// pub struct Test {
-//     pub child: i32
-// }
-
-pub fn find_all_repositories(conn: &PgConnection, name: &str) -> Vec<Repository> {
+pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Vec<Repository> {
     sql_query("
     WITH RECURSIVE q AS
         (
@@ -124,7 +120,7 @@ pub fn find_all_repositories(conn: &PgConnection, name: &str) -> Vec<Repository>
             SELECT groups.id
             FROM groups
             WHERE groups.name = $1)
-        UNION ALL
+        UNION
         SELECT  m.child, q.depth + 1
         FROM    group_group_members m
         JOIN    q
