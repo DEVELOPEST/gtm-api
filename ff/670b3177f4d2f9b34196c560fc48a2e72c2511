@@ -1,0 +1,9 @@
+[ver:1,total:2760]
+src/db/repositories.rs:1158,1610733600:240,1610805600:485,1610809200:433,m
+src/db/timelines.rs:971,1610805600:958,1610809200:13,m
+.gtm/Cargo-> Run gtm-api.app:345,1610654400:240,1610809200:105,r
+.gtm/Cargo-> Build `Run gtm-api`.app:140,1610805600:57,1610809200:83,r
+src/models/timeline_dwh.rs:73,1610805600:60,1610809200:13,m
+src/models/repository.rs:30,1610809200:30,m
+src/db/groups.rs:30,1610809200:30,m
+src/routes/timelines.rs:13,1610809200:13,m
