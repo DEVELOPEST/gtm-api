@@ -40,10 +40,3 @@ pub fn get_timeline(
     let timeline = db::timelines::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
     Ok(json!({ "timeline": timeline }))
 }
-
-#[get("/<group_name>/test")]
-pub fn get_group(group_name: String, conn: db::Conn) -> JsonValue {
-    let repos: Vec<_> = db::repositories::find_all_repositories_in_group(&conn, &group_name);
-    let result: Vec<i32> = repos.iter().map(|r| r.id).collect();
-    json!(result)
-}
