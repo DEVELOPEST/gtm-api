@@ -44,3 +44,31 @@ pub fn post_group_parents(
     // TODO return something useful
     Ok(json!({}))
 }
+
+#[post("/groups/<group_name>/children", format = "json", data = "<children>")]
+pub fn post_group_children(
+    //auth: Auth,
+    group_name: String,
+    children: Json<NewGroupChildrenRelation>,
+    conn: db::Conn,
+) -> Result<JsonValue, Errors> {
+    let children = children.into_inner();
+    let mut extractor = FieldValidator::validate(&children);
+    let children_vec = extractor.extract("children", children.children);
+    extractor.check()?;
+
+    let relation_parent = db::groups::find(&conn, &group_name);
+    // TODO(Tavo): See if this can be moved to separate function
+    for child in &children_vec {
+        if !db::groups::exists(&conn, &child) {
+            db::groups::create(&conn, &child);
+        }
+        let relation_child = db::groups::find(&conn, &child);
+        if !db::group_relations::exists(&conn, &relation_parent.id, &relation_child.id) {
+            db::group_relations::create(&conn, relation_parent.id, relation_child.id);
+        }
+    }
+
+    // TODO return something useful
+    Ok(json!({}))
+}
