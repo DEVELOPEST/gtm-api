@@ -11,10 +11,9 @@ use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
 use crate::db::Conn;
-use crate::routes::login::LoginDto;
-use crate::models::user::User;
+use crate::models::user::{AuthUser, UserRole, User};
 
-static ONE_WEEK: i64 = 60 * 60 * 24 * 7;
+const ONE_WEEK: i64 = 60 * 60 * 24 * 7;
 // in seconds
 static SECRET: [u8; 16] = [0u8; 16];
 
@@ -24,8 +23,8 @@ pub struct AuthToken {
     pub iat: i64,
     // expiration
     pub exp: i64,
-    // data
-    pub user: String,
+    pub user: i32,
+    pub role: UserRole,
 }
 
 #[derive(Debug, Serialize)]
@@ -33,7 +32,7 @@ pub struct AuthError {
     message: String
 }
 
-impl<'a, 'r> FromRequest<'a, 'r> for AuthToken {
+impl<'a, 'r> FromRequest<'a, 'r> for AuthUser {
     type Error = status::Custom<Json<AuthError>>;
     fn from_request(
         request: &'a Request<'r>,
@@ -45,7 +44,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthToken {
                 let token = auth_str[6..auth_str.len()].trim();
                 if let Ok(token_data) = decode_token(token.to_string()) {
                     if verify_token(&token_data, &conn) {
-                        return Outcome::Success(token_data.claims);
+                        return Outcome::Success(token_data.claims.to_auth_user());
                     }
                 }
             }
@@ -63,21 +62,32 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthToken {
     }
 }
 
-pub fn generate_token(login: LoginDto) -> String {
+impl AuthToken {
+    pub fn to_auth_user(&self) -> AuthUser {
+        AuthUser {
+            user_id: self.user,
+            role: self.role,
+        }
+    }
+}
+
+pub fn generate_token_for_user(user: User) -> Option<String> {
     let now = Utc::now().timestamp_nanos() / 1_000_000_000; // nanosecond -> second
     let payload = AuthToken {
         iat: now,
         exp: now + ONE_WEEK,
-        user: login.email,
+        user: user.id,
+        role: UserRole::ADMIN
     };
 
-    jsonwebtoken::encode(&Header::default(), &payload, &EncodingKey::from_secret(&SECRET)).unwrap()
+    jsonwebtoken::encode(&Header::default(), &payload, &EncodingKey::from_secret(&SECRET)).ok()
 }
 
 fn decode_token(token: String) -> Result<TokenData<AuthToken>> {
     jsonwebtoken::decode::<AuthToken>(&token, &DecodingKey::from_secret(&SECRET), &Validation::default())
 }
 
-fn verify_token(token_data: &TokenData<AuthToken>, conn: &Conn) -> bool {
-    User::is_valid_login_session(&token_data.claims, conn)
+fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
+    // TODO(Tavo): Blacklist for logged off tokens
+     Utc::now().timestamp_nanos() / 1_000_000_000 < token_data.claims.exp
 }

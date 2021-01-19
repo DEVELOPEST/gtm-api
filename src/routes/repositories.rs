@@ -1,9 +1,7 @@
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
-use crate::helpers::jwt::AuthToken;
 
-// use crate::auth::Auth;
 use crate::db;
 use crate::errors::{Errors, FieldValidator};
 use crate::routes::commits::NewCommitData;
@@ -29,7 +27,6 @@ pub struct NewRepositoryData {
 
 #[post("/repositories", format = "json", data = "<new_repository>")]
 pub fn post_repository(
-    token: AuthToken,
     new_repository: Json<NewRepository>,
     conn: db::Conn,
 ) -> Result<JsonValue, Errors> {
