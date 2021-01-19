@@ -17,7 +17,7 @@ pub struct Repository {
     pub access_token: String,
     pub added_at: DateTime<Utc>,
 }
- // url laheb minema ja asemele tuleb user / provider / repo
+
 impl Repository {
     pub fn attach(self, commits: Vec<CommitJson>) -> RepositoryJson {
         RepositoryJson {
