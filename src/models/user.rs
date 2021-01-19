@@ -1,9 +1,11 @@
-// use crate::auth::Auth;
-use serde::Serialize;
-use diesel::{Queryable};
-use crate::helpers::jwt::AuthToken;
-use crate::db::Conn;
+use diesel::Queryable;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum UserRole {
+    ADMIN,
+    REGULAR,
+}
 
 #[derive(Queryable, Serialize)]
 pub struct User {
@@ -14,31 +16,7 @@ pub struct User {
 }
 
 #[derive(Serialize)]
-pub struct UserAuth<'a> {
-    email: &'a str,
-    token: String,
-}
-
-impl User {
-    pub fn to_user_auth(&self, _secret: &[u8]) -> UserAuth {
-        // let exp = Utc::now() + Duration::days(60); // TODO: move to config
-        // let token = Auth {
-        //     id: self.id,
-        //     username: self.username.clone(),
-        //     exp: exp.timestamp(),
-        // }.token(secret);
-
-
-        let token = "Token".to_string();
-
-        UserAuth {
-            email: &self.email,
-            token,
-        }
-    }
-
-    pub fn is_valid_login_session(token: &AuthToken, conn: &Conn) -> bool {
-        return true;
-    }
-
+pub struct AuthUser {
+    pub user_id: i32,
+    pub role: UserRole,
 }

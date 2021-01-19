@@ -11,7 +11,6 @@ use diesel::{Insertable, sql_query, sql_types};
 use crate::mappers::timeline::{map_timeline};
 
 
-
 #[derive(Insertable)]
 #[table_name = "timeline"]
 struct NewTimeline<> {

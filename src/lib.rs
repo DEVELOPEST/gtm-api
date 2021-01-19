@@ -17,7 +17,6 @@ extern crate validator_derive;
 
 use dotenv::dotenv;
 
-// mod auth;
 mod config;
 mod db;
 mod errors;
