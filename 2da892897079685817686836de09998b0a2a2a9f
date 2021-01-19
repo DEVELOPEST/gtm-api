@@ -1,0 +1,20 @@
+[ver:1,total:6720,branch:feature/API-15]
+src/helpers/jwt.rs:1200,1611068400:135,1611079200:409,1611082800:627,1611086400:29,m
+src/models/user.rs:1171,1611079200:611,1611082800:560,m
+.gtm/Cargo-> Run gtm-api.app:1100,1611061200:360,1611082800:337,1611086400:403,r
+src/db/users.rs:970,1611079200:465,1611082800:505,m
+src/routes/users.rs:735,1611082800:735,m
+.gtm/Cargo-> Build `Run gtm-api`.app:501,1611082800:489,1611086400:12,r
+src/db/timelines.rs:342,1611068400:330,1611082800:12,m
+src/routes/repositories.rs:259,1611068400:225,1611082800:34,m
+src/db/repositories.rs:190,1611068400:90,1611079200:15,1611082800:85,r
+src/schema.rs:58,1611082800:58,m
+migrations/2020-11-21-162021_create_main_tables/up.sql:36,1611086400:36,m
+src/lib.rs:30,1611082800:30,m
+src/models/repository.rs:30,1611082800:30,r
+src/config.rs:25,1611082800:25,m
+src/routes/groups.rs:20,1611082800:20,r
+src/routes/mod.rs:18,1611082800:18,m
+src/routes/auth.rs:17,1611082800:17,m
+src/db/mod.rs:10,1611082800:10,r
+src/routes/login.rs:8,1611082800:8,d
