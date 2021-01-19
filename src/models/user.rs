@@ -1,6 +1,8 @@
 // use crate::auth::Auth;
 use serde::Serialize;
 use diesel::{Queryable};
+use crate::helpers::jwt::AuthToken;
+use crate::db::Conn;
 
 
 #[derive(Queryable, Serialize)]
@@ -33,6 +35,10 @@ impl User {
             email: &self.email,
             token,
         }
+    }
+
+    pub fn is_valid_login_session(token: &AuthToken, conn: &Conn) -> bool {
+        return true;
     }
 
 }
