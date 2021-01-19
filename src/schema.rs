@@ -23,9 +23,9 @@ table! {
 }
 
 table! {
-    group_repository_members (repository, group) {
-        repository -> Int4,
-        group -> Int4,
+    group_group_members (parent, child) {
+        parent -> Int4,
+        child -> Int4,
     }
 }
 
@@ -40,6 +40,7 @@ table! {
 table! {
     repositories (id) {
         id -> Int4,
+        group -> Int4,
         user -> Text,
         provider -> Text,
         repo -> Text,
@@ -84,8 +85,6 @@ table! {
 
 joinable!(commits -> repositories (repository_id));
 joinable!(files -> commits (commit));
-joinable!(group_repository_members -> groups (group));
-joinable!(group_repository_members -> repositories (repository));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_group_members -> groups (group));
@@ -94,7 +93,7 @@ joinable!(user_group_members -> users (user));
 allow_tables_to_appear_in_same_query!(
     commits,
     files,
-    group_repository_members,
+    group_group_members,
     groups,
     repositories,
     timeline,

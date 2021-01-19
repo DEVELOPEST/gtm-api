@@ -10,6 +10,9 @@ use rocket_cors;
 extern crate diesel;
 
 #[macro_use]
+extern crate diesel_migrations;
+
+#[macro_use]
 extern crate validator_derive;
 
 use dotenv::dotenv;
@@ -23,6 +26,7 @@ mod routes;
 mod schema;
 mod mappers;
 mod helpers;
+mod setup;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -41,7 +45,7 @@ fn cors_fairing() -> Cors {
 
 pub fn rocket() -> rocket::Rocket {
     dotenv().ok();
-    rocket::custom(config::from_env())
+    rocket::ignite()  // custom(config::from_env())
         .mount(
             "/api",
             routes![
@@ -50,12 +54,14 @@ pub fn rocket() -> rocket::Rocket {
                 routes::commits::get_commit_hash,
                 routes::repositories::post_repository,
                 routes::repositories::put_repository,
-                routes::repositories::post_repository_to_group,
+                routes::groups::post_group_parents,
+                routes::groups::post_group_children,
                 routes::timelines::get_timeline,
             ],
         )
         .attach(db::Conn::fairing())
+        .attach(setup::migrate_database())
         .attach(cors_fairing())
-        .attach(config::AppState::manage())
+        //.attach(config::AppState::manage())
         .register(catchers![not_found])
 }

@@ -2,17 +2,12 @@ use crate::models::timeline::{Timeline, TimelineJson};
 use crate::models::interval::{IntervalJson};
 use crate::models::timeline_dwh::{TimelineDWH};
 use crate::schema::timeline;
-use crate::schema::commits;
-use crate::schema::files;
-use crate::schema::repositories;
-use crate::schema::groups;
-use crate::schema::group_repository_members;
 use crate::errors::{FieldValidator};
 use crate::routes::timelines::NewTimelineData;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+use diesel::{Insertable, sql_query, sql_types};
 use crate::mappers::timeline::{map_timeline};
 
 
@@ -61,19 +56,41 @@ pub fn get_timeline(
     timezone: &str,
     interval: &str,
 ) -> Vec<IntervalJson> {
-    let day_timeline = timeline::table
-        .inner_join(files::table)
-        .inner_join(commits::table.on(files::commit.eq(commits::id)))
-        .inner_join(repositories::table.on(repositories::id.eq(commits::repository_id)))
-        .inner_join(group_repository_members::table.on(group_repository_members::repository.eq(repositories::id)))
-        .inner_join(groups::table.on(groups::id.eq(group_repository_members::group)))
-        .filter(groups::name.eq(group_name)
-            .and(timeline::timestamp.ge(start)
-                .and(timeline::timestamp.lt(end))))
-        .order(timeline::timestamp.asc())
-        .select((repositories::user, timeline::time, timeline::timestamp ))
-        .load::<TimelineDWH>(conn)
-        .expect("Cannot get day timeline");
+    let day_timeline: Vec<TimelineDWH> = sql_query("
+    WITH RECURSIVE q AS
+        (
+        SELECT  group_group_members.child, 0 AS depth
+        FROM    group_group_members
+        WHERE   group_group_members.parent = (
+            SELECT groups.id
+            FROM groups
+            WHERE groups.name = $1)
+        UNION
+        SELECT  m.child, q.depth + 1
+        FROM    group_group_members m
+        JOIN    q
+        ON      m.parent = q.child
+        WHERE   q.depth < 100
+        )
+    SELECT repositories.user, timeline.time, timeline.timestamp FROM timeline
+    INNER JOIN files ON timeline.file = files.id
+    INNER JOIN commits ON files.commit = commits.id
+    INNER JOIN repositories ON commits.repository_id = repositories.id
+    WHERE repositories.group IN (
+        SELECT  q.child
+        FROM    q
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))
+        AND timeline.timestamp >= $2
+        AND timeline.timestamp < $3")
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .expect("Error loading timeline for group");
+
     println!("{:?}", day_timeline);
     map_timeline(day_timeline, start, end, timezone, interval)
 }

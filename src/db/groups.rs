@@ -1,9 +1,10 @@
-use crate::models::group::{Group};
-use crate::schema::groups;
 use diesel;
+use diesel::Insertable;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+
+use crate::models::group::Group;
+use crate::schema::groups;
 
 #[derive(Insertable)]
 #[table_name = "groups"]

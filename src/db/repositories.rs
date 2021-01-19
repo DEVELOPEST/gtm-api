@@ -1,16 +1,17 @@
-use crate::models::repository::{Repository, RepositoryJson};
-use crate::schema::repositories;
-use crate::routes::commits::NewCommitData;
-use crate::db;
 use diesel;
+use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
 
+use crate::db;
+use crate::models::repository::{Repository, RepositoryJson};
+use crate::routes::commits::NewCommitData;
+use crate::schema::repositories;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
 struct NewRepository<'a> {
+    group: &'a i32,
     user: &'a str,
     provider: &'a str,
     repo: &'a str,
@@ -27,21 +28,26 @@ pub fn update(
     access_token: &str,
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
-
     let repository = db::repositories::find(&conn, &user, &provider, &repo);
 
     let commits_vec = db::commits::create_all(
         &conn,
         commits,
-        repository.id
+        repository.id,
     );
 
-    // TODO: Update sync_url and access_token
+    // TODO: Validate this update logic
+    let _ = diesel::update(&repository).set((
+        repositories::sync_url.eq(sync_url),
+        repositories::access_token.eq(access_token)
+    )).execute(conn);
+
     repository.attach(commits_vec)
 }
 
 pub fn create(
     conn: &PgConnection,
+    group: &i32,
     user: &str,
     provider: &str,
     repo: &str,
@@ -50,6 +56,7 @@ pub fn create(
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
     let new_repository = &NewRepository {
+        group,
         user,
         provider,
         repo,
@@ -101,4 +108,35 @@ pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) 
             .and(repositories::repo.eq(repo)))))
         .execute(conn)
         .expect("Cannot delete");
+}
+
+pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Vec<Repository> {
+    sql_query("
+    WITH RECURSIVE q AS
+        (
+        SELECT  group_group_members.child, 0 AS depth
+        FROM    group_group_members
+        WHERE   group_group_members.parent = (
+            SELECT groups.id
+            FROM groups
+            WHERE groups.name = $1)
+        UNION
+        SELECT  m.child, q.depth + 1
+        FROM    group_group_members m
+        JOIN    q
+        ON      m.parent = q.child
+        WHERE   q.depth < 100
+        )
+    SELECT * FROM repositories
+    WHERE repositories.group IN (
+        SELECT  q.child
+        FROM    q
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))")
+        .bind::<sql_types::Text, _>(name)
+        .load(conn)
+        .expect("Error finding repositories for group")
+
 }
