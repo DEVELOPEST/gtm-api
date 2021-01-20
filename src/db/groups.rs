@@ -45,3 +45,9 @@ pub fn find(conn: &PgConnection, name: &str) -> Option<Group> {
         .first::<Group>(conn)
         .ok()
 }
+
+pub fn find_all(conn: &PgConnection) -> Vec<Group> {
+    groups::table
+        .load::<Group>(conn)
+        .expect("Unable to load groups")
+}
