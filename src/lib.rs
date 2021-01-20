@@ -58,6 +58,7 @@ pub fn rocket() -> rocket::Rocket {
                 routes::groups::post_group_children,
                 routes::groups::get_groups,
                 routes::timelines::get_timeline,
+                routes::timelines::get_activity_timeline,
             ],
         )
         .attach(db::Conn::fairing())
