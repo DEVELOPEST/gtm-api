@@ -1,0 +1,10 @@
+[ver:1,total:2160,branch:feature/API-15]
+.gtm/Cargo-> Run gtm-api.app:1729,1611136800:1729,r
+src/routes/groups.rs:334,1611136800:334,m
+.gtm/Cargo-> Build `Run gtm-api`.app:38,1611136800:38,r
+src/db/groups.rs:31,1611136800:31,m
+src/routes/repositories.rs:12,1611136800:12,m
+src/mappers/timeline.rs:9,1611136800:9,m
+src/models/interval.rs:5,1611136800:5,r
+src/routes/timelines.rs:1,1611136800:1,r
+src/db/timelines.rs:1,1611136800:1,r
