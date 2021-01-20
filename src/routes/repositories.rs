@@ -44,7 +44,7 @@ pub fn post_repository(
     if !db::groups::exists(&conn, &group_name) {
         db::groups::create(&conn, &group_name);
     }
-    let group = db::groups::find(&conn, &group_name);
+    let group = db::groups::find(&conn, &group_name).unwrap();
 
     let repository = db::repositories::create(
         &conn,

@@ -30,12 +30,18 @@ pub fn post_group_parents(
     let parents_vec = extractor.extract("parents", parents.parents);
     extractor.check()?;
 
-    let relation_child = db::groups::find(&conn, &group_name);
+    let mut relation_child = db::groups::find(&conn, &group_name);
+    if relation_child.is_none() {
+        relation_child = Some(db::groups::create(&conn, &group_name));
+    }
+    let relation_child = relation_child.unwrap();
+
     for parent in &parents_vec {
-        if !db::groups::exists(&conn, &parent) {
-            db::groups::create(&conn, &parent);
-        }
-        let relation_parent = db::groups::find(&conn, &parent);
+        let relation_parent = if !db::groups::exists(&conn, &parent) {
+            db::groups::create(&conn, &parent)
+        } else {
+            db::groups::find(&conn, &parent).unwrap()
+        };
         if !db::group_relations::exists(&conn, &relation_parent.id, &relation_child.id) {
             db::group_relations::create(&conn, relation_parent.id, relation_child.id);
         }
@@ -57,13 +63,18 @@ pub fn post_group_children(
     let children_vec = extractor.extract("children", children.children);
     extractor.check()?;
 
-    let relation_parent = db::groups::find(&conn, &group_name);
-    // TODO(Tavo): See if this can be moved to separate function
+    let mut relation_parent = db::groups::find(&conn, &group_name);
+    if relation_parent.is_none() {
+        relation_parent = Some(db::groups::create(&conn, &group_name));
+    }
+    let relation_parent = relation_parent.unwrap();
+
     for child in &children_vec {
-        if !db::groups::exists(&conn, &child) {
-            db::groups::create(&conn, &child);
-        }
-        let relation_child = db::groups::find(&conn, &child);
+        let relation_child = if !db::groups::exists(&conn, &child) {
+            db::groups::create(&conn, &child)
+        } else {
+            db::groups::find(&conn, &child).unwrap()
+        };
         if !db::group_relations::exists(&conn, &relation_parent.id, &relation_child.id) {
             db::group_relations::create(&conn, relation_parent.id, relation_child.id);
         }
