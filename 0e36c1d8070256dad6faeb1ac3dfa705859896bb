@@ -1,0 +1,7 @@
+[ver:1,total:1080,branch:feature/API-15]
+src/errors.rs:572,1611133200:198,1611136800:374,m
+.gtm/Cargo-> Run gtm-api.app:240,1611136800:240,r
+src/routes/auth.rs:150,1611133200:150,m
+.gtm/Cargo-> Build `Run gtm-api`.app:61,1611136800:61,r
+src/routes/timelines.rs:42,1611133200:12,1611136800:30,r
+src/routes/repositories.rs:15,1611136800:15,r
