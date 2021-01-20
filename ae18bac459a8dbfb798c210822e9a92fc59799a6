@@ -1,0 +1,9 @@
+[ver:1,total:3240,branch:feature/API-15]
+src/mappers/timeline.rs:1077,1611169200:1077,m
+src/models/interval.rs:670,1611169200:670,m
+src/db/timelines.rs:506,1611169200:506,m
+src/routes/timelines.rs:409,1611169200:404,1611172800:5,m
+.gtm/Cargo-> Run gtm-api.app:391,1611169200:276,1611172800:115,r
+.gtm/Cargo-> Build `Run gtm-api`.app:106,1611169200:106,r
+src/helpers/timeline.rs:44,1611169200:44,r
+src/lib.rs:37,1611169200:37,m
