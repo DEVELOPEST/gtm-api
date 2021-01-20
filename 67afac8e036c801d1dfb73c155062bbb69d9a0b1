@@ -1,0 +1,12 @@
+[ver:1,total:2700,branch:feature/API-15]
+.gtm/Cargo-> Run gtm-api.app:1039,1611086400:290,1611129600:749,r
+src/routes/auth.rs:1018,1611126000:752,1611129600:266,m
+src/routes/users.rs:408,1611126000:373,1611129600:35,r
+.gtm/Cargo-> Build `Run gtm-api`.app:85,1611126000:38,1611129600:47,r
+migrations/2020-11-21-162021_create_main_tables/up.sql:40,1611086400:10,1611126000:30,r
+src/db/users.rs:25,1611129600:25,r
+src/errors.rs:20,1611126000:20,r
+src/routes/repositories.rs:20,1611126000:20,r
+src/lib.rs:18,1611129600:18,m
+src/models/user.rs:15,1611126000:15,m
+src/db/mod.rs:12,1611126000:12,r
