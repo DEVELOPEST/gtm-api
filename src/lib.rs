@@ -44,7 +44,7 @@ fn cors_fairing() -> Cors {
 
 pub fn rocket() -> rocket::Rocket {
     dotenv().ok();
-    rocket::ignite()  // custom(config::from_env())
+    rocket::ignite()
         .mount(
             "/api",
             routes![
@@ -62,6 +62,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())
-        //.attach(config::AppState::manage())
+        .attach(helpers::jwt::manage())
         .register(catchers![not_found])
 }

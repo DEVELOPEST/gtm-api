@@ -1,8 +1,12 @@
+use std::sync::RwLock;
+
 use chrono::Utc;
 use jsonwebtoken::{Header, Validation};
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use jsonwebtoken::errors::Result;
 use jsonwebtoken::TokenData;
+use lazy_static::lazy_static;
+use rocket::fairing::AdHoc;
 use rocket::http::Status;
 use rocket::outcome::Outcome;
 use rocket::request::{self, FromRequest, Request};
@@ -11,11 +15,13 @@ use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
 use crate::db::Conn;
-use crate::models::user::{AuthUser, UserRole, User};
+use crate::models::user::{AuthUser, User, UserRole};
 
 const ONE_WEEK: i64 = 60 * 60 * 24 * 7;
 // in seconds
-static SECRET: [u8; 16] = [0u8; 16];
+lazy_static! {
+    static ref SECRET: RwLock<String> = RwLock::new("zRXL2u7hw84MTir+ZMjIGg==".to_string());
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthToken {
@@ -77,17 +83,44 @@ pub fn generate_token_for_user(user: User) -> Option<String> {
         iat: now,
         exp: now + ONE_WEEK,
         user: user.id,
-        role: UserRole::ADMIN
+        role: UserRole::ADMIN,
     };
 
-    jsonwebtoken::encode(&Header::default(), &payload, &EncodingKey::from_secret(&SECRET)).ok()
+    jsonwebtoken::encode(
+        &Header::default(),
+        &payload,
+        &EncodingKey::from_base64_secret(&*SECRET.read().unwrap()).unwrap(),
+    ).ok()
 }
 
 fn decode_token(token: String) -> Result<TokenData<AuthToken>> {
-    jsonwebtoken::decode::<AuthToken>(&token, &DecodingKey::from_secret(&SECRET), &Validation::default())
+    jsonwebtoken::decode::<AuthToken>(
+        &token,
+        &DecodingKey::from_base64_secret(&*SECRET.read().unwrap()).unwrap(),
+        &Validation::default(),
+    )
 }
 
 fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
     // TODO(Tavo): Blacklist for logged off tokens
-     Utc::now().timestamp_nanos() / 1_000_000_000 < token_data.claims.exp
+    Utc::now().timestamp_nanos() / 1_000_000_000 < token_data.claims.exp
+}
+
+pub fn manage() -> AdHoc {
+    AdHoc::on_attach("Manage config", |rocket| {
+        // Rocket doesn't expose it's own secret_key, so we use our own here.
+        let cfg = rocket.config();
+        let extras = &cfg.extras;
+
+        let secret_value = extras.get("jwt");
+
+        if secret_value.is_some() {
+            let secret_table = secret_value.unwrap().as_table().unwrap();
+            let secret = secret_table.get("secret").unwrap().as_str().unwrap();
+            let mut global_secret = SECRET.write().unwrap();
+            *global_secret = secret.to_string();
+        }
+
+        Ok(rocket)
+    })
 }

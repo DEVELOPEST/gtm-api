@@ -6,7 +6,7 @@ use crate::db;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::helpers::jwt;
-use crypto::scrypt::{scrypt_simple, ScryptParams, scrypt_check};
+use crypto::scrypt::{scrypt_check};
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
