@@ -56,6 +56,7 @@ pub fn rocket() -> rocket::Rocket {
                 routes::repositories::put_repository,
                 routes::groups::post_group_parents,
                 routes::groups::post_group_children,
+                routes::groups::get_groups,
                 routes::timelines::get_timeline,
             ],
         )

@@ -18,6 +18,12 @@ pub struct NewGroupChildrenRelation {
     children: Option<Vec<String>>,
 }
 
+#[get("/groups")]
+pub fn get_groups(conn: db::Conn) -> JsonValue {
+    let groups = db::groups::find_all(&conn);
+    json!({"groups": groups})
+}
+
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
 pub fn post_group_parents(
     //auth: Auth,
