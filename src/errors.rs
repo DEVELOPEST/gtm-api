@@ -1,8 +1,17 @@
+use rocket::{Request, response};
+use rocket::response::{content, Responder};
+use serde::Serialize;
 use validator::{Validate, ValidationError, ValidationErrors};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Errors {
     errors: ValidationErrors,
+}
+
+impl<'a> Responder<'a> for Errors {
+    fn respond_to(self, req: &Request) -> response::Result<'a> {
+        content::Json(json!(self.errors)).respond_to(req)
+    }
 }
 
 pub type FieldName = &'static str;
