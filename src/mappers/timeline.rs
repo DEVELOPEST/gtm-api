@@ -21,7 +21,7 @@ pub fn map_timeline(
     for item in data {
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
-                intervals[i].time = intervals[i].time + item.time;
+                intervals[i].time += item.time;
                 if !intervals[i].users.contains(&item.user) {
                     intervals[i].users.push(item.user.to_string());
                 }
