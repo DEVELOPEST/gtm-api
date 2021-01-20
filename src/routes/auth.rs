@@ -35,5 +35,5 @@ pub fn post_login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, E
         return Err(Errors::new(&[("password", "Wrong password!")]));
     }
 
-    Ok(json!(jwt::generate_token_for_user(user)))
+    Ok(json!({"jwt": jwt::generate_token_for_user(user)}))
 }
