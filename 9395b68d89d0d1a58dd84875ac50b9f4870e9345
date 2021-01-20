@@ -1,0 +1,8 @@
+[ver:1,total:2220,branch:feature/API-15]
+src/helpers/jwt.rs:1490,1611129600:1255,1611133200:235,m
+.gtm/Cargo-> Run gtm-api.app:488,1611129600:301,1611133200:187,r
+.gtm/Cargo-> Build `Run gtm-api`.app:93,1611129600:79,1611133200:14,r
+Rocket.toml:86,1611129600:67,1611133200:19,m
+src/routes/auth.rs:25,1611133200:25,m
+src/lib.rs:23,1611129600:23,m
+Cargo.toml:15,1611129600:15,m
