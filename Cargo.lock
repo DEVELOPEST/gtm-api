@@ -451,6 +451,7 @@ dependencies = [
  "diesel_migrations",
  "dotenv",
  "jsonwebtoken",
+ "lazy_static",
  "rocket",
  "rocket_contrib",
  "rocket_cors",
