@@ -26,6 +26,7 @@ mod schema;
 mod mappers;
 mod helpers;
 mod setup;
+mod services;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;

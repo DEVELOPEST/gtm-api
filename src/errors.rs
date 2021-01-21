@@ -84,7 +84,8 @@ impl FieldValidator {
                 .add("period", ValidationError::new("Too long period!"));
         }
 
-        if !(interval == "HOUR" || interval == "DAY" || interval == "WEEK" || interval == "MONTH")  {
+        let interval = &*interval.to_lowercase();
+        if !(interval == "hour" || interval == "day" || interval == "week" || interval == "month")  {
             self.errors
                 .add("interval", ValidationError::new("Invalid interval!"));
         }
