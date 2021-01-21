@@ -14,8 +14,8 @@ pub struct Activity {
     pub id: i32,
     pub label: String,
     pub time: i64,
-    pub lines_added: i32,
-    pub lines_removed: i32,
+    pub lines_added: i64,
+    pub lines_removed: i64,
     pub users: Vec<String>,
 }
 
@@ -34,7 +34,8 @@ impl Activity {
     pub fn attach(&self) -> ActivityJson {
         ActivityJson {
             label: self.label.clone(),
-            time: self.time,
+            label_key: self.id,
+            time: self.time / 60 / 60,
             lines_added: self.lines_added,
             lines_removed: self.lines_removed,
             users: self.users.len() as i32,
@@ -55,8 +56,9 @@ pub struct IntervalJson {
 #[serde(rename_all = "camelCase")]
 pub struct ActivityJson {
     pub label: String,
+    pub label_key: i32,
     pub time: i64,
-    pub lines_added: i32,
-    pub lines_removed: i32,
+    pub lines_added: i64,
+    pub lines_removed: i64,
     pub users: i32,
 }

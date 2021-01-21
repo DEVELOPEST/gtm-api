@@ -1,15 +1,14 @@
-use crate::models::timeline::{Timeline, TimelineJson};
-use crate::models::interval::{IntervalJson, ActivityJson};
-use crate::models::timeline_dwh::{TimelineDWH};
-use crate::schema::timeline;
-use crate::errors::{FieldValidator};
-use crate::routes::timelines::NewTimelineData;
 use diesel;
+use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable, sql_query, sql_types};
-use crate::mappers::timeline::{map_timeline, map_activity};
 
+use crate::db;
+use crate::errors::FieldValidator;
+use crate::models::timeline::{Timeline, TimelineJson};
+use crate::routes::timelines::NewTimelineData;
+use crate::schema::timeline;
+use crate::db::dwh::timeline::TimelineDWH;
 
 #[derive(Insertable)]
 #[table_name = "timeline"]
@@ -47,96 +46,26 @@ pub fn create_all(
     vec
 }
 
-pub fn get_timeline(
-    conn: &PgConnection,
-    group_name: &str,
-    start: i64,
-    end: i64,
-    timezone: &str,
-    interval: &str,
-) -> Vec<IntervalJson> {
-    let day_timeline: Vec<TimelineDWH> = sql_query("
-    WITH RECURSIVE q AS
-        (
-        SELECT  group_group_members.child, 0 AS depth
-        FROM    group_group_members
-        WHERE   group_group_members.parent = (
-            SELECT groups.id
-            FROM groups
-            WHERE groups.name = $1)
-        UNION
-        SELECT  m.child, q.depth + 1
-        FROM    group_group_members m
-        JOIN    q
-        ON      m.parent = q.child
-        WHERE   q.depth < 100
-        )
+pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<TimelineDWH> {
+    let day_timeline: Vec<TimelineDWH> = sql_query(format!("
+    {}
     SELECT repositories.user, timeline.time, timeline.timestamp FROM timeline
     INNER JOIN files ON timeline.file = files.id
     INNER JOIN commits ON files.commit = commits.id
     INNER JOIN repositories ON commits.repository_id = repositories.id
     WHERE repositories.group IN (
-        SELECT  q.child
-        FROM    q
+        SELECT  group_repos_query.child
+        FROM    group_repos_query
         UNION (
             SELECT g.id
             FROM groups g
             WHERE g.name = $1))
         AND timeline.timestamp >= $2
-        AND timeline.timestamp < $3")
+        AND timeline.timestamp < $3", db::queries::GROUP_REPOS_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
         .load(conn)
         .expect("Error loading timeline for group");
-
-    println!("{:?}", day_timeline);
-    map_timeline(day_timeline, start, end, timezone, interval)
-}
-
-pub fn get_activity_timeline(
-    conn: &PgConnection,
-    group_name: &str,
-    start: i64,
-    end: i64,
-    timezone: &str,
-    interval: &str,
-) -> Vec<ActivityJson> {
-    let day_timeline: Vec<TimelineDWH> = sql_query("
-    WITH RECURSIVE q AS
-        (
-        SELECT  group_group_members.child, 0 AS depth
-        FROM    group_group_members
-        WHERE   group_group_members.parent = (
-            SELECT groups.id
-            FROM groups
-            WHERE groups.name = $1)
-        UNION
-        SELECT  m.child, q.depth + 1
-        FROM    group_group_members m
-        JOIN    q
-        ON      m.parent = q.child
-        WHERE   q.depth < 100
-        )
-    SELECT repositories.user, timeline.time, timeline.timestamp FROM timeline
-    INNER JOIN files ON timeline.file = files.id
-    INNER JOIN commits ON files.commit = commits.id
-    INNER JOIN repositories ON commits.repository_id = repositories.id
-    WHERE repositories.group IN (
-        SELECT  q.child
-        FROM    q
-        UNION (
-            SELECT g.id
-            FROM groups g
-            WHERE g.name = $1))
-        AND timeline.timestamp >= $2
-        AND timeline.timestamp < $3")
-        .bind::<sql_types::Text, _>(group_name)
-        .bind::<sql_types::BigInt, _>(start)
-        .bind::<sql_types::BigInt, _>(end)
-        .load(conn)
-        .expect("Error loading timeline for group");
-
-    println!("{:?}", day_timeline);
-    map_activity(day_timeline, start, end, timezone, interval)
+    day_timeline
 }

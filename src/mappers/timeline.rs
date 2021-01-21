@@ -1,11 +1,11 @@
 use chrono_tz::Tz;
-use chrono::{DateTime, Utc, Timelike};
+use chrono::{DateTime, Utc, Timelike, Datelike};
 
 use std::time::{UNIX_EPOCH, Duration};
 
-use crate::helpers::timeline::generate_intervals;
-use crate::models::interval::{IntervalJson, ActivityJson, Activity};
-use crate::models::timeline_dwh::TimelineDWH;
+use crate::helpers::timeline::{generate_intervals, generate_activity_interval};
+use crate::models::interval::{IntervalJson, ActivityJson};
+use crate::db::dwh::timeline::{FileEditDWH, TimelineDWH};
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -34,38 +34,33 @@ pub fn map_timeline(
 }
 
 pub fn map_activity(
-    data: Vec<TimelineDWH>,
-    start: i64,
-    end: i64,
+    data: Vec<FileEditDWH>,
     timezone: &str,
     interval: &str,
 ) -> Vec<ActivityJson> {
     let tz: Tz = timezone.parse().unwrap();
-    let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
-    let end_tz = get_datetime_tz_from_seconds(end, &tz);
-
-    let mut interval : Vec<Activity> = vec![];
-    for i in 0..24 {
-        interval.push(Activity{
-            id: i,
-            label: format!("{}", i),
-            time: 0,
-            lines_added: 0,
-            lines_removed: 0,
-            users: vec![]
-        })
-    }
+    let interval = &*interval.to_lowercase();
+    let mut intervals = generate_activity_interval(interval);
 
     for item in data {
         let time_point = get_datetime_tz_from_seconds(item.timestamp, &tz);
-        let i = interval.iter().position(|a| a.id == time_point.hour() as i32).unwrap();
-        interval[i].time += item.time;
-        if !interval[i].users.contains(&item.user) {
-            interval[i].users.push(item.user);
+        let i = intervals.iter().position(|a| {
+            a.id == match interval {
+                "day" => time_point.hour() as i32,
+                "week" => time_point.weekday().number_from_monday() as i32,
+                "month" => time_point.month0() as i32,
+                _ => 0,
+            }
+        }).unwrap();
+        intervals[i].time += item.time;
+        intervals[i].lines_added += item.lines_added;
+        intervals[i].lines_removed += item.lines_deleted;
+        if !intervals[i].users.contains(&item.user) {
+            intervals[i].users.push(item.user);
         }
     }
 
-    interval.into_iter().map(|x| x.attach()).collect()
+    intervals.into_iter().map(|x| x.attach()).collect()
 }
 
 pub fn get_datetime_tz_from_seconds(seconds: i64, timezone: &Tz) -> DateTime<Tz> {

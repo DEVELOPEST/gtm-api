@@ -1,10 +1,11 @@
-use serde::Deserialize;
-use crate::errors::{Errors, FieldValidator};
-use validator::Validate;
-use crate::db;
-use rocket_contrib::json::{JsonValue};
 use rocket::request::Form;
+use rocket_contrib::json::JsonValue;
+use serde::Deserialize;
+use validator::Validate;
 
+use crate::db;
+use crate::errors::{Errors, FieldValidator};
+use crate::services;
 
 #[derive(Deserialize, Validate)]
 pub struct NewTimelineData {
@@ -37,7 +38,7 @@ pub fn get_timeline(
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
 
-    let timeline = db::timelines::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
+    let timeline = services::timeline::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
     Ok(json!({ "timeline": timeline }))
 }
 
@@ -57,6 +58,6 @@ pub fn get_activity_timeline(
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
 
-    let timeline = db::timelines::get_activity_timeline(&conn, &group_name, start, end, &timezone, &interval);
-    Ok(json!({ "activity_timeline": timeline }))
+    let timeline = services::timeline::get_activity_timeline(&conn, &group_name, start, end, &timezone, &interval);
+    Ok(json!({ "activityTimeline": timeline }))
 }
