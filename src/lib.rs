@@ -49,8 +49,8 @@ pub fn rocket() -> rocket::Rocket {
         .mount(
             "/api",
             routes![
-                routes::auth::post_login,
-                routes::users::post_users,
+                routes::auth::login,
+                routes::auth::register,
                 routes::users::get_user,
                 routes::commits::get_commit_hash,
                 routes::repositories::post_repository,
