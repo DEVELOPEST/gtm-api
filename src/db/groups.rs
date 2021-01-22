@@ -39,9 +39,15 @@ pub fn exists(conn: &PgConnection, name: &str) -> bool {
         .expect("Error finding  group")
 }
 
-pub fn find(conn: &PgConnection, name: &str) -> Group {
+pub fn find(conn: &PgConnection, name: &str) -> Option<Group> {
     groups::table
         .filter(groups::name.eq(name))
-        .get_result::<Group>(conn)
-        .expect("Cannot load repository")
+        .first::<Group>(conn)
+        .ok()
+}
+
+pub fn find_all(conn: &PgConnection) -> Vec<Group> {
+    groups::table
+        .load::<Group>(conn)
+        .expect("Unable to load groups")
 }

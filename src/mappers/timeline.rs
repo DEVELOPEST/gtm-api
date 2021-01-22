@@ -1,11 +1,11 @@
 use chrono_tz::Tz;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Timelike, Datelike};
 
 use std::time::{UNIX_EPOCH, Duration};
 
-use crate::helpers::timeline::generate_intervals;
-use crate::models::interval::IntervalJson;
-use crate::models::timeline_dwh::TimelineDWH;
+use crate::helpers::timeline::{generate_intervals, generate_activity_interval};
+use crate::models::interval::{IntervalJson, ActivityJson};
+use crate::db::dwh::timeline::{FileEditDWH, TimelineDWH};
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -21,7 +21,7 @@ pub fn map_timeline(
     for item in data {
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
-                intervals[i].time = intervals[i].time + item.time;
+                intervals[i].time += item.time;
                 if !intervals[i].users.contains(&item.user) {
                     intervals[i].users.push(item.user.to_string());
                 }
@@ -30,6 +30,36 @@ pub fn map_timeline(
         }
     }
     
+    intervals.into_iter().map(|x| x.attach()).collect()
+}
+
+pub fn map_activity(
+    data: Vec<FileEditDWH>,
+    timezone: &str,
+    interval: &str,
+) -> Vec<ActivityJson> {
+    let tz: Tz = timezone.parse().unwrap();
+    let interval = &*interval.to_lowercase();
+    let mut intervals = generate_activity_interval(interval);
+
+    for item in data {
+        let time_point = get_datetime_tz_from_seconds(item.timestamp, &tz);
+        let i = intervals.iter().position(|a| {
+            a.id == match interval {
+                "day" => time_point.hour() as i32,
+                "week" => time_point.weekday().number_from_monday() as i32,
+                "month" => time_point.month0() as i32,
+                _ => 0,
+            }
+        }).unwrap();
+        intervals[i].time += item.time;
+        intervals[i].lines_added += item.lines_added;
+        intervals[i].lines_removed += item.lines_deleted;
+        if !intervals[i].users.contains(&item.user) {
+            intervals[i].users.push(item.user);
+        }
+    }
+
     intervals.into_iter().map(|x| x.attach()).collect()
 }
 

@@ -2,7 +2,7 @@ use crate::config::DATE_FORMAT;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize)]
 pub struct Group {
     pub id: i32,
     pub name: String,

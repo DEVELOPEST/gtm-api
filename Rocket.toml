@@ -3,3 +3,6 @@ port = 8000
 
 [global.databases]
 diesel_postgres_pool = { url = "postgres://rocket:rocket@localhost/rocket" }
+
+[global.jwt]
+secret = "zRXL2u7hw84MTir+ZMjIGg=="

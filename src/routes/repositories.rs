@@ -2,7 +2,6 @@ use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
 
-// use crate::auth::Auth;
 use crate::db;
 use crate::errors::{Errors, FieldValidator};
 use crate::routes::commits::NewCommitData;
@@ -28,7 +27,6 @@ pub struct NewRepositoryData {
 
 #[post("/repositories", format = "json", data = "<new_repository>")]
 pub fn post_repository(
-    //auth: Auth,
     new_repository: Json<NewRepository>,
     conn: db::Conn,
 ) -> Result<JsonValue, Errors> {
@@ -46,7 +44,7 @@ pub fn post_repository(
     if !db::groups::exists(&conn, &group_name) {
         db::groups::create(&conn, &group_name);
     }
-    let group = db::groups::find(&conn, &group_name);
+    let group = db::groups::find(&conn, &group_name).unwrap();
 
     let repository = db::repositories::create(
         &conn,

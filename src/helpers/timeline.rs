@@ -1,6 +1,6 @@
 use chrono::{Datelike, DateTime, TimeZone};
 
-use crate::models::interval::Interval;
+use crate::models::interval::{Activity, Interval};
 
 pub trait DateTimeExt<Tz: TimeZone> {
     fn next_month(&self) -> DateTime<Tz>;
@@ -53,4 +53,50 @@ fn get_interval_duration(interval: &str) -> chrono::Duration {
         "DAY" => chrono::Duration::days(1),
         _ => chrono::Duration::weeks(1)
     }
+}
+
+pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
+    let mut res: Vec<Activity> = vec![];
+    let interval= &*interval.to_lowercase();
+    match interval {
+        "day" => {
+            for i in 0..24 {
+                res.push(Activity {
+                    id: i,
+                    label: format!("{}", i),
+                    time: 0,
+                    lines_added: 0,
+                    lines_removed: 0,
+                    users: vec![],
+                })
+            }
+        },
+        "week" => {
+            let days = vec!["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            for i in 0..days.len() {
+                res.push(Activity {
+                    id: (i + 1) as i32,
+                    label: days[i].to_string(),
+                    time: 0,
+                    lines_added: 0,
+                    lines_removed: 0,
+                    users: vec![],
+                })
+            }
+        },
+        "month" => {
+            for i in 0..31 {
+                res.push(Activity {
+                    id: i,
+                    label: format!("{}", i),
+                    time: 0,
+                    lines_added: 0,
+                    lines_removed: 0,
+                    users: vec![],
+                })
+            }
+        },
+        _ => {}
+    }
+    res
 }
