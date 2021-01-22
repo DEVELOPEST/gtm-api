@@ -47,7 +47,7 @@ pub fn rocket() -> rocket::Rocket {
     dotenv().ok();
     rocket::ignite()
         .mount(
-            "/api",
+            "/services/gtm/api/",
             routes![
                 routes::auth::login,
                 routes::auth::register,
