@@ -2,7 +2,7 @@
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
-  hash TEXT NOT NULL
+  password TEXT NOT NULL
 );
 
 CREATE TABLE tokens (
