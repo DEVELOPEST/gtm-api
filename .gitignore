@@ -34,3 +34,5 @@
 # .idea/modules
 # *.iml
 # *.ipr
+.idea/
+/.gtm/

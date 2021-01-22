@@ -1,0 +1,47 @@
+name: Deploy
+on:
+  workflow_run:
+    workflows: ["Build"]
+    branches: ["main"]
+    types:
+      - completed
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    env:
+      CONTAINER_NAME: 'gtm-api'
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Docker pull
+        run: |
+          sudo docker pull ghcr.io/developest/gtm-api:latest
+      - name: Stop old container
+        run: |
+          sudo docker stop ${{ env.CONTAINER_NAME }} || true
+      - name: Run new container
+        run: |
+          sudo docker run \
+            --name ${{ env.CONTAINER_NAME }} \
+            --network="api-internal-network" \
+            -e DATABASE_URL=$DATABASE_URL \
+            -e SECRET_KEY=$SECRET_KEY \
+            -v /etc/gtm/gtm-api:/gtm/gtm-api \
+            -p 8000:8000 \
+            -d ghcr.io/developest/gtm-api:latest
+  clean-up:
+    name: Clean up
+    needs: ['Deploy']
+    runs-on: self-hosted
+    steps:
+      - name: Docker prune
+        run: |
+          sudo docker system prune -af
+      - name: Show running containers
+        run: |
+          sudo docker ps

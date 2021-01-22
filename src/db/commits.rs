@@ -7,9 +7,6 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::{Insertable};
-use crate::models::repository::Repository;
-use std::cmp::Ordering;
-
 
 #[derive(Insertable)]
 #[table_name = "commits"]
@@ -31,6 +28,19 @@ pub fn find_last_by_repository_id(
         .order(commits::timestamp.desc())
         .limit(1)
         .get_result::<Commit>(conn)
+        .expect("Cannot load commit")
+}
+
+
+pub fn find_all_by_repository_id(
+    conn: &PgConnection,
+    repository_id: i32
+) -> Vec<String> {
+    commits::table
+        .filter(commits::repository_id.eq(repository_id))
+        .order(commits::timestamp.desc())
+        .select(commits::hash)
+        .load::<String>(conn)
         .expect("Cannot load commit")
 }
 

@@ -1,12 +1,14 @@
-use crate::models::timeline::{Timeline, TimelineJson};
-use crate::schema::timeline;
-use crate::errors::{FieldValidator};
-use crate::routes::timelines::NewTimelineData;
 use diesel;
+use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
 
+use crate::db;
+use crate::errors::FieldValidator;
+use crate::models::timeline::{Timeline, TimelineJson};
+use crate::routes::timelines::NewTimelineData;
+use crate::schema::timeline;
+use crate::db::dwh::timeline::TimelineDWH;
 
 #[derive(Insertable)]
 #[table_name = "timeline"]
@@ -42,4 +44,28 @@ pub fn create_all(
         vec.push(timeline_json)
     }
     vec
+}
+
+pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<TimelineDWH> {
+    let day_timeline: Vec<TimelineDWH> = sql_query(format!("
+    {}
+    SELECT repositories.user, timeline.time, timeline.timestamp FROM timeline
+    INNER JOIN files ON timeline.file = files.id
+    INNER JOIN commits ON files.commit = commits.id
+    INNER JOIN repositories ON commits.repository_id = repositories.id
+    WHERE repositories.group IN (
+        SELECT  group_repos_query.child
+        FROM    group_repos_query
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))
+        AND timeline.timestamp >= $2
+        AND timeline.timestamp < $3", db::queries::GROUP_REPOS_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .expect("Error loading timeline for group");
+    day_timeline
 }

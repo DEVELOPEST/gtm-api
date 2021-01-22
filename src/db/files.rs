@@ -6,7 +6,8 @@ use crate::db;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+use diesel::{Insertable, sql_query, sql_types};
+use crate::db::dwh::timeline::FileEditDWH;
 
 
 #[derive(Insertable)]
@@ -57,4 +58,28 @@ pub fn create_all(
         vec.push(file.attach(timeline_vec))
     }
     vec
+}
+
+pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<FileEditDWH> {
+    let edit_timeline: Vec<FileEditDWH> = sql_query(format!("
+    {}
+    SELECT repositories.user, files.time, files.lines_added, files.lines_deleted, commits.timestamp
+    FROM files
+    INNER JOIN commits ON files.commit = commits.id
+    INNER JOIN repositories ON commits.repository_id = repositories.id
+    WHERE repositories.group IN (
+        SELECT  group_repos_query.child
+        FROM    group_repos_query
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))
+        AND commits.timestamp >= $2
+        AND commits.timestamp < $3", db::queries::GROUP_REPOS_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .expect("Error loading timeline for group");
+    edit_timeline
 }
