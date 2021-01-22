@@ -1,2 +1,15 @@
 [ver:1,total:240,branch:develop]
 .github/workflows/deploy.yml:240,1611342000:240,m
+
+[ver:1,total:240,branch:master]
+.github/workflows/develop.yml:180,1611342000:180,m
+.github/workflows/deploy.yml:60,1611342000:60,m
+
+[ver:1,total:840,branch:develop]
+migrations/2020-11-21-162021_create_main_tables/up.sql:435,1611338400:15,1611342000:420,r
+.gtm/Cargo-> Build `Run gtm-api`.app:135,1611338400:135,r
+.github/workflows/build.yml:90,1611342000:90,m
+src/routes/repositories.rs:75,1611338400:75,r
+src/db/timelines.rs:45,1611338400:45,r
+.github/workflows/develop.yml:30,1611342000:30,m
+src/config.rs:30,1611338400:30,r
