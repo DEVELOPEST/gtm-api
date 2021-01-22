@@ -2,7 +2,7 @@
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
-  hash TEXT NOT NULL
+  password TEXT NOT NULL
 );
 
 CREATE TABLE tokens (
@@ -12,21 +12,22 @@ CREATE TABLE tokens (
   added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE git_groups (
+CREATE TABLE groups (
   id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE repositories (
   id SERIAL PRIMARY KEY,
-  username TEXT NOT NULL,
+  "group" INTEGER NOT NULL,
+  "user" TEXT NOT NULL,
   provider TEXT NOT NULL,
   repo TEXT NOT NULL,
   sync_url TEXT NOT NULL,
   access_token TEXT NOT NULL,
   added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  CONSTRAINT repo_identifier UNIQUE (username, provider, repo)
+  CONSTRAINT repo_identifier UNIQUE ("user", provider, repo)
 );
 
 CREATE TABLE commits (

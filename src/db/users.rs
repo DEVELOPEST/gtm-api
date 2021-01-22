@@ -1,16 +1,16 @@
-use crate::models::user::User;
-use crate::schema::users;
 use crypto::scrypt::{scrypt_simple, ScryptParams};
-use diesel::pg::PgConnection;
+use diesel::Insertable;
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
-use diesel::{Insertable};
+
+use crate::models::user::User;
+use crate::schema::users;
 
 #[derive(Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
     pub email: &'a str,
-    pub hash: &'a str,
+    pub password: &'a str,
 }
 
 pub enum UserCreationError {
@@ -40,7 +40,7 @@ pub fn create(
 
     let new_user = &NewUser {
         email,
-        hash,
+        password: hash,
     };
 
     diesel::insert_into(users::table)
@@ -55,4 +55,10 @@ pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
         .get_result(conn)
         .map_err(|err| println!("find_user: {}", err))
         .ok()
+}
+
+pub fn find_by_email(conn: &PgConnection, email: &str) -> Option<User> {
+    users::table
+        .filter(users::email.eq(email))
+        .first::<User>(conn).ok()
 }
