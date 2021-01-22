@@ -1,0 +1,5 @@
+[ver:1,total:480,branch:feature/API-15]
+src/models/interval.rs:300,1611223200:300,r
+src/routes/auth.rs:67,1611338400:67,m
+src/routes/users.rs:63,1611338400:63,m
+.gtm/Cargo-> Build `Run gtm-api`.app:50,1611338400:50,r
