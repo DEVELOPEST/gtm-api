@@ -1,5 +1,5 @@
 use diesel::Queryable;
-use serde::{Serialize};
+use serde::{Deserialize, Serialize};
 use lazy_static::lazy_static;
 
 lazy_static! {

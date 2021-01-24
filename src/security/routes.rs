@@ -8,6 +8,8 @@ use crate::user::db::UserCreationError;
 use crate::db::Conn;
 use crate::user;
 use crate::security;
+use crate::user::model::AuthUser;
+use crate::role::model::ADMIN;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
