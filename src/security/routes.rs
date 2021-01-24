@@ -6,8 +6,10 @@ use crypto::scrypt::{scrypt_check};
 use crate::errors::{Errors, FieldValidator};
 use crate::user::db::UserCreationError;
 use crate::db::Conn;
-use crate::security::jwt;
 use crate::user;
+use crate::security;
+use crate::user::model::AuthUser;
+use crate::role::model::ADMIN;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -36,7 +38,7 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
         return Err(Errors::new(&[("password", "Wrong password!")]));
     }
 
-    Ok(json!({"jwt": jwt::generate_token_for_user(user)}))
+    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
 }
 
 #[derive(Deserialize)]
@@ -66,7 +68,7 @@ pub fn register(
 
     extractor.check()?;
 
-    let created_user = user::db::create(&conn, &email, &password)
+    let created_user = security::service::new_user(&conn, &email, &password)
         .map_err(|error| {
             let field = match error {
                 UserCreationError::DuplicatedEmail => "email",
@@ -75,5 +77,5 @@ pub fn register(
             Errors::new(&[(field, "has already been taken")])
         });
 
-    Ok(json!(jwt::generate_token_for_user(created_user?)))
+    Ok(json!(security::jwt::generate_token_for_user(&conn, created_user?)))
 }
