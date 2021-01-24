@@ -1,5 +1,5 @@
 use diesel::Queryable;
-use serde::{Serialize};
+use serde::{Deserialize, Serialize};
 use crate::errors::Errors;
 
 #[derive(Queryable, Serialize)]
