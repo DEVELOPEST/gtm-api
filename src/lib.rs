@@ -20,13 +20,17 @@ use dotenv::dotenv;
 mod config;
 mod db;
 mod errors;
-mod models;
-mod routes;
 mod schema;
-mod mappers;
-mod helpers;
 mod setup;
-mod services;
+mod repository;
+mod user;
+mod timeline;
+mod security;
+mod group_group_member;
+mod group;
+mod file;
+mod common;
+mod commit;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -49,22 +53,22 @@ pub fn rocket() -> rocket::Rocket {
         .mount(
             "/services/gtm/api/",
             routes![
-                routes::auth::login,
-                routes::auth::register,
-                routes::users::get_user,
-                routes::commits::get_commit_hash,
-                routes::repositories::post_repository,
-                routes::repositories::put_repository,
-                routes::groups::post_group_parents,
-                routes::groups::post_group_children,
-                routes::groups::get_groups,
-                routes::timelines::get_timeline,
-                routes::timelines::get_activity_timeline,
+                security::routes::login,
+                security::routes::register,
+                user::routes::get_user,
+                commit::routes::get_commit_hash,
+                repository::routes::post_repository,
+                repository::routes::put_repository,
+                group::routes::post_group_parents,
+                group::routes::post_group_children,
+                group::routes::get_groups,
+                timeline::routes::get_timeline,
+                timeline::routes::get_activity_timeline,
             ],
         )
         .attach(db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())
-        .attach(helpers::jwt::manage())
+        .attach(security::jwt::manage())
         .register(catchers![not_found])
 }
