@@ -51,6 +51,13 @@ table! {
 }
 
 table! {
+    roles (id) {
+        id -> Int4,
+        name -> Text,
+    }
+}
+
+table! {
     timeline (id) {
         id -> Int4,
         file -> Int4,
@@ -76,6 +83,13 @@ table! {
 }
 
 table! {
+    user_role_members (user, role) {
+        user -> Int4,
+        role -> Int4,
+    }
+}
+
+table! {
     users (id) {
         id -> Int4,
         email -> Text,
@@ -89,6 +103,8 @@ joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_group_members -> groups (group));
 joinable!(user_group_members -> users (user));
+joinable!(user_role_members -> roles (role));
+joinable!(user_role_members -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
@@ -96,8 +112,10 @@ allow_tables_to_appear_in_same_query!(
     group_group_members,
     groups,
     repositories,
+    roles,
     timeline,
     tokens,
     user_group_members,
+    user_role_members,
     users,
 );

@@ -35,7 +35,7 @@ pub fn create(
     password: &str,
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
-    let hash = &scrypt_simple(password, &ScryptParams::new(14, 8, 1)).expect("hash error");
+    let hash = &scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error");
 
     let new_user = &NewUser {
         email,
@@ -60,4 +60,14 @@ pub fn find_by_email(conn: &PgConnection, email: &str) -> Option<User> {
     users::table
         .filter(users::email.eq(email))
         .first::<User>(conn).ok()
+}
+
+pub fn exists(conn: &PgConnection, id: i32) -> bool {
+    use diesel::dsl::exists;
+    use diesel::select;
+
+    select(exists(users::table
+        .filter(users::id.eq(id))))
+        .get_result(conn)
+        .expect("Error finding  user")
 }

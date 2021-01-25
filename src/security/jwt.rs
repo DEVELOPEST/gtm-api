@@ -13,8 +13,10 @@ use rocket::request::{self, FromRequest, Request};
 use rocket::response::status;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
-use crate::user::model::{UserRole, AuthUser, User};
+use crate::user::model::{AuthUser, User};
 use crate::db::Conn;
+use crate::role;
+use diesel::PgConnection;
 
 
 const ONE_WEEK: i64 = 60 * 60 * 24 * 7;
@@ -23,14 +25,14 @@ lazy_static! {
     static ref SECRET: RwLock<String> = RwLock::new("zRXL2u7hw84MTir+ZMjIGg==".to_string());
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AuthToken {
     // issued at
     pub iat: i64,
     // expiration
     pub exp: i64,
     pub user: i32,
-    pub role: UserRole,
+    pub roles: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -57,7 +59,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthUser {
         }
 
         Outcome::Failure((
-            Status::BadRequest,
+            Status::Unauthorized,
             status::Custom(
                 Status::Unauthorized,
                 Json(AuthError {
@@ -72,18 +74,19 @@ impl AuthToken {
     pub fn to_auth_user(&self) -> AuthUser {
         AuthUser {
             user_id: self.user,
-            role: self.role,
+            roles: self.roles.clone(),
         }
     }
 }
 
-pub fn generate_token_for_user(user: User) -> Option<String> {
+pub fn generate_token_for_user(conn: &PgConnection, user: User) -> Option<String> {
     let now = Utc::now().timestamp_nanos() / 1_000_000_000; // nanosecond -> second
     let payload = AuthToken {
         iat: now,
         exp: now + ONE_WEEK,
         user: user.id,
-        role: UserRole::ADMIN,
+        roles: role::db::find_all_by_user(conn, user.id)
+            .into_iter().map(|x| x.attach()).collect(),
     };
 
     jsonwebtoken::encode(
