@@ -1,11 +1,6 @@
 use diesel::Queryable;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum UserRole {
-    ADMIN,
-    REGULAR,
-}
+use serde::{Serialize};
+use crate::errors::Errors;
 
 #[derive(Queryable, Serialize)]
 pub struct User {
@@ -18,5 +13,14 @@ pub struct User {
 #[derive(Serialize)]
 pub struct AuthUser {
     pub user_id: i32,
-    pub role: UserRole,
+    pub roles: Vec<String>,
+}
+
+impl AuthUser {
+    pub fn has_role(&self, role: &String) -> Result<(), Errors> {
+        if !self.roles.contains(role) {
+            return Err(Errors::new(&[("Authorization", "Not authorized!")]));
+        }
+        Ok(())
+    }
 }

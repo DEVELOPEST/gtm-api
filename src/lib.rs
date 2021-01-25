@@ -1,4 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
+#![feature(result_contains_err)]
 
 #[macro_use]
 extern crate rocket;
@@ -31,6 +32,8 @@ mod group;
 mod file;
 mod common;
 mod commit;
+mod role;
+mod user_role_member;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -64,6 +67,7 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::get_groups,
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
+                role::routes::add_role_to_user,
             ],
         )
         .attach(db::Conn::fairing())
