@@ -2,12 +2,12 @@ use diesel;
 use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use crate::commit::routes::NewCommitData;
-use crate::repository::model::{RepositoryJson, Repository};
-use crate::schema::repositories;
-use crate::repository;
-use crate::commit;
 
+use crate::commit;
+use crate::commit::routes::NewCommitData;
+use crate::repository;
+use crate::repository::model::{Repository, RepositoryJson};
+use crate::schema::repositories;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
