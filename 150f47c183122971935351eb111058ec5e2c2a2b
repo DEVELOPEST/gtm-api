@@ -1,0 +1,21 @@
+[ver:1,total:3000,branch:feature/API-22]
+.gtm/Cargo-> Run gtm-api.app:991,1611518400:75,1611687600:856,1611691200:60,r
+src/user/db.rs:260,1611518400:260,r
+src/security/jwt.rs:225,1611518400:225,r
+src/db/mod.rs:210,1611493200:120,1611496800:60,1611518400:30,r
+src/lib.rs:180,1611518400:180,r
+.github/workflows/deploy.yml:180,1611489600:180,r
+src/common/sql.rs:150,1611669600:150,r
+src/repository/routes.rs:149,1611687600:14,1611730800:120,1611734400:15,m
+src/commit/routes.rs:149,1611687600:149,m
+src/security/routes.rs:100,1611518400:100,r
+src/commit/db.rs:96,1611687600:54,1611734400:42,m
+src/timeline/db.rs:72,1611669600:30,1611734400:42,m
+src/user/model.rs:60,1611730800:60,r
+.gtm/Cargo-> Build `Run gtm-api`.app:52,1611518400:30,1611687600:7,1611734400:15,r
+src/timeline/service.rs:30,1611669600:30,r
+src/file/db.rs:30,1611669600:30,r
+src/timeline/dwh.rs:30,1611734400:30,r
+src/repository/mod.rs:12,1611734400:12,r
+src/repository/model.rs:12,1611734400:12,m
+src/repository/db.rs:12,1611734400:12,m
