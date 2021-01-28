@@ -3,8 +3,8 @@ use serde::Deserialize;
 use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
-use crate::group_group_member;
 use crate::group;
+use crate::group::service;
 
 // use crate::auth::Auth;
 
@@ -27,6 +27,12 @@ pub fn get_groups(conn: Conn) -> JsonValue {
     json!({"groups": groups})
 }
 
+#[get("/groups/<group_name>/stats")]
+pub fn get_group_stats(conn: Conn, group_name: String) -> Result<JsonValue, Errors> {
+    // TODO: Start and end
+    Ok(json!(service::get_group_repos(&conn, &group_name, 0, 9223372036854775807)))
+}
+
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
 pub fn post_group_parents(
     //auth: Auth,
@@ -39,23 +45,7 @@ pub fn post_group_parents(
     let parents_vec = extractor.extract("parents", parents.parents);
     extractor.check()?;
 
-    let mut relation_child = group::db::find(&conn, &group_name);
-    if relation_child.is_none() {
-        relation_child = Some(group::db::create(&conn, &group_name));
-    }
-    let relation_child = relation_child.unwrap();
-
-    for parent in &parents_vec {
-        let relation_parent = if !group::db::exists(&conn, &parent) {
-            group::db::create(&conn, &parent)
-        } else {
-            group::db::find(&conn, &parent).unwrap()
-        };
-        if !group_group_member::db::exists(&conn, &relation_parent.id, &relation_child.id) {
-            group_group_member::db::create(&conn, relation_parent.id, relation_child.id);
-        }
-    }
-
+    service::add_group_relations(&conn, parents_vec, vec![group_name]);
     // TODO return something useful
     Ok(json!({}))
 }
@@ -72,23 +62,7 @@ pub fn post_group_children(
     let children_vec = extractor.extract("children", children.children);
     extractor.check()?;
 
-    let mut relation_parent = group::db::find(&conn, &group_name);
-    if relation_parent.is_none() {
-        relation_parent = Some(group::db::create(&conn, &group_name));
-    }
-    let relation_parent = relation_parent.unwrap();
-
-    for child in &children_vec {
-        let relation_child = if !group::db::exists(&conn, &child) {
-            group::db::create(&conn, &child)
-        } else {
-            group::db::find(&conn, &child).unwrap()
-        };
-        if !group_group_member::db::exists(&conn, &relation_parent.id, &relation_child.id) {
-            group_group_member::db::create(&conn, relation_parent.id, relation_child.id);
-        }
-    }
-
+    service::add_group_relations(&conn, vec![group_name], children_vec);
     // TODO return something useful
     Ok(json!({}))
 }

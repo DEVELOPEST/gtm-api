@@ -29,7 +29,7 @@ pub fn update(
     access_token: &str,
     commits: Vec<NewCommitData>,
 ) -> RepositoryJson {
-    let repository = repository::db::find(&conn, &user, &provider, &repo);
+    let repository = repository::db::find(&conn, &user, &provider, &repo).unwrap();
 
     let commits_vec = commit::db::create_all(
         &conn,
@@ -94,13 +94,13 @@ pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bo
         .expect("Error loading repository")
 }
 
-pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Repository {
+pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Option<Repository> {
     repositories::table
         .filter(repositories::user.eq(user)
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))
         .get_result::<Repository>(conn)
-        .expect("Cannot load repository")
+        .ok()
 }
 
 pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) {
