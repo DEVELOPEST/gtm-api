@@ -32,7 +32,7 @@ pub fn get_commit_hash(
     repo: String,
     conn: Conn,
 ) -> JsonValue {
-    let repository = repository::db::find(&conn, &user, &provider, &repo);
+    let repository = repository::db::find(&conn, &user, &provider, &repo).unwrap();
     let last_commit = commit::db::find_last_by_repository_id(&conn, repository.id)
         .unwrap_or(Commit {
             id: 0,

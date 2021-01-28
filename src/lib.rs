@@ -65,6 +65,7 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::post_group_parents,
                 group::routes::post_group_children,
                 group::routes::get_groups,
+                group::routes::get_group_stats,
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
                 role::routes::add_role_to_user,
