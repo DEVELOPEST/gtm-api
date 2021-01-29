@@ -1,10 +1,12 @@
+use rocket::request::Form;
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
+
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
-use crate::group_group_member;
 use crate::group;
+use crate::group::service;
 
 // use crate::auth::Auth;
 
@@ -21,10 +23,24 @@ pub struct NewGroupChildrenRelation {
     children: Option<Vec<String>>,
 }
 
+#[derive(FromForm, Default, Validate, Deserialize)]
+pub struct GroupStatsParams {
+    start: Option<i64>,
+    end: Option<i64>,
+}
+
 #[get("/groups")]
 pub fn get_groups(conn: Conn) -> JsonValue {
     let groups = group::db::find_all(&conn);
     json!({"groups": groups})
+}
+
+#[get("/groups/<group_name>/stats?<params..>")]
+pub fn get_group_stats(conn: Conn, group_name: String, params: Form<GroupStatsParams>) -> Result<JsonValue, Errors> {
+    let period = params.into_inner();
+    let start = period.start.unwrap_or(0);
+    let end = period.end.unwrap_or(std::i64::MAX);
+    Ok(json!(service::get_group_repos(&conn, &group_name, start, end)))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
@@ -39,23 +55,7 @@ pub fn post_group_parents(
     let parents_vec = extractor.extract("parents", parents.parents);
     extractor.check()?;
 
-    let mut relation_child = group::db::find(&conn, &group_name);
-    if relation_child.is_none() {
-        relation_child = Some(group::db::create(&conn, &group_name));
-    }
-    let relation_child = relation_child.unwrap();
-
-    for parent in &parents_vec {
-        let relation_parent = if !group::db::exists(&conn, &parent) {
-            group::db::create(&conn, &parent)
-        } else {
-            group::db::find(&conn, &parent).unwrap()
-        };
-        if !group_group_member::db::exists(&conn, &relation_parent.id, &relation_child.id) {
-            group_group_member::db::create(&conn, relation_parent.id, relation_child.id);
-        }
-    }
-
+    service::add_group_relations(&conn, parents_vec, vec![group_name]);
     // TODO return something useful
     Ok(json!({}))
 }
@@ -72,23 +72,7 @@ pub fn post_group_children(
     let children_vec = extractor.extract("children", children.children);
     extractor.check()?;
 
-    let mut relation_parent = group::db::find(&conn, &group_name);
-    if relation_parent.is_none() {
-        relation_parent = Some(group::db::create(&conn, &group_name));
-    }
-    let relation_parent = relation_parent.unwrap();
-
-    for child in &children_vec {
-        let relation_child = if !group::db::exists(&conn, &child) {
-            group::db::create(&conn, &child)
-        } else {
-            group::db::find(&conn, &child).unwrap()
-        };
-        if !group_group_member::db::exists(&conn, &relation_parent.id, &relation_child.id) {
-            group_group_member::db::create(&conn, relation_parent.id, relation_child.id);
-        }
-    }
-
+    service::add_group_relations(&conn, vec![group_name], children_vec);
     // TODO return something useful
     Ok(json!({}))
 }

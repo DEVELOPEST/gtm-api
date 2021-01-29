@@ -1,13 +1,13 @@
 use diesel;
 use diesel::{Insertable, sql_query, sql_types};
 use diesel::prelude::*;
-use crate::timeline::routes::NewTimelineData;
-use crate::timeline::model::{TimelineJson, Timeline};
+
+use crate::common::sql::GROUP_REPOS_QUERY;
 use crate::errors::FieldValidator;
 use crate::schema::timeline;
 use crate::timeline::dwh::TimelineDWH;
-use crate::common::sql::GROUP_REPOS_QUERY;
-
+use crate::timeline::model::{Timeline, TimelineJson};
+use crate::timeline::routes::NewTimelineData;
 
 #[derive(Insertable)]
 #[table_name = "timeline"]

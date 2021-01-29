@@ -42,7 +42,7 @@ pub fn post_repository(
     let access_token = extractor.extract("access_token", new_repository.access_token);
     extractor.check()?;
 
-    let group_name = format!("{}-{}-{}", provider, user, repo);
+    let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
     if !group::db::exists(&conn, &group_name) {
         group::db::create(&conn, &group_name);
     }
