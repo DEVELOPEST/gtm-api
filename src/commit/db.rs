@@ -1,12 +1,13 @@
 use diesel;
+use diesel::Insertable;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+
 use crate::commit::model::{Commit, CommitJson};
-use crate::schema::commits;
 use crate::commit::routes::NewCommitData;
 use crate::errors::FieldValidator;
 use crate::file;
+use crate::schema::commits;
 
 #[derive(Insertable)]
 #[table_name = "commits"]
@@ -21,14 +22,14 @@ struct NewCommit<'a> {
 
 pub fn find_last_by_repository_id(
     conn: &PgConnection,
-    repository_id: i32
-) -> Commit {
+    repository_id: i32,
+) -> Option<Commit> {
     commits::table
         .filter(commits::repository_id.eq(repository_id))
         .order(commits::timestamp.desc())
         .limit(1)
         .get_result::<Commit>(conn)
-        .expect("Cannot load commit")
+        .ok()
 }
 
 
@@ -41,7 +42,7 @@ pub fn find_all_by_repository_id(
         .order(commits::timestamp.desc())
         .select(commits::hash)
         .load::<String>(conn)
-        .expect("Cannot load commit")
+        .expect("Cannot load commits")
 }
 
 pub fn create_all(
@@ -80,6 +81,5 @@ pub fn create_all(
 
         vec.push(commit.attach(files_vec))
     }
-
     vec
 }

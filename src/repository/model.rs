@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
+
 use crate::commit::model::CommitJson;
 use crate::config::DATE_FORMAT;
 use crate::schema::repositories;
