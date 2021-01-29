@@ -42,7 +42,7 @@ pub fn find_all_by_repository_id(
         .order(commits::timestamp.desc())
         .select(commits::hash)
         .load::<String>(conn)
-        .expect("Cannot load commit")
+        .expect("Cannot load commits")
 }
 
 pub fn create_all(
