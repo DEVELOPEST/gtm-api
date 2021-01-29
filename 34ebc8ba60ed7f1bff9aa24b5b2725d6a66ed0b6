@@ -1,0 +1,8 @@
+[ver:1,total:840,branch:master]
+src/group/service.rs:480,1611946800:450,1611950400:30,m
+src/group_group_member/db.rs:150,1611946800:150,m
+.gtm/Cargo-> Run gtm-api.app:83,1611950400:83,r
+src/commit/routes.rs:70,1611946800:30,1611950400:40,m
+src/commit/service.rs:30,1611946800:30,m
+src/group/routes.rs:20,1611950400:20,m
+.gtm/Cargo-> Build `Run gtm-api`.app:7,1611950400:7,r
