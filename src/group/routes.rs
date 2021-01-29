@@ -1,6 +1,8 @@
+use rocket::request::Form;
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
+
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::group;
@@ -21,16 +23,24 @@ pub struct NewGroupChildrenRelation {
     children: Option<Vec<String>>,
 }
 
+#[derive(FromForm, Default, Validate, Deserialize)]
+pub struct GroupStatsParams {
+    start: Option<i64>,
+    end: Option<i64>,
+}
+
 #[get("/groups")]
 pub fn get_groups(conn: Conn) -> JsonValue {
     let groups = group::db::find_all(&conn);
     json!({"groups": groups})
 }
 
-#[get("/groups/<group_name>/stats")]
-pub fn get_group_stats(conn: Conn, group_name: String) -> Result<JsonValue, Errors> {
-    // TODO: Start and end
-    Ok(json!(service::get_group_repos(&conn, &group_name, 0, 9223372036854775807)))
+#[get("/groups/<group_name>/stats?<params..>")]
+pub fn get_group_stats(conn: Conn, group_name: String, params: Form<GroupStatsParams>) -> Result<JsonValue, Errors> {
+    let period = params.into_inner();
+    let start = period.start.unwrap_or(0);
+    let end = period.end.unwrap_or(std::i64::MAX);
+    Ok(json!(service::get_group_repos(&conn, &group_name, start, end)))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]

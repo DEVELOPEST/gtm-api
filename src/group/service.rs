@@ -25,7 +25,6 @@ pub fn add_group_relations(conn: &Conn, parents_vec: Vec<String>, children_vec: 
 }
 
 pub fn get_group_repos(conn: &Conn, group_name: &String, start: i64, end: i64) -> Result<Vec<GroupRepoStats>, Errors> {
-    let mut stats = group::db::fetch_group_repositories_stats(conn, group_name, start, end);
-    stats.sort_by_key(|f| f.total_time);
+    let stats = group::db::fetch_group_repositories_stats(conn, group_name, start, end);
     Ok(stats)
 }

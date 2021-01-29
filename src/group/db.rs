@@ -82,7 +82,7 @@ pub fn fetch_group_repositories_stats(conn: &PgConnection, group_name: &str, sta
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
         .load(conn)
-        .expect("Error loading repo stats for group");
+        .unwrap_or(vec![]);
 
     stats
 }
