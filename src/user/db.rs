@@ -1,9 +1,12 @@
 use crypto::scrypt::{scrypt_simple, ScryptParams};
-use diesel::Insertable;
+use diesel::{Insertable, sql_types};
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
 use crate::user::model::User;
 use crate::schema::users;
+use crate::schema::user_role_members;
+use crate::schema::roles;
+use crate::user::dwh::UserDWH;
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -70,4 +73,14 @@ pub fn exists(conn: &PgConnection, id: i32) -> bool {
         .filter(users::id.eq(id))))
         .get_result(conn)
         .expect("Error finding  user")
+}
+
+pub fn find_all(conn: &PgConnection) -> Vec<UserDWH> {
+    let users: Vec<UserDWH> = users::table
+        .inner_join(user_role_members::table)
+        .inner_join(roles::table.on(roles::id.eq(user_role_members::role)))
+        .select((users::id, users::email, users::password, roles::name))
+        .load::<UserDWH>(conn)
+        .expect("Cannot load users");
+    users
 }
