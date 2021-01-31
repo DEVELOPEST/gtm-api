@@ -24,3 +24,11 @@ impl AuthUser {
         Ok(())
     }
 }
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserJson {
+    pub id: i32,
+    pub email: String,
+    pub roles: Vec<String>,
+}

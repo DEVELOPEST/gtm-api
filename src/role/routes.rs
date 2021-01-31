@@ -11,7 +11,7 @@ use crate::role::model::ADMIN;
 
 #[derive(Deserialize, Validate)]
 pub struct UserRoleMemberDto {
-    #[validate(range(min = 1, max = 3))]
+    #[validate(range(min = 1))]
     pub user: Option<i32>,
     #[validate(range(min = 1, max = 3))]
     pub role: Option<i32>,
