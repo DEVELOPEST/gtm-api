@@ -1,5 +1,5 @@
 use chrono::{Datelike, DateTime, TimeZone};
-use crate::timeline::resources::{Interval, Activity};
+use crate::timeline::resources::{Activity};
 
 
 pub trait DateTimeExt<Tz: TimeZone> {
@@ -13,23 +13,20 @@ impl<Tz: TimeZone> DateTimeExt<Tz> for DateTime<Tz> {
     }
 }
 
-pub fn generate_intervals<Tz: TimeZone>(
+pub fn generate_intervals<Tz: TimeZone, EntryT>(
     start_tz: DateTime<Tz>,
     end_tz: DateTime<Tz>,
     interval: &str,
-) -> Vec<Interval<Tz>> {
+    entry_fn: fn(start: DateTime<Tz>, end: DateTime<Tz>) -> EntryT,
+) -> Vec<EntryT> {
     let mut intervals = Vec::new();
     let mut current_start_tz = start_tz.clone();
     let mut current_end_tz = get_next_interval_start(start_tz, interval);
 
     while end_tz.ge(&current_start_tz) {
-        intervals.push(Interval {
-            start: current_start_tz.clone(),
-            end: current_end_tz.clone() + chrono::Duration::seconds(-1),
-            time: 0,
-            users: Vec::new(),
-        });
-
+        intervals.push(
+            entry_fn(current_start_tz.clone(), current_end_tz.clone() + chrono::Duration::seconds(-1))
+        );
         current_start_tz = get_next_interval_start(current_start_tz, interval);
         current_end_tz = get_next_interval_start(current_end_tz, interval);
     }

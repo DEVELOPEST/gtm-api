@@ -1,5 +1,6 @@
 use chrono::{DateTime, TimeZone, Offset};
 use serde::Serialize;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 pub struct Interval<Tz: TimeZone> {
@@ -17,6 +18,23 @@ pub struct Activity {
     pub lines_added: i64,
     pub lines_removed: i64,
     pub users: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct SubdirLevelTimeline<Tz: TimeZone> {
+    pub start: DateTime<Tz>,
+    pub end: DateTime<Tz>,
+    pub directories: HashMap<String, SubdirLevelTimelineEntry>,
+}
+
+#[derive(Debug)]
+pub struct SubdirLevelTimelineEntry {
+    pub path: String,
+    pub time: i64,
+    pub commits: HashSet<String>,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub users: HashSet<String>,
 }
 
 impl<Tz: TimeZone> Interval<Tz> {
@@ -43,6 +61,29 @@ impl Activity {
     }
 }
 
+impl<Tz: TimeZone> SubdirLevelTimeline<Tz> {
+    pub fn attach(&self) -> SubdirLevelTimelineJson {
+        SubdirLevelTimelineJson {
+            start: format!("{:?}{}", self.start.naive_local(), self.start.offset().fix()),
+            end: format!("{:?}{}", self.end.naive_local(), self.end.offset().fix()),
+            directories: self.directories.values().into_iter().map(|e| e.attach()).collect(),
+        }
+    }
+}
+
+impl SubdirLevelTimelineEntry {
+    pub fn attach(&self) -> SubdirLevelTimelineJsonEntry {
+        SubdirLevelTimelineJsonEntry {
+            path: self.path.clone(),
+            time: self.time,
+            commits: self.commits.len() as i64,
+            lines_added: self.lines_added,
+            lines_removed: self.lines_removed,
+            users: self.users.len() as i64
+        }
+    }
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntervalJson {
@@ -61,4 +102,23 @@ pub struct ActivityJson {
     pub lines_added: i64,
     pub lines_removed: i64,
     pub users: i32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubdirLevelTimelineJson {
+    pub start: String,
+    pub end: String,
+    pub directories: Vec<SubdirLevelTimelineJsonEntry>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubdirLevelTimelineJsonEntry {
+    pub path: String,
+    pub time: i64,
+    pub commits: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub users: i64,
 }
