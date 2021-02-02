@@ -1,10 +1,13 @@
-use chrono_tz::Tz;
-use chrono::{DateTime, Utc, Timelike, Datelike};
+use std::time::{Duration, UNIX_EPOCH};
 
-use std::time::{UNIX_EPOCH, Duration};
-use crate::timeline::dwh::{TimelineDWH, FileEditDWH};
-use crate::timeline::resources::{IntervalJson, ActivityJson};
-use crate::timeline::helper::{generate_intervals, generate_activity_interval};
+use chrono::{Datelike, DateTime, Timelike, Utc};
+use chrono_tz::Tz;
+
+use crate::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH};
+use crate::timeline::helper::{generate_activity_interval, generate_intervals};
+use crate::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry};
+use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -16,7 +19,13 @@ pub fn map_timeline(
     let tz: Tz = timezone.parse().unwrap();
     let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
     let end_tz = get_datetime_tz_from_seconds(end, &tz);
-    let mut intervals = generate_intervals(start_tz, end_tz, interval);
+    let mut intervals = generate_intervals(
+        start_tz, end_tz, interval, |s, e| Interval {
+            start: s,
+            end: e,
+            time: 0,
+            users: vec![],
+        });
     for item in data {
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
@@ -33,7 +42,7 @@ pub fn map_timeline(
 }
 
 pub fn map_activity(
-    data: Vec<FileEditDWH>,
+    data: Vec<PathlessFileEditDWH>,
     timezone: &str,
     interval: &str,
 ) -> Vec<ActivityJson> {
@@ -56,6 +65,56 @@ pub fn map_activity(
         intervals[i].lines_removed += item.lines_deleted;
         if !intervals[i].users.contains(&item.user) {
             intervals[i].users.push(item.user);
+        }
+    }
+
+    intervals.into_iter().map(|x| x.attach()).collect()
+}
+
+pub fn map_subdir_level_timeline(
+    data: Vec<FileEditDWH>,
+    depth: i32,
+    start: i64,
+    end: i64,
+    timezone: &str,
+    interval: &str,
+) -> Vec<SubdirLevelTimelineJson> {
+    let tz: Tz = timezone.parse().unwrap();
+    let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
+    let end_tz = get_datetime_tz_from_seconds(end, &tz);
+    let mut intervals = generate_intervals(
+        start_tz, end_tz, interval, |s, e| SubdirLevelTimeline {
+            start: s,
+            end: e,
+            directories: HashMap::new(),
+        });
+    for item in data {
+        for i in 0..intervals.len() {
+            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
+                let cut_path = item.path.trim_start_matches("./").split("/")
+                    .into_iter()
+                    .take(depth as usize)
+                    .fold(String::new(), |a, b| a + b + "/");
+                let entry = intervals[i].directories.get_mut(&cut_path);
+                if entry.is_some() {
+                    let entry = entry.unwrap();
+                    entry.time += item.time;
+                    entry.lines_added += item.lines_added;
+                    entry.lines_removed += item.lines_deleted;
+                    entry.commits.insert(item.commit_hash);
+                    entry.users.insert(item.user.to_string());
+                } else {
+                    intervals[i].directories.insert(cut_path.clone(), SubdirLevelTimelineEntry {
+                        path: cut_path,
+                        time: item.time,
+                        commits: HashSet::from_iter(std::iter::repeat(item.commit_hash).take(1)),
+                        lines_added: item.lines_added,
+                        lines_removed: item.lines_deleted,
+                        users: HashSet::from_iter(std::iter::repeat(item.user).take(1)),
+                    });
+                }
+                break;
+            }
         }
     }
 
