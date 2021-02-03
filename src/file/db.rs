@@ -61,8 +61,9 @@ pub fn create_all(
 pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<PathlessFileEditDWH> {
     let edit_timeline: Vec<PathlessFileEditDWH> = sql_query(format!("
     {}
-    SELECT repositories.user, files.time, files.lines_added, files.lines_deleted, commits.timestamp
-    FROM files
+    SELECT repositories.user, timeline.time, files.lines_added, files.lines_deleted, timeline.timestamp
+    FROM timeline
+    INNER JOIN files ON timeline.file = files.id
     INNER JOIN commits ON files.commit = commits.id
     INNER JOIN repositories ON commits.repository_id = repositories.id
     WHERE repositories.group IN (
@@ -88,12 +89,13 @@ pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: 
     SELECT
         repositories.user,
         files.path,
-        files.time,
+        timeline.time,
         files.lines_added,
         files.lines_deleted,
-        commits.timestamp,
+        timeline.timestamp,
         commits.hash AS commit_hash
-    FROM files
+    FROM timeline
+    INNER JOIN files ON timeline.file = files.id
     INNER JOIN commits ON files.commit = commits.id
     INNER JOIN repositories ON commits.repository_id = repositories.id
     WHERE repositories.group IN (

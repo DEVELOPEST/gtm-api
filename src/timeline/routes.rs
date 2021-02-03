@@ -72,9 +72,9 @@ pub fn get_activity_timeline(
     Ok(json!({ "activityTimeline": timeline }))
 }
 
-#[get("/<group_name>/subdir-timeline?<params..>")]
+#[get("/<group_name>/subdirs-timeline?<params..>")]
 pub fn get_subdir_level_timeline(
-    auth_user: AuthUser,
+    // auth_user: AuthUser,
     conn: Conn,
     group_name: String,
     params: Form<SubdirTimelineParams>,
@@ -102,5 +102,5 @@ pub fn get_subdir_level_timeline(
         &interval,
     );
 
-    Ok(json!({ "subdirLevelTimeline": timeline }))
+    Ok(json!(timeline))
 }
