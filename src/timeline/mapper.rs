@@ -89,12 +89,12 @@ pub fn map_subdir_level_timeline(
             directories: HashMap::new(),
         });
     for item in data {
+        if item.path.ends_with(".app") {
+            continue;
+        }
         for i in 0..intervals.len() {
             if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
-                let cut_path = item.path.trim_start_matches("./").split("/")
-                    .into_iter()
-                    .take(depth as usize)
-                    .fold(String::new(), |a, b| a + b + "/");
+                let cut_path = cut_path(item.path, depth);
                 let entry = intervals[i].directories.get_mut(&cut_path);
                 if entry.is_some() {
                     let entry = entry.unwrap();
@@ -123,4 +123,13 @@ pub fn map_subdir_level_timeline(
 
 pub fn get_datetime_tz_from_seconds(seconds: i64, timezone: &Tz) -> DateTime<Tz> {
     DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(seconds as u64)).with_timezone(timezone)
+}
+
+pub fn cut_path(path: String, depth: i32) -> String {
+    let mut new_path = path.trim_start_matches("./").split("/")
+        .into_iter()
+        .take(depth as usize)
+        .fold(String::new(), |a, b| a + b + "/");
+    new_path = new_path.trim_end_matches("/").to_string();
+    new_path
 }

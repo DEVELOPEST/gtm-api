@@ -1,6 +1,7 @@
 use chrono::{DateTime, TimeZone, Offset};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 
 #[derive(Debug)]
 pub struct Interval<Tz: TimeZone> {
@@ -66,7 +67,7 @@ impl<Tz: TimeZone> SubdirLevelTimeline<Tz> {
         SubdirLevelTimelineJson {
             start: format!("{:?}{}", self.start.naive_local(), self.start.offset().fix()),
             end: format!("{:?}{}", self.end.naive_local(), self.end.offset().fix()),
-            directories: self.directories.values().into_iter().map(|e| e.attach()).collect(),
+            directories: HashMap::from_iter(self.directories.iter().map(|(k, v)| (k.clone(), v.attach()))),
         }
     }
 }
@@ -75,7 +76,7 @@ impl SubdirLevelTimelineEntry {
     pub fn attach(&self) -> SubdirLevelTimelineJsonEntry {
         SubdirLevelTimelineJsonEntry {
             path: self.path.clone(),
-            time: self.time,
+            time: (self.time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
             commits: self.commits.len() as i64,
             lines_added: self.lines_added,
             lines_removed: self.lines_removed,
@@ -109,16 +110,23 @@ pub struct ActivityJson {
 pub struct SubdirLevelTimelineJson {
     pub start: String,
     pub end: String,
-    pub directories: Vec<SubdirLevelTimelineJsonEntry>,
+    pub directories: HashMap<String, SubdirLevelTimelineJsonEntry>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJsonEntry {
     pub path: String,
-    pub time: i64,
+    pub time: f64,
     pub commits: i64,
     pub lines_added: i64,
     pub lines_removed: i64,
     pub users: i64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubdirLevelTimelineJsonWrapper {
+    pub paths: Vec<String>,
+    pub data: Vec<SubdirLevelTimelineJson>,
 }

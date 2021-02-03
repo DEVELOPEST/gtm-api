@@ -38,7 +38,8 @@ fn get_next_interval_start<Tz: TimeZone>(
     date_time_tz: DateTime<Tz>,
     interval: &str
 ) -> DateTime<Tz> {
-    if interval == "HOUR" || interval == "DAY" || interval == "WEEK" {
+    let interval = &interval.to_lowercase();
+    if interval == "hour" || interval == "day" || interval == "week" {
         return date_time_tz.clone() + get_interval_duration(interval);
     }
     date_time_tz.next_month()
@@ -46,8 +47,8 @@ fn get_next_interval_start<Tz: TimeZone>(
 
 fn get_interval_duration(interval: &str) -> chrono::Duration {
     return match interval {
-        "HOUR" => chrono::Duration::hours(1),
-        "DAY" => chrono::Duration::days(1),
+        "hour" => chrono::Duration::hours(1),
+        "day" => chrono::Duration::days(1),
         _ => chrono::Duration::weeks(1)
     }
 }
