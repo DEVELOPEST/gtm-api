@@ -1,0 +1,9 @@
+[ver:1,total:2040,branch:feature/API-28]
+.gtm/Cargo-> Run gtm-api.app:1542,1612375200:220,1612378800:1322,r
+src/timeline/service.rs:135,1612378800:135,m
+src/file/db.rs:132,1612378800:132,m
+src/timeline/routes.rs:86,1612378800:86,m
+.gtm/Cargo-> Build `Run gtm-api`.app:67,1612375200:20,1612378800:47,r
+src/timeline/resources.rs:43,1612378800:43,m
+src/timeline/db.rs:20,1612378800:20,r
+src/timeline/mapper.rs:15,1612378800:15,m
