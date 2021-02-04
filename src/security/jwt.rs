@@ -19,7 +19,7 @@ use crate::role;
 use diesel::PgConnection;
 
 
-const ONE_WEEK: i64 = 60 * 60 * 24 * 7;
+const TOKEN_DURATION: i64 = 60 * 5;
 // in seconds
 lazy_static! {
     static ref SECRET: RwLock<String> = RwLock::new("zRXL2u7hw84MTir+ZMjIGg==".to_string());
@@ -83,7 +83,7 @@ pub fn generate_token_for_user(conn: &PgConnection, user: User) -> Option<String
     let now = Utc::now().timestamp_nanos() / 1_000_000_000; // nanosecond -> second
     let payload = AuthToken {
         iat: now,
-        exp: now + ONE_WEEK,
+        exp: now + TOKEN_DURATION,
         user: user.id,
         roles: role::db::find_all_by_user(conn, user.id)
             .into_iter().map(|x| x.attach()).collect(),
@@ -105,7 +105,6 @@ fn decode_token(token: String) -> Result<TokenData<AuthToken>> {
 }
 
 fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
-    // TODO(Tavo): Blacklist for logged off tokens
     Utc::now().timestamp_nanos() / 1_000_000_000 < token_data.claims.exp
 }
 

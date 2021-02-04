@@ -6,6 +6,7 @@ use validator::Validate;
 use crate::errors::{Errors, FieldValidator};
 use crate::timeline;
 use crate::db::Conn;
+use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
 pub struct NewTimelineData {
@@ -23,7 +24,7 @@ pub struct Period {
 
 #[get("/<group_name>/timeline?<params..>")]
 pub fn get_timeline(
-    //auth: Auth,
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,
@@ -44,6 +45,7 @@ pub fn get_timeline(
 
 #[get("/<group_name>/activity?<params..>")]
 pub fn get_activity_timeline(
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,
