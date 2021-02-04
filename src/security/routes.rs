@@ -8,6 +8,7 @@ use crate::user::db::UserCreationError;
 use crate::db::Conn;
 use crate::user;
 use crate::security;
+use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -76,4 +77,14 @@ pub fn register(
         });
 
     Ok(json!(security::jwt::generate_token_for_user(&conn, created_user?)))
+}
+
+#[get("/auth/token", format = "json")]
+pub fn renew_token(
+    auth_user: AuthUser,
+    conn: Conn,
+) -> Result<JsonValue, Errors> {
+
+    let user = user::db::find(&conn, auth_user.user_id).unwrap();
+    Ok(json!(security::jwt::generate_token_for_user(&conn, user)))
 }
