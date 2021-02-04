@@ -43,7 +43,7 @@ impl<Tz: TimeZone> Interval<Tz> {
         IntervalJson {
             start: format!("{:?}{}", self.start.naive_local(), self.start.offset().fix()),
             end: format!("{:?}{}", self.end.naive_local(), self.end.offset().fix()),
-            time: self.time as f64 / self.users.len() as f64 / 60.0 / 60.0,
+            time: (self.time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
             users: self.users.len() as i32,
         }
     }
@@ -54,7 +54,7 @@ impl Activity {
         ActivityJson {
             label: self.label.clone(),
             label_key: self.id,
-            time: (self.time as f64) / 60.0 / 60.0,
+            time: ((self.time as f64) / 60.0 / 60.0 * 10.0).round() / 10.0,
             lines_added: self.lines_added,
             lines_removed: self.lines_removed,
             users: self.users.len() as i32,
