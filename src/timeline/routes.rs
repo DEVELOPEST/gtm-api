@@ -33,7 +33,7 @@ pub struct SubdirTimelineParams {
 
 #[get("/<group_name>/timeline?<params..>")]
 pub fn get_timeline(
-    //auth: Auth,
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,
@@ -54,6 +54,7 @@ pub fn get_timeline(
 
 #[get("/<group_name>/activity?<params..>")]
 pub fn get_activity_timeline(
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,

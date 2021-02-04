@@ -43,7 +43,7 @@ impl<Tz: TimeZone> Interval<Tz> {
         IntervalJson {
             start: format!("{:?}{}", self.start.naive_local(), self.start.offset().fix()),
             end: format!("{:?}{}", self.end.naive_local(), self.end.offset().fix()),
-            time: if self.time == 0 { 0 } else { self.time / self.users.len() as i64},
+            time: self.time as f64 / self.users.len() as f64 / 60.0 / 60.0,
             users: self.users.len() as i32,
         }
     }
@@ -54,7 +54,7 @@ impl Activity {
         ActivityJson {
             label: self.label.clone(),
             label_key: self.id,
-            time: self.time / 60 / 60,
+            time: (self.time as f64) / 60.0 / 60.0,
             lines_added: self.lines_added,
             lines_removed: self.lines_removed,
             users: self.users.len() as i32,
@@ -90,7 +90,7 @@ impl SubdirLevelTimelineEntry {
 pub struct IntervalJson {
     pub start: String,
     pub end: String,
-    pub time: i64,
+    pub time: f64,
     pub users: i32,
 }
 
@@ -99,7 +99,7 @@ pub struct IntervalJson {
 pub struct ActivityJson {
     pub label: String,
     pub label_key: i32,
-    pub time: i64,
+    pub time: f64,
     pub lines_added: i64,
     pub lines_removed: i64,
     pub users: i32,

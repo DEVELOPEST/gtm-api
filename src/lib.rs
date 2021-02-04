@@ -58,7 +58,9 @@ pub fn rocket() -> rocket::Rocket {
             routes![
                 security::routes::login,
                 security::routes::register,
+                security::routes::renew_token,
                 user::routes::get_user,
+                user::routes::get_users,
                 commit::routes::get_commit_hash,
                 repository::routes::post_repository,
                 repository::routes::put_repository,
