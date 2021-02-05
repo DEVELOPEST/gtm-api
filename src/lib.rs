@@ -70,6 +70,7 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::get_group_stats,
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
+                timeline::routes::get_subdir_level_timeline,
                 role::routes::add_role_to_user,
             ],
         )

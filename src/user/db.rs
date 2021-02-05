@@ -1,5 +1,5 @@
 use crypto::scrypt::{scrypt_simple, ScryptParams};
-use diesel::{Insertable, sql_types};
+use diesel::{Insertable};
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
 use crate::user::model::User;

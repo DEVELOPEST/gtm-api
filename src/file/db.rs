@@ -3,7 +3,7 @@ use diesel::{Insertable, sql_query, sql_types, RunQueryDsl, PgConnection};
 use crate::file::routes::NewFileData;
 use crate::file::model::{FileJson, File};
 use crate::errors::FieldValidator;
-use crate::timeline::dwh::FileEditDWH;
+use crate::timeline::dwh::{PathlessFileEditDWH, FileEditDWH};
 use crate::schema::files;
 use crate::timeline;
 use crate::common::sql;
@@ -58,11 +58,44 @@ pub fn create_all(
     vec
 }
 
+pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<PathlessFileEditDWH> {
+    let edit_timeline: Vec<PathlessFileEditDWH> = sql_query(format!("
+    {}
+    SELECT repositories.user, timeline.time, files.lines_added, files.lines_deleted, timeline.timestamp
+    FROM timeline
+    INNER JOIN files ON timeline.file = files.id
+    INNER JOIN commits ON files.commit = commits.id
+    INNER JOIN repositories ON commits.repository_id = repositories.id
+    WHERE repositories.group IN (
+        SELECT  group_repos_query.child
+        FROM    group_repos_query
+        UNION (
+            SELECT g.id
+            FROM groups g
+            WHERE g.name = $1))
+        AND commits.timestamp >= $2
+        AND commits.timestamp < $3", sql::GROUP_REPOS_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .expect("Error loading timeline for group");
+    edit_timeline
+}
+
 pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<FileEditDWH> {
     let edit_timeline: Vec<FileEditDWH> = sql_query(format!("
     {}
-    SELECT repositories.user, files.time, files.lines_added, files.lines_deleted, commits.timestamp
-    FROM files
+    SELECT
+        repositories.user,
+        files.path,
+        timeline.time,
+        files.lines_added,
+        files.lines_deleted,
+        timeline.timestamp,
+        commits.hash AS commit_hash
+    FROM timeline
+    INNER JOIN files ON timeline.file = files.id
     INNER JOIN commits ON files.commit = commits.id
     INNER JOIN repositories ON commits.repository_id = repositories.id
     WHERE repositories.group IN (
