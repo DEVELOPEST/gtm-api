@@ -12,9 +12,10 @@ pub struct LastCommitHash {
 }
 
 pub fn find_last_commit_hash(conn: &Conn, user: &str, provider: &str, repo: &str) -> Result<LastCommitHash, Errors> {
-    let repository = repository::db::find(&conn, &user, &provider, &repo)
-        .map_or(Err(Errors::new(&[("repository_not_found", "Repository not found!")])),
-                |r| Ok(r))?;
+    let repository = match repository::db::find(&conn, &user, &provider, &repo) {
+        Some(r) => r,
+        None => return Err(Errors::new(&[("repository_not_found", "Repository not found!")]))
+    };
 
     let last_commit = commit::db::find_last_by_repository_id(&conn, repository.id);
     let hashes = commit::db::find_all_by_repository_id(&conn, repository.id);
