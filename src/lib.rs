@@ -34,6 +34,7 @@ mod common;
 mod commit;
 mod role;
 mod user_role_member;
+mod group_access;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -59,6 +60,7 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::login,
                 security::routes::register,
                 security::routes::renew_token,
+                user::routes::get_user_id,
                 user::routes::get_user,
                 user::routes::get_users,
                 commit::routes::get_commit_hash,
@@ -68,9 +70,12 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::post_group_children,
                 group::routes::get_groups,
                 group::routes::get_group_stats,
+                group::routes::get_groups2,
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
                 role::routes::add_role_to_user,
+                role::routes::delete_role_from_user,
+                group_access::routes::post_group_accesses,
             ],
         )
         .attach(db::Conn::fairing())

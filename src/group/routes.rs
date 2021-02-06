@@ -8,6 +8,7 @@ use crate::errors::{Errors, FieldValidator};
 use crate::group;
 use crate::user::model::AuthUser;
 use crate::group::service;
+use crate::group::model::GroupJson;
 
 // use crate::auth::Auth;
 
@@ -33,6 +34,12 @@ pub struct GroupStatsParams {
 #[get("/groups")]
 pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
     let groups = group::db::find_all(&conn);
+    json!({"groups": groups})
+}
+
+#[get("/test")]
+pub fn get_groups2( conn: Conn) -> JsonValue {
+    let groups: Vec<GroupJson> = group::db::fetch_group_children(&conn, 4).into_iter().map(|x| x.attach()).collect();
     json!({"groups": groups})
 }
 

@@ -86,3 +86,32 @@ pub fn fetch_group_repositories_stats(conn: &PgConnection, group_name: &str, sta
 
     stats
 }
+
+pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Vec<Group> {
+    let groups: Vec<Group> = sql_query(format!("
+    WITH RECURSIVE group_repos_query AS
+                   (
+                       SELECT  group_group_members.child, 0 AS depth
+                       FROM    group_group_members
+                       WHERE   group_group_members.parent = (
+                           SELECT groups.id
+                           FROM groups
+                           WHERE groups.id = $1)
+                       UNION
+                       SELECT  m.child, group_repos_query.depth + 1
+                       FROM    group_group_members m
+                                   JOIN    group_repos_query
+                                           ON      m.parent = group_repos_query.child
+                       WHERE   group_repos_query.depth < 100)
+SELECT * FROM groups
+where groups.id in (SELECT group_repos_query.child
+                    FROM group_repos_query
+                    UNION
+                    (SELECT $1) )"))
+        .bind::<sql_types::Integer, _>(group_id)
+        .load(conn)
+        .unwrap_or(vec![]);
+
+    println!("{:?}", groups.get(0).unwrap());
+    groups
+}

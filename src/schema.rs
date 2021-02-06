@@ -23,6 +23,14 @@ table! {
 }
 
 table! {
+    group_accesses (user, group) {
+        user -> Int4,
+        group -> Int4,
+        access_level_recursive -> Bool,
+    }
+}
+
+table! {
     group_group_members (parent, child) {
         parent -> Int4,
         child -> Int4,
@@ -99,6 +107,8 @@ table! {
 
 joinable!(commits -> repositories (repository_id));
 joinable!(files -> commits (commit));
+joinable!(group_accesses -> groups (group));
+joinable!(group_accesses -> users (user));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_group_members -> groups (group));
@@ -109,6 +119,7 @@ joinable!(user_role_members -> users (user));
 allow_tables_to_appear_in_same_query!(
     commits,
     files,
+    group_accesses,
     group_group_members,
     groups,
     repositories,
