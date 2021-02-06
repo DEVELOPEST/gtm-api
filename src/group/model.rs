@@ -1,11 +1,16 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
+use diesel::sql_types::{Integer, Text, Timestamptz};
 use crate::config::DATE_FORMAT;
 
-#[derive(Queryable, Serialize)]
+
+#[derive(QueryableByName, Queryable, Serialize, Debug)]
 pub struct Group {
+    #[sql_type = "Integer"]
     pub id: i32,
+    #[sql_type = "Text"]
     pub name: String,
+    #[sql_type = "Timestamptz"]
     pub added_at: DateTime<Utc>,
 }
 
