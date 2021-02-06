@@ -30,6 +30,6 @@ pub fn get_commit_hash(
     repo: String,
     conn: Conn,
 ) -> Result<JsonValue, Errors> {
-    Ok(json!(commit::service::find_last_commit_hash(&conn, &provider, &user, &repo)?))
+    Ok(json!(commit::service::find_last_commit_hash(&conn, &user, &provider, &repo)?))
 }
 
