@@ -1,13 +1,14 @@
-use rocket_contrib::json::{JsonValue, Json};
+use crypto::scrypt::scrypt_check;
+use rocket::http::Status;
+use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
-use crypto::scrypt::{scrypt_check};
 
-use crate::errors::{Errors, FieldValidator};
-use crate::user::db::UserCreationError;
 use crate::db::Conn;
-use crate::user;
+use crate::errors::{Errors, FieldValidator};
 use crate::security;
+use crate::user;
+use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
@@ -29,12 +30,12 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
     let user = user::db::find_by_email(&conn, &email);
 
     if user.is_none() {
-        return Err(Errors::new(&[("email", "Cannot find user with email")]));
+        return Err(Errors::new(&[("email", "Cannot find user with email")], None));
     }
 
     let user = user.unwrap();
     if !scrypt_check(&password, &user.password).unwrap() {
-        return Err(Errors::new(&[("password", "Wrong password!")]));
+        return Err(Errors::new(&[("password", "Wrong password!")], None));
     }
 
     Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
@@ -73,7 +74,7 @@ pub fn register(
                 UserCreationError::DuplicatedEmail => "email",
                 UserCreationError::DuplicatedUsername => "username",
             };
-            Errors::new(&[(field, "has already been taken")])
+            Errors::new(&[(field, "has already been taken")], Option::from(Status::Conflict))
         });
 
     Ok(json!(security::jwt::generate_token_for_user(&conn, created_user?)))
@@ -87,4 +88,27 @@ pub fn renew_token(
 
     let user = user::db::find(&conn, auth_user.user_id).unwrap();
     Ok(json!(security::jwt::generate_token_for_user(&conn, user)))
+}
+
+#[derive(Deserialize, Validate)]
+pub struct PasswordChange {
+    #[validate(length(min = 8))]
+    old_password: Option<String>,
+    #[validate(length(min = 8))]
+    new_password: Option<String>,
+}
+
+#[put("/auth/password", format = "json", data = "<change_password>")]
+pub fn change_password(
+    auth_user: AuthUser,
+    change_password: Json<PasswordChange>,
+    conn: Conn,
+) -> Result<(), Errors> {
+    let change_password = change_password.into_inner();
+    let mut extractor = FieldValidator::validate(&change_password);
+    let old_password = extractor.extract("old_password", change_password.old_password);
+    let new_password = extractor.extract("new_password", change_password.new_password);
+    extractor.check()?;
+
+    security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
 }

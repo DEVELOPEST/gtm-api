@@ -32,7 +32,7 @@ pub struct GroupStatsParams {
 }
 
 #[get("/groups")]
-pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
+pub fn get_groups(_auth_user: AuthUser, conn: Conn) -> JsonValue {
     let groups = group::db::find_all(&conn);
     json!({"groups": groups})
 }

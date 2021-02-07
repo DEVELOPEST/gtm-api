@@ -5,9 +5,8 @@ use crate::user;
 pub fn find_all(conn: &PgConnection) -> Vec<UserJson> {
     let user_dwhs = user::db::find_all(conn);
     let mut user_jsons : Vec<UserJson> = Vec::new();
-    let mut role_added_to_user: bool = false;
     for user_dwh in user_dwhs {
-        role_added_to_user = false;
+        let mut role_added_to_user = false;
         for i in 0..user_jsons.len() {
             if user_dwh.id == user_jsons[i].id {
                 user_jsons[i].roles.push(user_dwh.role.clone());
