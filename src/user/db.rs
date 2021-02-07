@@ -1,4 +1,3 @@
-use crypto::scrypt::{scrypt_simple, ScryptParams};
 use diesel::{Insertable};
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
@@ -7,7 +6,6 @@ use crate::schema::users;
 use crate::schema::user_role_members;
 use crate::schema::roles;
 use crate::user::dwh::UserDWH;
-use crate::schema::tokens::columns::user;
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -53,12 +51,13 @@ pub fn create(
 pub fn update_password(
     conn: &PgConnection,
     user_id: i32,
-    password: &str,) {
+    password: &str,) -> Option<User> {
     diesel::update(
         users::table
             .filter(users::id.eq(user_id)))
         .set(users::password.eq(password))
-        .get_result::<User>(conn);
+        .get_result::<User>(conn)
+        .ok()
 }
 
 pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
