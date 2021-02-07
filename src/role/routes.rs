@@ -51,11 +51,11 @@ pub fn delete_role_from_user(auth_user: AuthUser, conn: Conn, user_role_data: Js
     extractor.check()?;
 
     if !user::db::exists(&conn, user) {
-        return Err(Errors::new(&[("user", "Cannot find user")]));
+        return Err(Errors::new(&[("user", "Cannot find user")], Option::from(Status::Conflict)));
     }
 
     if !role::db::exists(&conn, role) {
-        return Err(Errors::new(&[("role", "Cannot find role")]));
+        return Err(Errors::new(&[("role", "Cannot find role")], Option::from(Status::Conflict)));
     }
 
     user_role_member::db::delete(&conn, user, role);

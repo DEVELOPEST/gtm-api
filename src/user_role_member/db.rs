@@ -30,11 +30,12 @@ pub fn delete(
     conn: &PgConnection,
     user_id: i32,
     role_id: i32,
-) {
+) -> Option<usize> {
     diesel::delete(user_role_members::table
         .filter(user_role_members::user.eq(user_id))
         .filter(user_role_members::role.eq(role_id)))
-        .execute(conn);
+        .execute(conn)
+        .ok()
 }
 
 pub fn find(

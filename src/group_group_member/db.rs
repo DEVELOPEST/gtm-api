@@ -50,3 +50,11 @@ pub fn exists(conn: &PgConnection, parent: &i32, child: &i32) -> bool {
         .get_result(conn)
         .expect("Error finding group_group_member")
 }
+
+pub fn find_all(
+    conn: &PgConnection,
+) -> Vec<GroupRelation> {
+    group_group_members::table
+        .load::<GroupRelation>(conn)
+        .unwrap()
+}
