@@ -59,6 +59,7 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::login,
                 security::routes::register,
                 security::routes::renew_token,
+                security::routes::change_password,
                 user::routes::get_user,
                 user::routes::get_users,
                 commit::routes::get_commit_hash,

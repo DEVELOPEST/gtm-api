@@ -7,6 +7,7 @@ use crate::schema::users;
 use crate::schema::user_role_members;
 use crate::schema::roles;
 use crate::user::dwh::UserDWH;
+use crate::schema::tokens::columns::user;
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -38,17 +39,26 @@ pub fn create(
     password: &str,
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
-    let hash = &scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error");
-
     let new_user = &NewUser {
         email,
-        password: hash,
+        password,
     };
 
     diesel::insert_into(users::table)
         .values(new_user)
         .get_result::<User>(conn)
         .map_err(Into::into)
+}
+
+pub fn update_password(
+    conn: &PgConnection,
+    user_id: i32,
+    password: &str,) {
+    diesel::update(
+        users::table
+            .filter(users::id.eq(user_id)))
+        .set(users::password.eq(password))
+        .get_result::<User>(conn);
 }
 
 pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
