@@ -37,7 +37,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
             status::Custom(
                 Status::Unauthorized,
                 Json(AuthError {
-                    message: String::from("Invalid API-key!"),
+                    message: String::from("No API-key found!"),
                 }),
             ),
         ))
@@ -54,7 +54,7 @@ pub fn manage() -> AdHoc {
 
         if api_key.is_some() {
             let api_key_table = api_key.unwrap().as_table().unwrap();
-            let key = api_key_table.get("secret").unwrap().as_str().unwrap();
+            let key = api_key_table.get("sync_api_key").unwrap().as_str().unwrap();
             let mut global_secret = API_KEY.write().unwrap();
             *global_secret = key.to_string();
         }
