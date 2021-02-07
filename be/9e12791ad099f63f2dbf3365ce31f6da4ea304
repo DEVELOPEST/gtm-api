@@ -1,8 +1,0 @@
-[ver:1,total:600,branch:release/v0.1.1]
-src/security/routes.rs:180,1612710000:180,r
-src/repository/service.rs:150,1612699200:150,r
-.gtm/Cargo-> Run gtm-api.app:97,1612710000:97,r
-Rocket.toml:75,1612710000:75,m
-src/security/api_key.rs:53,1612710000:53,m
-src/lib.rs:30,1612699200:30,r
-.gtm/Cargo-> Build `Run gtm-api`.app:15,1612710000:15,r
