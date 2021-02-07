@@ -5,8 +5,6 @@ use crate::user_role_member;
 use crate::user::model::User;
 use crypto::scrypt::{scrypt_simple, ScryptParams, scrypt_check};
 use crate::errors::Errors;
-use rocket::http::Status;
-use validator::ValidationErrors;
 
 pub fn new_user(
     conn: &PgConnection,
@@ -24,7 +22,7 @@ pub fn change_password(
     user_id: i32,
     old_password: String,
     new_password: String) -> Result<(), Errors> {
-    let mut user = user::db::find(&conn, user_id).unwrap();
+    let user = user::db::find(&conn, user_id).unwrap();
 
     if !scrypt_check(&old_password, &user.password).unwrap() {
         return Err(Errors::new(&[("password", "Wrong password!")], None));
