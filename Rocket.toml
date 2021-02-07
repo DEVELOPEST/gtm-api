@@ -6,3 +6,6 @@ diesel_postgres_pool = { url = "postgres://rocket:rocket@localhost/rocket" }
 
 [global.jwt]
 secret = "zRXL2u7hw84MTir+ZMjIGg=="
+
+[global.api-key]
+sync_api_key = "gzm4gHdtlX5VfwJecb1loZ7lA46Zhf8Gt4Y1z34SY3t5CRJ78kgb5A89B0JdRZek"
