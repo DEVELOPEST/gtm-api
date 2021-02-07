@@ -103,8 +103,8 @@ pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Vec<Group> {
                                    JOIN    group_repos_query
                                            ON      m.parent = group_repos_query.child
                        WHERE   group_repos_query.depth < 100)
-SELECT * FROM groups
-where groups.id in (SELECT group_repos_query.child
+    SELECT * FROM groups
+    WHERE groups.id in (SELECT group_repos_query.child
                     FROM group_repos_query
                     UNION
                     (SELECT $1) )"))

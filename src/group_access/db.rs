@@ -37,9 +37,44 @@ pub fn delete(
     conn: &PgConnection,
     user: i32,
     group: i32,
-) {
+) -> Option<usize> {
     diesel::delete(group_accesses::table
         .filter(group_accesses::user.eq(user))
         .filter(group_accesses::group.eq(group)))
-        .execute(conn);
+        .execute(conn)
+        .ok()
+}
+
+pub fn find_by_user(
+    conn: &PgConnection,
+    user: i32
+) -> Vec<GroupAccess> {
+    group_accesses::table
+        .filter(group_accesses::user.eq(user))
+        .load::<GroupAccess>(conn)
+        .expect("Cannot load accesses by user")
+}
+
+pub fn find_by_user_and_group(
+    conn: &PgConnection,
+    user: i32,
+    group: i32,
+) -> Option<GroupAccess> {
+    group_accesses::table
+        .filter(group_accesses::user.eq(user)
+            .and(group_accesses::group.eq(group)))
+        .first::<GroupAccess>(conn)
+        .ok()
+}
+
+pub fn update(
+    conn: &PgConnection,
+    access: GroupAccess
+) -> Option<GroupAccess> {
+    diesel::update(
+        group_accesses::table.filter(group_accesses::user.eq(access.user)
+            .and(group_accesses::group.eq(access.group))))
+        .set(group_accesses::access_level_recursive.eq(!access.access_level_recursive.clone()))
+        .get_result::<GroupAccess>(conn)
+        .ok()
 }
