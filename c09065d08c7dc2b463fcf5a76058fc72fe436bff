@@ -1,0 +1,7 @@
+[ver:1,total:660,branch:feature/API-32]
+src/security/service.rs:215,1612706400:215,m
+.gtm/Cargo-> Run gtm-api.app:181,1612706400:181,r
+src/lib.rs:180,1612702800:180,r
+src/user/db.rs:65,1612706400:65,m
+src/security/routes.rs:15,1612706400:15,r
+src/repository/db.rs:4,1612706400:4,r
