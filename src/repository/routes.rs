@@ -52,7 +52,7 @@ pub fn post_repository(
         &sync_url,
         &access_token,
         new_repository.commits,
-    );
+    )?;
 
     Ok(json!({ "repository": repository }))
 }

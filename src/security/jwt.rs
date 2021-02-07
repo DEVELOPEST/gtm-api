@@ -106,7 +106,7 @@ fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
 }
 
 pub fn manage() -> AdHoc {
-    AdHoc::on_attach("Manage config", |rocket| {
+    AdHoc::on_attach("Manage jwt", |rocket| {
         // Rocket doesn't expose it's own secret_key, so we use our own here.
         let cfg = rocket.config();
         let extras = &cfg.extras;
