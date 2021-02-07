@@ -1,17 +1,19 @@
-use rocket_contrib::json::{JsonValue, Json};
+use rocket::http::Status;
+use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
-use crate::errors::{Errors, FieldValidator};
-use crate::user::model::AuthUser;
+
 use crate::db::Conn;
-use crate::user;
+use crate::errors::{Errors, FieldValidator};
 use crate::role;
-use crate::user_role_member;
 use crate::role::model::ADMIN;
+use crate::user;
+use crate::user::model::AuthUser;
+use crate::user_role_member;
 
 #[derive(Deserialize, Validate)]
 pub struct UserRoleMemberDto {
-    #[validate(range(min = 1, max = 3))]
+    #[validate(range(min = 1))]
     pub user: Option<i32>,
     #[validate(range(min = 1, max = 3))]
     pub role: Option<i32>,
@@ -27,11 +29,11 @@ pub fn add_role_to_user(auth_user: AuthUser, conn: Conn, user_role_data: Json<Us
     extractor.check()?;
 
     if !user::db::exists(&conn, user) {
-        return Err(Errors::new(&[("user", "Cannot find user")]));
+        return Err(Errors::new(&[("user", "Cannot find user")], Option::from(Status::BadRequest)));
     }
 
     if !role::db::exists(&conn, role) {
-        return Err(Errors::new(&[("role", "Cannot find role")]));
+        return Err(Errors::new(&[("role", "Cannot find role")], Option::from(Status::BadRequest)));
     }
 
     user_role_member::db::create(&conn, user, role);

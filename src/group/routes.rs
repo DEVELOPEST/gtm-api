@@ -6,6 +6,7 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::group;
+use crate::user::model::AuthUser;
 use crate::group::service;
 
 // use crate::auth::Auth;
@@ -30,7 +31,7 @@ pub struct GroupStatsParams {
 }
 
 #[get("/groups")]
-pub fn get_groups(conn: Conn) -> JsonValue {
+pub fn get_groups(_auth_user: AuthUser, conn: Conn) -> JsonValue {
     let groups = group::db::find_all(&conn);
     json!({"groups": groups})
 }

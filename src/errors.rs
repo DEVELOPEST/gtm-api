@@ -1,16 +1,30 @@
 use rocket::{Request, response};
-use rocket::response::{content, Responder};
-use serde::Serialize;
+use rocket::http::Status;
+use rocket::response::{Responder, status};
+use rocket_contrib::json::Json;
 use validator::{Validate, ValidationError, ValidationErrors};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct Errors {
+    status: Status,
     errors: ValidationErrors,
 }
 
 impl<'a> Responder<'a> for Errors {
     fn respond_to(self, req: &Request) -> response::Result<'a> {
-        content::Json(json!(self.errors)).respond_to(req)
+        use validator::ValidationErrorsKind::Field;
+
+        let mut errors = json!({});
+        for (field, field_errors) in self.errors.into_errors() {
+            if let Field(field_errors) = field_errors {
+                errors[field] = field_errors.into_iter().map(|field_error| field_error.code).collect();
+            }
+        }
+
+        status::Custom(
+            self.status,
+            Json(json!({ "errors": errors })),
+        ).respond_to(req)
     }
 }
 
@@ -22,12 +36,12 @@ pub struct FieldValidator {
 }
 
 impl Errors {
-    pub fn new(errs: &[(FieldName, FieldErrorCode)]) -> Self {
+    pub fn new(errs: &[(FieldName, FieldErrorCode)], resp_status: Option<Status>) -> Self {
         let mut errors = ValidationErrors::new();
         for (field, code) in errs {
             errors.add(field, ValidationError::new(code));
         }
-        Self { errors }
+        Self { status: resp_status.unwrap_or(Status::InternalServerError), errors }
     }
 }
 
@@ -52,6 +66,7 @@ impl FieldValidator {
             Ok(())
         } else {
             Err(Errors {
+                status: Status::UnprocessableEntity,
                 errors: self.errors,
             })
         }

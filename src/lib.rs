@@ -58,7 +58,10 @@ pub fn rocket() -> rocket::Rocket {
             routes![
                 security::routes::login,
                 security::routes::register,
+                security::routes::renew_token,
+                security::routes::change_password,
                 user::routes::get_user,
+                user::routes::get_users,
                 commit::routes::get_commit_hash,
                 repository::routes::post_repository,
                 repository::routes::put_repository,
@@ -68,6 +71,7 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::get_group_stats,
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
+                timeline::routes::get_subdir_level_timeline,
                 role::routes::add_role_to_user,
             ],
         )
@@ -75,5 +79,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(setup::migrate_database())
         .attach(cors_fairing())
         .attach(security::jwt::manage())
+        .attach(security::api_key::manage())
         .register(catchers![not_found])
 }
