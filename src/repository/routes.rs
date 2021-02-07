@@ -2,11 +2,11 @@ use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::errors::{Errors, FieldValidator};
 use crate::commit::routes::NewCommitData;
-use crate::group;
-use crate::repository;
 use crate::db::Conn;
+use crate::errors::{Errors, FieldValidator};
+use crate::repository;
+use crate::security::api_key::ApiKey;
 
 #[derive(Deserialize)]
 pub struct NewRepository {
@@ -29,8 +29,9 @@ pub struct NewRepositoryData {
 
 #[post("/repositories", format = "json", data = "<new_repository>")]
 pub fn post_repository(
-    new_repository: Json<NewRepository>,
     conn: Conn,
+    api_key: ApiKey,
+    new_repository: Json<NewRepository>,
 ) -> Result<JsonValue, Errors> {
     let new_repository = new_repository.into_inner().repository;
 
@@ -42,28 +43,23 @@ pub fn post_repository(
     let access_token = extractor.extract("access_token", new_repository.access_token);
     extractor.check()?;
 
-    let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
-    if !group::db::exists(&conn, &group_name) {
-        group::db::create(&conn, &group_name);
-    }
-    let group = group::db::find(&conn, &group_name).unwrap();
-
-    let repository = repository::db::create(
+    let repository = repository::service::create_repo(
         &conn,
-        &group.id,
+        &api_key,
         &user,
         &provider,
         &repo,
         &sync_url,
         &access_token,
         new_repository.commits,
-    );
+    )?;
+
     Ok(json!({ "repository": repository }))
 }
 
 #[put("/repositories", format = "json", data = "<new_repository>")]
 pub fn put_repository(
-    // auth: AuthUser,
+    api_key: ApiKey,
     new_repository: Json<NewRepository>,
     conn: Conn,
 ) -> Result<JsonValue, Errors> {
@@ -77,21 +73,18 @@ pub fn put_repository(
     let access_token = extractor.extract("access_token", new_repository.access_token);
     extractor.check()?;
 
-    let repository = repository::db::update(
+    let repository = repository::service::update_repo(
         &conn,
+        &api_key,
         &user,
         &provider,
         &repo,
         &sync_url,
         &access_token,
         new_repository.commits,
-    );
-    Ok(json!({ "repository": repository }))
-}
+    )?;
 
-#[derive(Deserialize)]
-pub struct Repository {
-    repository: RepositoryData,
+    Ok(json!({ "repository": repository }))
 }
 
 #[derive(Deserialize, Validate)]
