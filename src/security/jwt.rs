@@ -17,11 +17,13 @@ use crate::user::model::{AuthUser, User};
 use crate::db::Conn;
 use crate::role;
 use diesel::PgConnection;
+use crate::security::AuthError;
 
 
 const TOKEN_DURATION: i64 = 60 * 5;
 // in seconds
 lazy_static! {
+    // This is overridden in Rocket.toml
     static ref SECRET: RwLock<String> = RwLock::new("zRXL2u7hw84MTir+ZMjIGg==".to_string());
 }
 
@@ -33,11 +35,6 @@ pub struct AuthToken {
     pub exp: i64,
     pub user: i32,
     pub roles: Vec<String>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct AuthError {
-    message: String
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for AuthUser {
@@ -109,7 +106,7 @@ fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
 }
 
 pub fn manage() -> AdHoc {
-    AdHoc::on_attach("Manage config", |rocket| {
+    AdHoc::on_attach("Manage jwt", |rocket| {
         // Rocket doesn't expose it's own secret_key, so we use our own here.
         let cfg = rocket.config();
         let extras = &cfg.extras;
