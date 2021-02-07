@@ -1,9 +1,12 @@
+use rocket::http::Status;
+
+use crate::{group, repository};
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
 use crate::errors::Errors;
-use crate::{repository, group};
 use crate::repository::model::RepositoryJson;
 use crate::security::api_key::ApiKey;
+use crate::security::api_key;
 
 pub fn update_repo(
     conn: &Conn,
@@ -16,13 +19,15 @@ pub fn update_repo(
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Errors> {
     match repository::db::find(conn, user, provider, repo){
-        Some(old_repo) => {
-            if api_key.key != old_repo.access_token {
-                return Err(Errors::new(&[("unauthorized", "Invalid API-key!")]));
+        Some(_) => {
+            if api_key.key != *api_key::API_KEY.read().unwrap() {
+                return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
+                                       Option::from(Status::Unauthorized))
+                );
             }
         }
         None => {
-            return Err(Errors::new(&[("invalid_repo", "No repository to update!")]))
+            return Err(Errors::new(&[("invalid_repo", "No repository to update!")], None));
         }
     }
 
@@ -49,9 +54,10 @@ pub fn create_repo(
     access_token: &String,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Errors> {
-    let old_repo = repository::db::find(conn, user, provider, repo);
-    if old_repo.is_some() && api_key.key != old_repo.unwrap().access_token {
-        return Err(Errors::new(&[("unauthorized", "Invalid API-key!")]));
+    if api_key.key != *api_key::API_KEY.read().unwrap() {
+        return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
+                               Option::from(Status::Unauthorized))
+        );
     }
 
     let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);

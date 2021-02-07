@@ -6,6 +6,7 @@ use crate::commit;
 use crate::db::Conn;
 use crate::file::routes::NewFileData;
 use crate::errors::Errors;
+use crate::security::api_key::ApiKey;
 
 #[derive(Deserialize, Validate)]
 pub struct NewCommitData {
@@ -24,12 +25,12 @@ pub struct NewCommitData {
 
 #[get("/commits/<provider>/<user>/<repo>/hash")]
 pub fn get_commit_hash(
-    //auth: Auth,
+    conn: Conn,
+    api_key: ApiKey,
     provider: String,
     user: String,
     repo: String,
-    conn: Conn,
 ) -> Result<JsonValue, Errors> {
-    Ok(json!(commit::service::find_last_commit_hash(&conn, &user, &provider, &repo)?))
+    Ok(json!(commit::service::find_last_commit_hash(&conn, &api_key, &user, &provider, &repo)?))
 }
 

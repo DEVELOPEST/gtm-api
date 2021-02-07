@@ -1,13 +1,14 @@
-use rocket_contrib::json::{JsonValue, Json};
+use crypto::scrypt::scrypt_check;
+use rocket::http::Status;
+use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
-use crypto::scrypt::{scrypt_check};
 
-use crate::errors::{Errors, FieldValidator};
-use crate::user::db::UserCreationError;
 use crate::db::Conn;
-use crate::user;
+use crate::errors::{Errors, FieldValidator};
 use crate::security;
+use crate::user;
+use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
@@ -29,12 +30,12 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
     let user = user::db::find_by_email(&conn, &email);
 
     if user.is_none() {
-        return Err(Errors::new(&[("email", "Cannot find user with email")]));
+        return Err(Errors::new(&[("email", "Cannot find user with email")], None));
     }
 
     let user = user.unwrap();
     if !scrypt_check(&password, &user.password).unwrap() {
-        return Err(Errors::new(&[("password", "Wrong password!")]));
+        return Err(Errors::new(&[("password", "Wrong password!")], None));
     }
 
     Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
@@ -73,7 +74,7 @@ pub fn register(
                 UserCreationError::DuplicatedEmail => "email",
                 UserCreationError::DuplicatedUsername => "username",
             };
-            Errors::new(&[(field, "has already been taken")])
+            Errors::new(&[(field, "has already been taken")], Option::from(Status::Conflict))
         });
 
     Ok(json!(security::jwt::generate_token_for_user(&conn, created_user?)))

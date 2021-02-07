@@ -78,5 +78,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(setup::migrate_database())
         .attach(cors_fairing())
         .attach(security::jwt::manage())
+        .attach(security::api_key::manage())
         .register(catchers![not_found])
 }
