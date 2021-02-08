@@ -8,7 +8,7 @@ pub const GROUP_REPOS_QUERY: &str =
         WHERE   group_group_members.parent = (
             SELECT groups.id
             FROM groups
-            WHERE groups.name = 4)
+            WHERE groups.name = $1)
         UNION
         SELECT  m.child, group_repos_query.depth + 1
         FROM    group_group_members m
