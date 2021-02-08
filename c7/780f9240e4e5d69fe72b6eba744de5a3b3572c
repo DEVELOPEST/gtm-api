@@ -1,8 +1,0 @@
-[ver:1,total:720,branch:feature/API-29]
-src/group/service.rs:357,1612735200:7,1612782000:350,r
-.gtm/Cargo-> Run gtm-api.app:255,1612735200:255,r
-src/group/routes.rs:60,1612782000:60,r
-src/group/model.rs:15,1612735200:15,r
-src/user_role_member/db.rs:15,1612735200:15,r
-src/common/sql.rs:10,1612782000:10,m
-src/lib.rs:8,1612735200:8,r
