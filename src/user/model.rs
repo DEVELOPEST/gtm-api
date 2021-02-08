@@ -36,3 +36,13 @@ pub struct UserJson {
     pub email: String,
     pub roles: Vec<String>,
 }
+
+impl User {
+    pub fn attach(self, roles: Vec<String>) -> UserJson {
+        UserJson {
+            id: self.id,
+            email: self.email,
+            roles,
+        }
+    }
+}

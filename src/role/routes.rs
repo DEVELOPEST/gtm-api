@@ -40,3 +40,25 @@ pub fn add_role_to_user(auth_user: AuthUser, conn: Conn, user_role_data: Json<Us
 
     Ok(json!({}))
 }
+
+#[delete("/roles", format = "json", data = "<user_role_data>")]
+pub fn delete_role_from_user(auth_user: AuthUser, conn: Conn, user_role_data: Json<UserRoleMemberDto>) -> Result<JsonValue, Errors> {
+    auth_user.has_role(&ADMIN)?;
+    let user_role_data = user_role_data.into_inner();
+    let mut extractor = FieldValidator::validate(&user_role_data);
+    let user = extractor.extract("user", user_role_data.user);
+    let role = extractor.extract("role", user_role_data.role);
+    extractor.check()?;
+
+    if !user::db::exists(&conn, user) {
+        return Err(Errors::new(&[("user", "Cannot find user")], Option::from(Status::Conflict)));
+    }
+
+    if !role::db::exists(&conn, role) {
+        return Err(Errors::new(&[("role", "Cannot find role")], Option::from(Status::Conflict)));
+    }
+
+    user_role_member::db::delete(&conn, user, role);
+
+    Ok(json!({}))
+}
