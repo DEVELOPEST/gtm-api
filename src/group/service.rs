@@ -51,12 +51,12 @@ pub fn get_groups_with_access(conn: &Conn, user_id: i32) -> Vec<Group> {
     let mut res: Vec<Group> = Vec::new();
     for group_access in &group_accesses {
         if group_access.access_level_recursive {
-            let group = groups.clone().into_iter().find(|x| x.id == group_access.group).unwrap();
+            let group = groups.iter().find(|x| x.id == group_access.group).unwrap().clone();
             res.push(group.clone());
             let rec_res: Vec<Group> = get_groups_with_access_recursive(group, groups.clone(), group_relations.clone());
             res = [res, rec_res.clone()].concat();
         } else {
-            res.push(groups.clone().into_iter().find(|x| x.id == group_access.group).unwrap())
+            res.push(groups.iter().find(|x| x.id == group_access.group).unwrap().clone())
         }
     }
     res
@@ -74,7 +74,7 @@ pub fn get_groups_with_access_recursive(
         .filter(|x| x.parent == group.id)
         .collect::<Vec<GroupRelation>>();
     for group_relation in &relations {
-        let child_group = groups.clone().into_iter().find(|x| x.id == group_relation.child).unwrap();
+        let child_group = groups.iter().find(|x| x.id == group_relation.child).unwrap().clone();
         children.push(child_group.clone());
         children = [children, get_groups_with_access_recursive(child_group, groups.clone(), group_relations.clone()).clone()].concat()
     }
