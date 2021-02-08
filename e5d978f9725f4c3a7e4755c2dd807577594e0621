@@ -1,0 +1,10 @@
+[ver:1,total:2040,branch:feature/API-34]
+.gtm/Cargo-> Run gtm-api.app:600,1612710000:160,1612713600:440,r
+src/security/jwt.rs:470,1612713600:170,1612720800:300,r
+Rocket.toml:270,1612713600:270,r
+src/repository/service.rs:180,1612710000:180,r
+.github/workflows/deploy.yml:180,1612720800:180,r
+.github/workflows/build.yml:120,1612720800:120,r
+.github/workflows/remove-old-artifacts.yaml:120,1612807200:120,m
+src/security/api_key.rs:80,1612710000:80,r
+.gtm/Cargo-> Build `Run gtm-api`.app:20,1612713600:20,r
