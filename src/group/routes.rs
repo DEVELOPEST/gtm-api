@@ -6,11 +6,11 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::group;
+use crate::group_access;
 use crate::user::model::AuthUser;
 use crate::group::service;
-
-// use crate::auth::Auth;
-
+use crate::group::model::{GroupJson, GroupWithAccessJson};
+use crate::role::model::ADMIN;
 
 #[derive(Deserialize, Validate)]
 pub struct NewGroupParentsRelation {
@@ -31,9 +31,36 @@ pub struct GroupStatsParams {
 }
 
 #[get("/groups")]
-pub fn get_groups(_auth_user: AuthUser, conn: Conn) -> JsonValue {
-    let groups = group::db::find_all(&conn);
+pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
+    let mut groups = Vec::new();
+    if auth_user.roles.contains(&ADMIN) {
+        groups = group::db::find_all(&conn).into_iter().map(|x| x.attach()).collect();
+    } else {
+        groups = group::service::get_groups_with_access(&conn, auth_user.user_id)
+            .into_iter().map(|x| x.attach()).collect();
+    }
     json!({"groups": groups})
+}
+
+#[get("/groups/accessible/user/<user_id>")]
+pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
+    auth_user.has_role(&ADMIN)?;
+    let groups: Vec<GroupWithAccessJson> = group::service::get_groups_with_access(&conn, user_id)
+        .into_iter()
+        .map(|x| {
+            let group_id = x.id.clone();
+            x.attach_with_access(group_access::service::find_by_user_and_group(&conn, user_id, group_id))
+        })
+        .collect();
+    Ok(json!({"groups": groups}))
+}
+
+#[get("/groups/not-accessible/user/<user_id>")]
+pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
+    auth_user.has_role(&ADMIN)?;
+    let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)
+        .into_iter().map(|x| x.attach()).collect();
+    Ok(json!({"groups": groups}))
 }
 
 #[get("/groups/<group_name>/stats?<params..>")]
