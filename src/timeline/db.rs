@@ -2,7 +2,7 @@ use diesel;
 use diesel::{Insertable, sql_query, sql_types};
 use diesel::prelude::*;
 
-use crate::common::sql::GROUP_REPOS_QUERY;
+use crate::common::sql::GROUP_CHILDREN_QUERY;
 use crate::errors::FieldValidator;
 use crate::schema::timeline;
 use crate::timeline::dwh::TimelineDWH;
@@ -60,7 +60,7 @@ pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i6
             FROM groups g
             WHERE g.name = $1))
         AND timeline.timestamp >= $2
-        AND timeline.timestamp < $3", GROUP_REPOS_QUERY))
+        AND timeline.timestamp < $3", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)

@@ -3,8 +3,8 @@ use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 
-use crate::common::sql::GROUP_REPOS_QUERY;
-use crate::group::dwh::GroupRepoStats;
+use crate::common::sql::GROUP_CHILDREN_QUERY;
+use crate::group::dwh::{GroupUserStats, GroupFileStats};
 use crate::group::model::Group;
 use crate::schema::groups;
 
@@ -54,14 +54,14 @@ pub fn find_all(conn: &PgConnection) -> Vec<Group> {
         .expect("Unable to load groups")
 }
 
-pub fn fetch_group_repositories_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupRepoStats> {
-    let stats: Vec<GroupRepoStats> = sql_query(format!("
+pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupUserStats> {
+    let stats: Vec<GroupUserStats> = sql_query(format!("
         {}
         SELECT gr.name                                    AS name,
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
-            coalesce(count(commits.timestamp)::bigint, 0) AS commits
+            coalesce(count(commits.id)::bigint, 0)        AS commits
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -77,12 +77,47 @@ pub fn fetch_group_repositories_stats(conn: &PgConnection, group_name: &str, sta
             AND commits.timestamp >= $2
             AND commits.timestamp < $3
         GROUP BY gr.name
-        ORDER BY total_time DESC;", GROUP_REPOS_QUERY))
+        ORDER BY total_time DESC;", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
         .load(conn)
         .unwrap_or(vec![]);
+
+    stats
+}
+
+pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupFileStats> {
+    let stats: Vec<GroupFileStats> = sql_query(format!("
+        {}
+        SELECT files.path                                 AS path,
+            coalesce(sum(files.time)::bigint, 0)          AS total_time,
+            coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
+            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
+            coalesce(count(commits.id)::bigint, 0)        AS commits,
+            coalesce(count(gr.id)::bigint, 0)             AS users
+        FROM groups gr
+            LEFT JOIN repositories on gr.id = repositories.group
+            LEFT JOIN commits ON commits.repository_id = repositories.id
+            LEFT JOIN files ON files.commit = commits.id
+        WHERE repositories.group IN (
+            SELECT group_repos_query.child
+            FROM group_repos_query
+            UNION
+            (
+                SELECT g.id
+                FROM groups g
+                WHERE g.name = $1))
+            AND commits.timestamp >= $2
+            AND commits.timestamp < $3
+            AND files.path IS NOT NULL
+        GROUP BY files.path
+        ORDER BY total_time DESC;", GROUP_CHILDREN_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .unwrap();
 
     stats
 }

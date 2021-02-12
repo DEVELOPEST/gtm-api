@@ -32,7 +32,7 @@ pub struct GroupStatsParams {
 
 #[get("/groups")]
 pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
-    let mut groups = Vec::new();
+    let mut groups = vec![];
     if auth_user.roles.contains(&ADMIN) {
         groups = group::db::find_all(&conn).into_iter().map(|x| x.attach()).collect();
     } else {
@@ -68,7 +68,7 @@ pub fn get_group_stats(conn: Conn, group_name: String, params: Form<GroupStatsPa
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
-    Ok(json!(service::get_group_repos(&conn, &group_name, start, end)?))
+    Ok(json!(service::get_group_stats(&conn, &group_name, start, end)?))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
