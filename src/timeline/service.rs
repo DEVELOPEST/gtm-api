@@ -39,7 +39,7 @@ pub fn get_subdir_level_timeline(
 ) -> SubdirLevelTimelineJsonWrapper {
     let file_edits_data = fetch_file_edits(conn, group_name, start, end);
     let mut paths = file_edits_data.iter()
-        .map(|e| cut_path(e.path.clone(), depth))
+        .map(|e| cut_path(&e.path, depth))
         .filter(|p| !p.ends_with(".app"))
         .collect::<Vec<String>>();
     let data = map_subdir_level_timeline(file_edits_data, depth, start, end, timezone, interval);

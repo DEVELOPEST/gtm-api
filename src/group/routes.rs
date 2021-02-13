@@ -28,6 +28,7 @@ pub struct NewGroupChildrenRelation {
 pub struct GroupStatsParams {
     start: Option<i64>,
     end: Option<i64>,
+    depth: Option<i32>,
 }
 
 #[get("/groups")]
@@ -68,7 +69,8 @@ pub fn get_group_stats(conn: Conn, group_name: String, params: Form<GroupStatsPa
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
-    Ok(json!(service::get_group_stats(&conn, &group_name, start, end)?))
+    let depth = period.depth.unwrap_or(1);
+    Ok(json!(service::get_group_stats(&conn, &group_name, start, end, depth)?))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]

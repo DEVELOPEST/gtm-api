@@ -1,7 +1,8 @@
-use crate::{group, group_group_member, group_access};
+use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
 use crate::errors::Errors;
-use crate::group::dwh::{GroupStats};
+use crate::group::dto::GroupStatsJson;
+use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
 use crate::group_access::model::GroupAccess;
 use crate::group_group_member::model::GroupRelation;
@@ -32,14 +33,13 @@ pub fn get_group_stats(
     group_name: &String,
     start: i64,
     end: i64,
-) -> Result<GroupStats, Errors> {
+    depth: i32,
+) -> Result<GroupStatsJson, Errors> {
     let user_stats = group::db::fetch_group_user_stats(conn, group_name, start, end);
     let file_stats = group::db::fetch_group_file_stats(conn, group_name, start, end);
-    Ok(GroupStats {
-        users: user_stats,
-        files: file_stats.into_iter()
-            .filter(|f| !f.path.starts_with(".gtm"))
-            .collect(),
+    Ok(GroupStatsJson {
+        users: map_group_user_stats(&user_stats),
+        files: map_group_file_stats(&file_stats, depth),
     })
 }
 
