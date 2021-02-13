@@ -95,7 +95,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
             coalesce(count(commits.id)::bigint, 0)        AS commits,
-            coalesce(count(gr.id)::bigint, 0)             AS users
+            commits.email                                 AS user
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -111,8 +111,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             AND commits.timestamp >= $2
             AND commits.timestamp < $3
             AND files.path IS NOT NULL
-        GROUP BY files.path
-        ORDER BY total_time DESC;", GROUP_CHILDREN_QUERY))
+        GROUP BY files.path, commits.email;", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
