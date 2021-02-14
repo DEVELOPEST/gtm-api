@@ -42,6 +42,9 @@ pub fn map_group_file_stats(data: &Vec<GroupFileStats>, depth: i32) -> Vec<Group
                 lines_removed: v.lines_removed,
                 commits: v.commits,
                 commits_per_user: (v.commits as f64 / users_count as f64 * 10.0).round() / 10.0,
+                commits_per_hour: if v.total_time == 0 { 0.0 } else {
+                    (v.commits as f64 * 60.0 * 60.0 / users_count as f64 / v.total_time as f64 * 10.0).round() / 10.0
+                },
                 users: users_count,
                 lines_per_second: if v.total_time == 0 { 0 } else {
                     ((v.lines_added + v.lines_removed) * 60 * 60 / v.total_time) as i32
@@ -59,8 +62,13 @@ pub fn map_group_user_stats(data: &Vec<GroupUserStats>) -> Vec<GroupUserStatsJso
             total_time: (u.total_time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
             lines_added: u.lines_added,
             lines_removed: u.lines_removed,
-            lines_per_second: ((u.lines_added + u.lines_removed) * 60 * 60 / u.total_time) as i32,
+            lines_per_second: if u.total_time == 0 { 0 } else {
+                ((u.lines_added + u.lines_removed) * 60 * 60 / u.total_time) as i32
+            },
             commits: u.commits,
+            commits_per_hour: if u.total_time == 0 { 0.0 } else {
+                (u.commits as f64 * 60.0 * 60.0 / u.total_time as f64 * 10.0).round() / 10.0
+            },
         })
         .collect()
 }
