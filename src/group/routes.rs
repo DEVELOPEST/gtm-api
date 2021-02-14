@@ -28,11 +28,12 @@ pub struct NewGroupChildrenRelation {
 pub struct GroupStatsParams {
     start: Option<i64>,
     end: Option<i64>,
+    depth: Option<i32>,
 }
 
 #[get("/groups")]
 pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
-    let mut groups = Vec::new();
+    let mut groups = vec![];
     if auth_user.roles.contains(&ADMIN) {
         groups = group::db::find_all(&conn).into_iter().map(|x| x.attach()).collect();
     } else {
@@ -64,11 +65,12 @@ pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) 
 }
 
 #[get("/groups/<group_name>/stats?<params..>")]
-pub fn get_group_stats(conn: Conn, group_name: String, params: Form<GroupStatsParams>) -> Result<JsonValue, Errors> {
+pub fn get_group_stats(auth_user: AuthUser, conn: Conn, group_name: String, params: Form<GroupStatsParams>) -> Result<JsonValue, Errors> {
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
-    Ok(json!(service::get_group_repos(&conn, &group_name, start, end)?))
+    let depth = period.depth.unwrap_or(1);
+    Ok(json!(service::get_group_stats(&conn, &group_name, start, end, depth)?))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]

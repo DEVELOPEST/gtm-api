@@ -74,7 +74,7 @@ pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i
             FROM groups g
             WHERE g.name = $1))
         AND commits.timestamp >= $2
-        AND commits.timestamp < $3", sql::GROUP_REPOS_QUERY))
+        AND commits.timestamp < $3", sql::GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
@@ -106,7 +106,7 @@ pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: 
             FROM groups g
             WHERE g.name = $1))
         AND commits.timestamp >= $2
-        AND commits.timestamp < $3", sql::GROUP_REPOS_QUERY))
+        AND commits.timestamp < $3", sql::GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
