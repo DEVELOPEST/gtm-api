@@ -1,6 +1,6 @@
 
 
-pub const GROUP_REPOS_QUERY: &str =
+pub const GROUP_CHILDREN_QUERY: &str =
     "WITH RECURSIVE group_repos_query AS
      (
         SELECT  group_group_members.child, 0 AS depth
