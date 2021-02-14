@@ -1,4 +1,0 @@
-[ver:1,total:240,branch:develop]
-.gtm/Cargo-> Run gtm-api.app:180,1613329200:120,1613332800:60,r
-src/group/routes.rs:40,1613332800:40,m
-src/group/resource.rs:20,1613332800:20,m
