@@ -1,7 +1,7 @@
 use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
 use crate::errors::Errors;
-use crate::group::dto::GroupStatsJson;
+use crate::group::resource::GroupStatsJson;
 use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
 use crate::group_access::model::GroupAccess;

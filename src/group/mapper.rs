@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-use crate::group::dto::{GroupFileStatsJson, GroupUserStatsJson};
+use crate::group::resource::{GroupFileStatsJson, GroupUserStatsJson};
 use crate::group::dwh::{GroupFileStats, GroupFileStatsWrapper, GroupUserStats};
 use crate::timeline::mapper::cut_path;
 
