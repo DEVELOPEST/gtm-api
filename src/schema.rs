@@ -5,6 +5,7 @@ table! {
         hash -> Text,
         message -> Text,
         email -> Text,
+        git_user_name -> Text,
         branch -> Text,
         timestamp -> Int8,
     }
