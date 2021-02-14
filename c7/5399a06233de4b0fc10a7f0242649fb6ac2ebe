@@ -1,0 +1,7 @@
+[ver:1,total:660,branch:feature/API-36]
+.gtm/Cargo-> Run gtm-api.app:505,1613322000:360,1613329200:145,r
+migrations/2021-02-14-150147_git_user_email/down.sql:60,1613329200:60,d
+.gtm/Cargo-> Build `Run gtm-api`.app:40,1613329200:40,r
+src/group/mod.rs:20,1613329200:20,m
+src/commit/model.rs:20,1613329200:20,r
+src/timeline/resources.rs:15,1613329200:15,r
