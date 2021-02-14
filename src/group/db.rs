@@ -57,7 +57,7 @@ pub fn find_all(conn: &PgConnection) -> Vec<Group> {
 pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupUserStats> {
     let stats: Vec<GroupUserStats> = sql_query(format!("
         {}
-        SELECT gr.name                                    AS name,
+        SELECT commits.email                              AS name,
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
@@ -76,7 +76,7 @@ pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64,
                 WHERE g.name = $1))
             AND commits.timestamp >= $2
             AND commits.timestamp < $3
-        GROUP BY gr.name
+        GROUP BY commits.email
         ORDER BY total_time DESC;", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
