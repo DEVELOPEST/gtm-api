@@ -37,7 +37,6 @@ pub fn update(
         repository.id,
     );
 
-    // TODO: Validate this update logic
     let _ = diesel::update(&repository).set((
         repositories::sync_url.eq(sync_url),
         repositories::access_token.eq(access_token)
