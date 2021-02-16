@@ -7,19 +7,21 @@ pub struct Commit {
     pub repository_id: i32,
     pub hash: String,
     pub message: String,
-    pub author: String,
+    pub email: String,
+    pub git_user_name: String,
     pub branch: String,
     pub time: i64,
 }
 
 impl Commit {
-    pub fn attach(self, files: Vec<FileJson>) -> CommitJson {
+    pub fn attach(&self, files: Vec<FileJson>) -> CommitJson {
         CommitJson {
             id: self.id,
-            hash: self.hash,
-            branch: self.branch,
-            message: self.message,
-            author: self.author,
+            hash: self.hash.clone(),
+            branch: self.branch.clone(),
+            message: self.message.clone(),
+            email: self.email.clone(),
+            git_user_name: self.git_user_name.clone(),
             time: self.time,
             files
         }
@@ -30,7 +32,8 @@ impl Commit {
 #[serde(rename_all = "camelCase")]
 pub struct CommitJson {
     pub id: i32,
-    pub author: String,
+    pub email: String,
+    pub git_user_name: String,
     pub branch: String,
     pub message: String,
     pub hash: String,

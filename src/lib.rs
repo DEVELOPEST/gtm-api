@@ -16,6 +16,8 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate validator_derive;
 
+// #[macro_use(info, warn)] extern crate log;
+
 use dotenv::dotenv;
 
 mod config;

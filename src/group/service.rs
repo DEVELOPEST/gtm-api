@@ -1,7 +1,8 @@
-use crate::{group, group_group_member, group_access};
+use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
 use crate::errors::Errors;
-use crate::group::dwh::GroupRepoStats;
+use crate::group::resource::GroupStatsJson;
+use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
 use crate::group_access::model::GroupAccess;
 use crate::group_group_member::model::GroupRelation;
@@ -27,9 +28,19 @@ pub fn add_group_relations(conn: &Conn, parents_vec: Vec<String>, children_vec: 
     }
 }
 
-pub fn get_group_repos(conn: &Conn, group_name: &String, start: i64, end: i64) -> Result<Vec<GroupRepoStats>, Errors> {
-    let stats = group::db::fetch_group_repositories_stats(conn, group_name, start, end);
-    Ok(stats)
+pub fn get_group_stats(
+    conn: &Conn,
+    group_name: &String,
+    start: i64,
+    end: i64,
+    depth: i32,
+) -> Result<GroupStatsJson, Errors> {
+    let user_stats = group::db::fetch_group_user_stats(conn, group_name, start, end);
+    let file_stats = group::db::fetch_group_file_stats(conn, group_name, start, end);
+    Ok(GroupStatsJson {
+        users: map_group_user_stats(&user_stats),
+        files: map_group_file_stats(&file_stats, depth),
+    })
 }
 
 pub fn get_groups_without_access(conn: &Conn, user_id: i32) -> Vec<Group> {

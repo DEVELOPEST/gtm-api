@@ -2,18 +2,24 @@ use diesel;
 use diesel::Insertable;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use lazy_static::lazy_static;
+use regex::Regex;
 
 use crate::commit::model::{Commit, CommitJson};
 use crate::commit::routes::NewCommitData;
-use crate::errors::FieldValidator;
 use crate::file;
 use crate::schema::commits;
+
+lazy_static! {
+    static ref GIT_USER_NAME_EMAIL_REGEX: Regex = Regex::new("^(.*)\\s+<(.*)>$").unwrap();
+}
 
 #[derive(Insertable)]
 #[table_name = "commits"]
 struct NewCommit<'a> {
     repository_id: i32,
     email: &'a str,
+    git_user_name: &'a str,
     branch: &'a str,
     message: &'a str,
     hash: &'a str,
@@ -52,19 +58,22 @@ pub fn create_all(
 ) -> Vec<CommitJson> {
     let mut vec = Vec::new();
     for var in commits {
-        let mut extractor = FieldValidator::validate(&var);
-        let email = &extractor.extract("author", var.author);
-        let branch = &extractor.extract("branch", var.branch);
-        let message = &extractor.extract("message", var.message);
-        let hash = &extractor.extract("hash", var.hash);
-        let timestamp = extractor.extract("timestamp", var.time);
+        let author = var.author.unwrap_or_default();
+        let author_matches = GIT_USER_NAME_EMAIL_REGEX.captures(&author).unwrap();
+        let git_user_name = author_matches.get(1).unwrap().as_str().to_string();
+        let email = author_matches.get(2).unwrap().as_str().to_string();
+        let branch =var.branch.unwrap_or_default();
+        let message = var.message.unwrap_or_default();
+        let hash = var.hash.unwrap_or_default();
+        let timestamp = var.time.unwrap_or_default();
 
         let new_commit = &NewCommit {
             repository_id,
-            email,
-            branch,
-            message,
-            hash,
+            email: &email,
+            git_user_name: &git_user_name,
+            branch: &branch,
+            message: &message,
+            hash: &hash,
             timestamp,
         };
 
