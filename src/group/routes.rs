@@ -6,11 +6,11 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::group;
-use crate::group_access;
-use crate::user::model::AuthUser;
-use crate::group::service;
 use crate::group::model::{GroupJson, GroupWithAccessJson};
+use crate::group::service;
+use crate::group_access;
 use crate::role::model::ADMIN;
+use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
 pub struct NewGroupParentsRelation {
@@ -65,7 +65,12 @@ pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) 
 }
 
 #[get("/groups/<group_name>/stats?<params..>")]
-pub fn get_group_stats(auth_user: AuthUser, conn: Conn, group_name: String, params: Form<GroupStatsParams>) -> Result<JsonValue, Errors> {
+pub fn get_group_stats(
+    _auth_user: AuthUser,
+    conn: Conn,
+    group_name: String,
+    params: Form<GroupStatsParams>,
+) -> Result<JsonValue, Errors> {
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
