@@ -38,15 +38,15 @@ pub fn map_group_file_stats(data: &Vec<GroupFileStats>, depth: i32) -> Vec<Group
                 path: v.path.clone(),
                 total_time: (v.total_time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
                 time_per_user: (v.total_time as f64 / users_count as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
-                lines_added: v.lines_removed,
-                lines_removed: v.lines_removed,
-                commits: v.commits,
+                lines_added: v.lines_added / users_count,
+                lines_removed: v.lines_removed / users_count,
+                total_commits: v.commits,
                 commits_per_user: (v.commits as f64 / users_count as f64 * 10.0).round() / 10.0,
                 commits_per_hour: if v.total_time == 0 { 0.0 } else {
                     (v.commits as f64 * 60.0 * 60.0 / users_count as f64 / v.total_time as f64 * 10.0).round() / 10.0
                 },
                 users: users_count,
-                lines_per_second: if v.total_time == 0 { 0 } else {
+                lines_per_hour: if v.total_time == 0 { 0 } else {
                     ((v.lines_added + v.lines_removed) * 60 * 60 / v.total_time) as i32
                 },
             }
@@ -62,13 +62,16 @@ pub fn map_group_user_stats(data: &Vec<GroupUserStats>) -> Vec<GroupUserStatsJso
             total_time: (u.total_time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
             lines_added: u.lines_added,
             lines_removed: u.lines_removed,
-            lines_per_second: if u.total_time == 0 { 0 } else {
+            lines_per_hour: if u.total_time == 0 { 0 } else {
                 ((u.lines_added + u.lines_removed) * 60 * 60 / u.total_time) as i32
             },
             commits: u.commits,
             commits_per_hour: if u.total_time == 0 { 0.0 } else {
                 (u.commits as f64 * 60.0 * 60.0 / u.total_time as f64 * 10.0).round() / 10.0
             },
+            lines_per_commit: if u.commits == 0 { 0.0 } else {
+                ((u.lines_added + u.lines_removed) as f64 / u.commits as f64 * 20.0).round() / 10.0
+            }
         })
         .collect()
 }
