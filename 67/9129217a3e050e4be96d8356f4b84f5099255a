@@ -1,4 +1,0 @@
-[ver:1,total:720,branch:feature/API-44]
-src/group/resource.rs:360,1614279600:360,r
-src/group/mapper.rs:240,1614279600:60,1614513600:180,r
-src/security/jwt.rs:120,1614765600:120,m
