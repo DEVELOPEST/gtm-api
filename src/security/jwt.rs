@@ -20,8 +20,8 @@ use diesel::PgConnection;
 use crate::security::AuthError;
 
 
-const TOKEN_DURATION: i64 = 60 * 5;
-// in seconds
+const TOKEN_DURATION: i64 = 24 * 60 * 60; // seconds
+
 lazy_static! {
     // This is overridden in Rocket.toml
     static ref SECRET: RwLock<String> = RwLock::new("zRXL2u7hw84MTir+ZMjIGg==".to_string());
