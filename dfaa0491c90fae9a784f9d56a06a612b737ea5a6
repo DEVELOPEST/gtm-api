@@ -1,0 +1,16 @@
+[ver:1,total:4680,branch:feature/API-30]
+src/security/db.rs:1324,1615042800:345,1615046400:979,m
+src/security/service.rs:650,1615042800:340,1615046400:310,m
+.gtm/Cargo-> Run gtm-api.app:635,1615039200:420,1615042800:96,1615046400:119,r
+src/security/routes.rs:533,1615042800:428,1615046400:105,m
+src/security/jwt.rs:530,1615042800:468,1615046400:62,m
+migrations/2021-03-06-122212_oauth_login_system/up.sql:326,1615042800:326,m
+src/security/model.rs:298,1615046400:298,m
+src/schema.rs:122,1615042800:110,1615046400:12,m
+src/user/db.rs:76,1615042800:30,1615046400:46,m
+src/repository/db.rs:45,1615042800:45,r
+src/security/mod.rs:42,1615042800:20,1615046400:22,m
+src/timeline/model.rs:30,1615046400:30,r
+src/timeline/dwh.rs:30,1615046400:30,r
+src/security/dwh.rs:20,1615046400:20,d
+.gtm/Cargo-> Build `Run gtm-api`.app:19,1615042800:12,1615046400:7,r
