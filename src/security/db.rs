@@ -16,11 +16,12 @@ pub fn exists_oauth_login(conn: &PgConnection, user_id: i32, login_type: i32) ->
 
 #[derive(Insertable)]
 #[table_name = "login"]
-pub struct NewLogin {
+pub struct NewLogin<'a> {
     pub user: i32,
     pub login_type: i32,
-    pub token: String,
-    pub refresh_token: Option<String>,
+    pub identity_hash: &'a str,
+    pub token: &'a str,
+    pub refresh_token: Option<&'a str>,
     pub exp: Option<i64>,
 }
 
@@ -28,13 +29,15 @@ pub fn create_oauth_login(
     conn: &PgConnection,
     user_id: i32,
     login_type: i32,
+    identity_hash: &str,
     token: &str,
-    refresh_token: Option<String>,
+    refresh_token: Option<&str>,
     exp: Option<i64>) -> Option<Login> {
     let login = NewLogin {
         user: user_id,
         login_type,
-        token: token.to_string(),
+        identity_hash,
+        token,
         refresh_token,
         exp,
     };
@@ -49,6 +52,7 @@ pub fn update_oauth_login(
     conn: &PgConnection,
     user_id: i32,
     login_type: i32,
+    identity_hash: &str,
     token: &str,
     refresh_token: Option<&str>,
     exp: Option<i64>) -> Option<Login> {
@@ -57,7 +61,8 @@ pub fn update_oauth_login(
             .filter(login::user.eq(user_id)
                 .and(login::login_type.eq(login_type))))
         .set(
-            (login::token.eq(token),
+            (login::identity_hash.eq(identity_hash),
+             login::token.eq(token),
              login::refresh_token.eq(refresh_token),
              login::exp.eq(exp)))
         .get_result::<Login>(conn)

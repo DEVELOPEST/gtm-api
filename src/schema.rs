@@ -111,6 +111,7 @@ table! {
         id -> Int4,
         user -> Int4,
         login_type -> Int4,
+        identity_hash -> Text,
         token -> Text,
         refresh_token -> Nullable<Text>,
         exp -> Nullable<BigInt>,

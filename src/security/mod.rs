@@ -7,6 +7,7 @@ pub mod service;
 pub mod db;
 pub mod config;
 pub mod model;
+pub mod oauth;
 
 pub struct GitHub;
 

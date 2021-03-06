@@ -69,13 +69,15 @@ fn crypt_password(password: &str) -> String {
     scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error")
 }
 
-pub fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt: &str, login_type: i32) {
+pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt: &str, login_type: i32) {
     if let Some(auth_user) = get_auth_user_from_token(conn, jwt) {
+        let user = security::oauth::fetch_github_user(token.access_token()).await;
         if security::db::exists_oauth_login(conn, auth_user.user_id, login_type) {
             security::db::update_oauth_login(
                 conn,
                 auth_user.user_id,
                 login_type,
+                &user.unwrap().node_id, // TODO: Some generic thingy
                 token.access_token(),
                 token.refresh_token(),
                 token.expires_in());
@@ -84,8 +86,9 @@ pub fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt: &str
                 conn,
                 auth_user.user_id,
                 login_type,
+                &user.unwrap().node_id, // TODO: Some generic thingy
                 token.access_token(),
-                token.refresh_token().map(|r| r.to_string()),
+                token.refresh_token(),
                 token.expires_in());
         }
     }
