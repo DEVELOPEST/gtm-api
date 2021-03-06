@@ -6,9 +6,9 @@ CREATE TABLE user_group_members
     PRIMARY KEY ("user", "group")
 );
 
-DROP TABLE IF EXISTS login_type;
+DROP TABLE IF EXISTS login_types;
 
-DROP TABLE IF EXISTS "login";
+DROP TABLE IF EXISTS logins;
 
 ALTER TABLE users
     RENAME COLUMN username

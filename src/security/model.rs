@@ -1,9 +1,9 @@
 use diesel::{Insertable, Queryable};
 
-use crate::schema::login;
+use crate::schema::logins;
 
 #[derive(Insertable, Queryable)]
-#[table_name = "login"]
+#[table_name = "logins"]
 pub struct Login {
     pub id: i32,
     pub user: i32,

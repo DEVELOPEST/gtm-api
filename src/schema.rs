@@ -100,14 +100,14 @@ table! {
 }
 
 table! {
-    login_type (id) {
+    login_types (id) {
         id -> Int4,
         name -> VarChar,
     }
 }
 
 table! {
-    login (id) {
+    logins (id) {
         id -> Int4,
         user -> Int4,
         login_type -> Int4,
@@ -126,8 +126,8 @@ joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_role_members -> roles (role));
 joinable!(user_role_members -> users (user));
-joinable!(login -> login_type (login_type));
-joinable!(login -> users (user));
+joinable!(logins -> login_types (login_type));
+joinable!(logins -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
@@ -141,6 +141,6 @@ allow_tables_to_appear_in_same_query!(
     tokens,
     user_role_members,
     users,
-    login,
-    login_type,
+    logins,
+    login_types,
 );

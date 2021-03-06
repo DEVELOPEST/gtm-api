@@ -134,13 +134,12 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 
 #[get("/oauth/github/callback")]
 pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
-    println!("token: {}", token.access_token());
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
-        println!("jwt: {}", client_token.value());
         rt.block_on(security::service::oauth_register(&conn, token, client_token.value(), 1));
+        return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
 
-    // TODO: Login somehow
-    Redirect::to(security::config::LOGIN_REDIRECT.read().unwrap().clone())
+    let token = rt.block_on(security::service::oauth_login(&conn, token));
+    Redirect::to(format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), token.unwrap_or("".to_string())))
 }
