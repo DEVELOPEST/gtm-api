@@ -94,6 +94,10 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt
     }
 }
 
-pub fn oauth_login() -> Option<String> {
+pub async fn oauth_login<T>(conn: &PgConnection, token: TokenResponse<T>) -> Option<String> {
+    let identity_hash = security::oauth::fetch_github_user(token.access_token()).await.ok()?;
+    if let Some(user) = security::db::find_user_for_oath_login(conn, &identity_hash.node_id) {
+        return security::jwt::generate_token_for_user(conn, user);
+    }
     None
 }

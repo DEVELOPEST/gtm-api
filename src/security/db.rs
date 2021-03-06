@@ -1,21 +1,22 @@
-use diesel::{BoolExpressionMethods, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
+use diesel::{BoolExpressionMethods, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, JoinOnDsl};
 
-use crate::schema::login;
+use crate::schema::{logins, users};
 use crate::security::model::Login;
+use crate::user::model::User;
 
 pub fn exists_oauth_login(conn: &PgConnection, user_id: i32, login_type: i32) -> bool {
     use diesel::dsl::exists;
     use diesel::select;
 
-    select(exists(login::table
-        .filter(login::user.eq(user_id)
-            .and(login::login_type.eq(login_type)))))
+    select(exists(logins::table
+        .filter(logins::user.eq(user_id)
+            .and(logins::login_type.eq(login_type)))))
         .get_result(conn)
         .expect("Error loading repository")
 }
 
 #[derive(Insertable)]
-#[table_name = "login"]
+#[table_name = "logins"]
 pub struct NewLogin<'a> {
     pub user: i32,
     pub login_type: i32,
@@ -42,7 +43,7 @@ pub fn create_oauth_login(
         exp,
     };
 
-    diesel::insert_into(login::table)
+    diesel::insert_into(logins::table)
         .values(login)
         .get_result::<Login>(conn)
         .ok()
@@ -57,14 +58,26 @@ pub fn update_oauth_login(
     refresh_token: Option<&str>,
     exp: Option<i64>) -> Option<Login> {
     diesel::update(
-        login::table
-            .filter(login::user.eq(user_id)
-                .and(login::login_type.eq(login_type))))
+        logins::table
+            .filter(logins::user.eq(user_id)
+                .and(logins::login_type.eq(login_type))))
         .set(
-            (login::identity_hash.eq(identity_hash),
-             login::token.eq(token),
-             login::refresh_token.eq(refresh_token),
-             login::exp.eq(exp)))
+            (logins::identity_hash.eq(identity_hash),
+             logins::token.eq(token),
+             logins::refresh_token.eq(refresh_token),
+             logins::exp.eq(exp)))
         .get_result::<Login>(conn)
+        .ok()
+}
+
+pub fn find_user_for_oath_login(
+    conn: &PgConnection,
+    identity_hash: &str,
+) -> Option<User> {
+    users::table
+        .inner_join(logins::table.on(users::id.eq(logins::user)))
+        .filter(logins::identity_hash.eq(identity_hash))
+        .select((users::id, users::username, users::password))
+        .first::<User>(conn)
         .ok()
 }

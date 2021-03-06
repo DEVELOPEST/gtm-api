@@ -1,20 +1,20 @@
 -- Your SQL goes here
 DROP TABLE IF EXISTS user_group_members;
 
-CREATE TABLE login_type
+CREATE TABLE login_types
 (
     id   SERIAL PRIMARY KEY,
     name VARCHAR(32) NOT NULL
 );
 
-INSERT INTO login_type (id, name)
+INSERT INTO login_types (id, name)
 VALUES (1, 'oauth_github'),
        (2, 'oauth_gitlab'),
        (3, 'oauth_microsoft'),
        (4, 'oauth_google'),
        (5, 'oauth_discord');
 
-CREATE TABLE "login"
+CREATE TABLE logins
 (
     id            SERIAL PRIMARY KEY,
     "user"        INTEGER NOT NULL,
