@@ -19,6 +19,7 @@ CREATE TABLE "login"
     id            SERIAL PRIMARY KEY,
     "user"        INTEGER NOT NULL,
     login_type    INTEGER NOT NULL,
+    identity_hash TEXT    NOT NULL,
     token         TEXT    NOT NULL,
     refresh_token TEXT    NULL,
     exp           BIGINT  NULL,
