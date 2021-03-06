@@ -30,7 +30,7 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
     let password = extractor.extract("password", login_data.password);
     extractor.check()?;
 
-    let token = service::login(&conn, username, password)?;
+    let token = service::password_login(&conn, username, password)?;
     Ok(json!({"jwt": token}))
 }
 
@@ -121,7 +121,6 @@ pub fn github_register(
     if params.token.is_none() {
         return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
-
     cookies.add_private(Cookie::build(security::config::JWT_COOKIE.clone(), params.token.unwrap())
         .same_site(SameSite::Lax)
         .finish());
@@ -134,11 +133,12 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 }
 
 #[get("/oauth/github/callback")]
-pub fn github_callback(token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
-    println!("Token: {}", token.access_token());
-    let client_token = cookies.get_private(&security::config::JWT_COOKIE);
-    if client_token.is_some() {
-        println!("client token {}", client_token.unwrap().value())
+pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
+    println!("token: {}", token.access_token());
+    if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
+        security::service::oauth_register(&conn, token, client_token.value(), 1);
     }
+
+    // TODO: Login somehow
     Redirect::to(security::config::LOGIN_REDIRECT.read().unwrap().clone())
 }
