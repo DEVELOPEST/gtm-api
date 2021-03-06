@@ -15,3 +15,7 @@ provider = "GitHub"
 client_id = "03a9957abbca4bcbee47"
 client_secret = "e71b332de2e3cfbf15bcf3cff3dd78cbdbccbcfa"
 redirect_uri = "http://localhost:8000/services/gtm/api/oauth/github/callback"
+
+[global.oauth]
+login_redirect = "http://localhost:3000/services/gtm/front"
+register_redirect = "http://localhost:3000/services/gtm/front"
