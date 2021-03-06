@@ -6,7 +6,7 @@ use crate::db::Conn;
 use crate::errors::Errors;
 use crate::repository::model::RepositoryJson;
 use crate::security::api_key::ApiKey;
-use crate::security::api_key;
+use crate::security;
 
 pub fn update_repo(
     conn: &Conn,
@@ -20,7 +20,7 @@ pub fn update_repo(
 ) -> Result<RepositoryJson, Errors> {
     match repository::db::find(conn, user, provider, repo){
         Some(_) => {
-            if api_key.key != *api_key::API_KEY.read().unwrap() {
+            if api_key.key != *security::config::API_KEY.read().unwrap() {
                 return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
                                        Option::from(Status::Unauthorized))
                 );
@@ -54,7 +54,7 @@ pub fn create_repo(
     access_token: &String,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Errors> {
-    if api_key.key != *api_key::API_KEY.read().unwrap() {
+    if api_key.key != *security::config::API_KEY.read().unwrap() {
         return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
                                Option::from(Status::Unauthorized))
         );

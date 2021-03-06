@@ -65,6 +65,7 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::renew_token,
                 security::routes::github_callback,
                 security::routes::github_login,
+                security::routes::github_register,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
@@ -91,8 +92,7 @@ pub fn rocket() -> rocket::Rocket {
         .attach(db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())
-        .attach(security::jwt::manage())
-        .attach(security::api_key::manage())
+        .attach(security::config::manage())
         .attach(OAuth2::<security::GitHub>::fairing("github"))
         .register(catchers![not_found])
 }

@@ -5,6 +5,8 @@ pub mod jwt;
 pub mod routes;
 pub mod service;
 
+pub mod config;
+
 pub struct GitHub;
 
 #[derive(Debug, Serialize)]

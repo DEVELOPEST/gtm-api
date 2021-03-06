@@ -19,7 +19,8 @@ CREATE TABLE "login"
     id         SERIAL PRIMARY KEY,
     "user"     INTEGER NOT NULL,
     login_type INTEGER NOT NULL,
-    token      TEXT    NOT NULL
+    token      TEXT    NOT NULL,
+    CONSTRAINT ak_user_login_type UNIQUE ("user", login_type)
 );
 
 ALTER TABLE users

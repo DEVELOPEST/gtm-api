@@ -1,4 +1,4 @@
-use rocket::http::{Cookies, Status};
+use rocket::http::{Cookies, Status, Cookie, SameSite};
 use rocket::response::Redirect;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_oauth2::{OAuth2, TokenResponse};
@@ -12,6 +12,7 @@ use crate::security::{GitHub, service};
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
+use rocket::request::Form;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -105,13 +106,39 @@ pub fn change_password(
     security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
 }
 
+#[derive(FromForm, Default, Validate, Deserialize)]
+pub struct OAuthRegisterParams {
+    token: Option<String>,
+}
+
+#[get("/oauth/register/github?<params..>")]
+pub fn github_register(
+    oauth2: OAuth2<GitHub>,
+    mut cookies: Cookies<'_>,
+    params: Form<OAuthRegisterParams>
+) -> Redirect {
+    let params = params.into_inner();
+    if params.token.is_none() {
+        return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
+    }
+
+    cookies.add_private(Cookie::build(security::config::JWT_COOKIE.clone(), params.token.unwrap())
+        .same_site(SameSite::Lax)
+        .finish());
+    oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
+}
+
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
 }
 
 #[get("/oauth/github/callback")]
-pub fn github_callback(token: TokenResponse<GitHub>) -> Redirect {
+pub fn github_callback(token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
     println!("Token: {}", token.access_token());
-    Redirect::to("http://localhost:3000/services/gtm/front")  // TODO: Remove test code
+    let client_token = cookies.get_private(&security::config::JWT_COOKIE);
+    if client_token.is_some() {
+        println!("client token {}", client_token.unwrap().value())
+    }
+    Redirect::to(security::config::LOGIN_REDIRECT.read().unwrap().clone())
 }
