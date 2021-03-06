@@ -40,6 +40,7 @@ mod group_access;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
+use rocket_oauth2::OAuth2;
 
 #[catch(404)]
 fn not_found() -> JsonValue {
@@ -62,6 +63,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::login,
                 security::routes::register,
                 security::routes::renew_token,
+                security::routes::github_callback,
+                security::routes::github_login,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
@@ -90,5 +93,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(cors_fairing())
         .attach(security::jwt::manage())
         .attach(security::api_key::manage())
+        .attach(OAuth2::<security::GitHub>::fairing("github"))
         .register(catchers![not_found])
 }

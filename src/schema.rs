@@ -85,13 +85,6 @@ table! {
 }
 
 table! {
-    user_group_members (user, group) {
-        user -> Int4,
-        group -> Int4,
-    }
-}
-
-table! {
     user_role_members (user, role) {
         user -> Int4,
         role -> Int4,
@@ -101,8 +94,24 @@ table! {
 table! {
     users (id) {
         id -> Int4,
-        email -> Text,
-        password -> Text,
+        username -> Text,
+        password -> Nullable<Text>,
+    }
+}
+
+table! {
+    login_type (id) {
+        id -> Int4,
+        name -> VarChar,
+    }
+}
+
+table! {
+    login (id) {
+        id -> Int4,
+        user -> Int4,
+        login_type -> Int4,
+        token -> Text,
     }
 }
 
@@ -112,10 +121,10 @@ joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
-joinable!(user_group_members -> groups (group));
-joinable!(user_group_members -> users (user));
 joinable!(user_role_members -> roles (role));
 joinable!(user_role_members -> users (user));
+joinable!(login -> login_type (login_type));
+joinable!(login -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
@@ -127,7 +136,6 @@ allow_tables_to_appear_in_same_query!(
     roles,
     timeline,
     tokens,
-    user_group_members,
     user_role_members,
     users,
 );

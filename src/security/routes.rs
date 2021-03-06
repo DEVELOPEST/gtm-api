@@ -1,12 +1,14 @@
-use crypto::scrypt::scrypt_check;
-use rocket::http::Status;
+use rocket::http::{Cookies, Status};
+use rocket::response::Redirect;
 use rocket_contrib::json::{Json, JsonValue};
+use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
+use crate::security::{GitHub, service};
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
@@ -14,7 +16,7 @@ use crate::user::model::AuthUser;
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
     #[validate(length(min = 1))]
-    pub email: Option<String>,
+    pub username: Option<String>,
     #[validate(length(min = 1))]
     pub password: Option<String>,
 }
@@ -23,22 +25,12 @@ pub struct LoginDto {
 pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors> {
     let login_data = login_data.into_inner();
     let mut extractor = FieldValidator::validate(&login_data);
-    let email = extractor.extract("email", login_data.email);
+    let username = extractor.extract("username", login_data.username);
     let password = extractor.extract("password", login_data.password);
     extractor.check()?;
 
-    let user = user::db::find_by_email(&conn, &email);
-
-    if user.is_none() {
-        return Err(Errors::new(&[("email", "Cannot find user with email")], None));
-    }
-
-    let user = user.unwrap();
-    if !scrypt_check(&password, &user.password).unwrap() {
-        return Err(Errors::new(&[("password", "Wrong password!")], None));
-    }
-
-    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
+    let token = service::login(&conn, username, password)?;
+    Ok(json!({"jwt": token}))
 }
 
 #[derive(Deserialize)]
@@ -111,4 +103,15 @@ pub fn change_password(
     extractor.check()?;
 
     security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
+}
+
+#[get("/oauth/login/github")]
+pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
+}
+
+#[get("/oauth/github/callback")]
+pub fn github_callback(token: TokenResponse<GitHub>) -> Redirect {
+    println!("Token: {}", token.access_token());
+    Redirect::to("http://localhost:3000/services/gtm/front")  // TODO: Remove test code
 }

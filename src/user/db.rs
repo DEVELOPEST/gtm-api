@@ -10,7 +10,7 @@ use crate::user::dwh::UserDWH;
 #[derive(Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
-    pub email: &'a str,
+    pub username: &'a str,
     pub password: &'a str,
 }
 
@@ -38,7 +38,7 @@ pub fn create(
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
     let new_user = &NewUser {
-        email,
+        username: email,
         password,
     };
 
@@ -68,9 +68,9 @@ pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
         .ok()
 }
 
-pub fn find_by_email(conn: &PgConnection, email: &str) -> Option<User> {
+pub fn find_by_username(conn: &PgConnection, username: &str) -> Option<User> {
     users::table
-        .filter(users::email.eq(email))
+        .filter(users::username.eq(username))
         .first::<User>(conn).ok()
 }
 
@@ -88,7 +88,7 @@ pub fn find_all(conn: &PgConnection) -> Vec<UserDWH> {
     let users: Vec<UserDWH> = users::table
         .inner_join(user_role_members::table)
         .inner_join(roles::table.on(roles::id.eq(user_role_members::role)))
-        .select((users::id, users::email, users::password, roles::name))
+        .select((users::id, users::username, users::password, roles::name))
         .load::<UserDWH>(conn)
         .expect("Cannot load users");
     users
