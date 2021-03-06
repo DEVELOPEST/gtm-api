@@ -1,8 +1,10 @@
 use crypto::scrypt::{scrypt_check, scrypt_simple, ScryptParams};
 use diesel::PgConnection;
+use rocket_oauth2::TokenResponse;
 
 use crate::{security, user};
 use crate::errors::Errors;
+use crate::security::jwt::get_auth_user_from_token;
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
 use crate::user_role_member;
@@ -18,7 +20,7 @@ pub fn new_user(
     Ok(user_result)
 }
 
-pub fn login(
+pub fn password_login(
     conn: &PgConnection,
     username: String,
     password: String,
@@ -40,7 +42,6 @@ pub fn login(
     }
 
     let jwt = security::jwt::generate_token_for_user(&conn, user);
-
     match jwt {
         None => { Err(Errors::new(&[("jwt", "Error generating jwt for user")], None)) }
         Some(token) => { Ok(token) }
@@ -66,4 +67,30 @@ pub fn change_password(
 
 fn crypt_password(password: &str) -> String {
     scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error")
+}
+
+pub fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt: &str, login_type: i32) {
+    if let Some(auth_user) = get_auth_user_from_token(conn, jwt) {
+        if security::db::exists_oauth_login(conn, auth_user.user_id, login_type) {
+            security::db::update_oauth_login(
+                conn,
+                auth_user.user_id,
+                login_type,
+                token.access_token(),
+                token.refresh_token(),
+                token.expires_in());
+        } else {
+            security::db::create_oauth_login(
+                conn,
+                auth_user.user_id,
+                login_type,
+                token.access_token(),
+                token.refresh_token().map(|r| r.to_string()),
+                token.expires_in());
+        }
+    }
+}
+
+pub fn oauth_login() -> Option<String> {
+    None
 }

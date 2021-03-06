@@ -11,10 +11,10 @@ use rocket::response::status;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::security::config;
 use crate::db::Conn;
 use crate::role;
 use crate::security::AuthError;
+use crate::security::config;
 use crate::user::model::{AuthUser, User};
 
 const TOKEN_DURATION: i64 = 24 * 60 * 60; // seconds
@@ -39,10 +39,8 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthUser {
             let auth_str = auth_header.to_string();
             if auth_str.starts_with("Bearer") {
                 let token = auth_str[6..auth_str.len()].trim();
-                if let Ok(token_data) = decode_token(token.to_string()) {
-                    if verify_token(&token_data, &conn) {
-                        return Outcome::Success(token_data.claims.to_auth_user());
-                    }
+                if let Some(auth_user) = get_auth_user_from_token(&conn, token) {
+                    return Outcome::Success(auth_user);
                 }
             }
         }
@@ -85,6 +83,15 @@ pub fn generate_token_for_user(conn: &PgConnection, user: User) -> Option<String
     ).ok()
 }
 
+pub fn get_auth_user_from_token(conn: &PgConnection, token: &str) -> Option<AuthUser> {
+    if let Ok(token_data) = decode_token(token.to_string()) {
+        if verify_token(&token_data, &conn) {
+            return Some(token_data.claims.to_auth_user());
+        }
+    }
+    None
+}
+
 fn decode_token(token: String) -> Result<TokenData<AuthToken>> {
     jsonwebtoken::decode::<AuthToken>(
         &token,
@@ -93,6 +100,6 @@ fn decode_token(token: String) -> Result<TokenData<AuthToken>> {
     )
 }
 
-fn verify_token(token_data: &TokenData<AuthToken>, _conn: &Conn) -> bool {
+fn verify_token(token_data: &TokenData<AuthToken>, _conn: &PgConnection) -> bool {
     Utc::now().timestamp_nanos() / 1_000_000_000 < token_data.claims.exp
 }

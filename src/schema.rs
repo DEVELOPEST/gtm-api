@@ -112,6 +112,8 @@ table! {
         user -> Int4,
         login_type -> Int4,
         token -> Text,
+        refresh_token -> Nullable<Text>,
+        exp -> Nullable<BigInt>,
     }
 }
 
@@ -138,4 +140,6 @@ allow_tables_to_appear_in_same_query!(
     tokens,
     user_role_members,
     users,
+    login,
+    login_type,
 );

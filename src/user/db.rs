@@ -33,12 +33,12 @@ impl From<Error> for UserCreationError {
 
 pub fn create(
     conn: &PgConnection,
-    email: &str,
+    username: &str,
     password: &str,
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
     let new_user = &NewUser {
-        username: email,
+        username,
         password,
     };
 
