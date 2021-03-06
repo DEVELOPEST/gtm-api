@@ -9,7 +9,7 @@ pub struct User {
     pub id: i32,
     pub email: String,
     #[serde(skip_serializing)]
-    pub password: String,
+    pub password: Option<String>,
 }
 
 #[derive(Serialize)]

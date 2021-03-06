@@ -23,6 +23,7 @@ jsonwebtoken = "7.2.0"
 lazy_static = "1.4.0"
 log = "0.4.14"
 regex = "1.4.3"
+rocket_oauth2 = "0.4.1"
 
 
 [dependencies.rocket_contrib]
