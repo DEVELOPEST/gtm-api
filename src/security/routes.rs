@@ -1,4 +1,5 @@
-use rocket::http::{Cookies, Status, Cookie, SameSite};
+use rocket::http::{Cookie, Cookies, SameSite, Status};
+use rocket::request::Form;
 use rocket::response::Redirect;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_oauth2::{OAuth2, TokenResponse};
@@ -8,12 +9,11 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
+use crate::security::oauth::{GitHub, GitLab, LoginType};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
-use rocket::request::Form;
-use crate::security::oauth::GitHub;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -113,19 +113,8 @@ pub struct OAuthRegisterParams {
 }
 
 #[get("/oauth/register/github?<params..>")]
-pub fn github_register(
-    oauth2: OAuth2<GitHub>,
-    mut cookies: Cookies<'_>,
-    params: Form<OAuthRegisterParams>
-) -> Redirect {
-    let params = params.into_inner();
-    if params.token.is_none() {
-        return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
-    }
-    cookies.add_private(Cookie::build(security::config::JWT_COOKIE.clone(), params.token.unwrap())
-        .same_site(SameSite::Lax)
-        .finish());
-    oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
+pub fn github_register(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+    oauth_register(oauth2, cookies, &["user:read"], params.into_inner())
 }
 
 #[get("/oauth/login/github")]
@@ -135,9 +124,45 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 
 #[get("/oauth/github/callback")]
 pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+#[get("/oauth/register/gitlab?<params..>")]
+pub fn gitlab_register(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+    oauth_register(oauth2, cookies, &["read_user"], params.into_inner())
+}
+
+#[get("/oauth/login/gitlab")]
+pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["read_user"]).unwrap()
+}
+
+#[get("/oauth/gitlab/callback")]
+pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+fn oauth_register<T>(oauth2: OAuth2<T>, mut cookies: Cookies<'_>, scopes: &[&str], params: OAuthRegisterParams) -> Redirect
+    where T: 'static
+{
+    if params.token.is_none() {
+        return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
+    }
+    cookies.add_private(Cookie::build(security::config::JWT_COOKIE.clone(), params.token.unwrap())
+        .same_site(SameSite::Lax)
+        .finish());
+
+    oauth2.get_redirect(&mut cookies, scopes).unwrap()
+}
+
+fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, mut cookies: Cookies<'_>) -> Redirect
+    where TokenResponse<T>: LoginType
+{
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
-        rt.block_on(security::service::oauth_register(&conn, token, client_token.value()));
+        if let Err(_) = rt.block_on(security::service::oauth_register(&conn, token, client_token.value())) {
+            error!("OAuth register error");
+        }
         return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
 
