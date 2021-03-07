@@ -26,6 +26,7 @@ regex = "1.4.3"
 rocket_oauth2 = "0.4.1"
 reqwest = { version = "0.10.9", features = ["json"] }
 tokio = { version = "0.2", features = ["full"] }
+async-trait = "0.1.47"
 
 
 [dependencies.rocket_contrib]

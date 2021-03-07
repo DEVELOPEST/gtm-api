@@ -73,10 +73,12 @@ pub fn update_oauth_login(
 pub fn find_user_for_oath_login(
     conn: &PgConnection,
     identity_hash: &str,
+    login_type: i32,
 ) -> Option<User> {
     users::table
         .inner_join(logins::table.on(users::id.eq(logins::user)))
-        .filter(logins::identity_hash.eq(identity_hash))
+        .filter(logins::identity_hash.eq(identity_hash)
+            .and(logins::login_type.eq(login_type)))
         .select((users::id, users::username, users::password))
         .first::<User>(conn)
         .ok()
