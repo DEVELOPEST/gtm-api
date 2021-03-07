@@ -93,6 +93,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(setup::migrate_database())
         .attach(cors_fairing())
         .attach(security::config::manage())
-        .attach(OAuth2::<security::GitHub>::fairing("github"))
+        .attach(OAuth2::<security::oauth::GitHub>::fairing("github"))
         .register(catchers![not_found])
 }

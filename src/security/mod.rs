@@ -9,8 +9,6 @@ pub mod config;
 pub mod model;
 pub mod oauth;
 
-pub struct GitHub;
-
 #[derive(Debug, Serialize)]
 pub struct AuthError {
     message: String

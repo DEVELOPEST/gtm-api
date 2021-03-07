@@ -8,11 +8,12 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
-use crate::security::{GitHub, service};
+use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
 use rocket::request::Form;
+use crate::security::oauth::GitHub;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -136,7 +137,7 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
-        rt.block_on(security::service::oauth_register(&conn, token, client_token.value(), 1));
+        rt.block_on(security::service::oauth_register(&conn, token, client_token.value()));
         return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
 
