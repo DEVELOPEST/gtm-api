@@ -16,6 +16,12 @@ client_id = "03a9957abbca4bcbee47"
 client_secret = "e71b332de2e3cfbf15bcf3cff3dd78cbdbccbcfa"
 redirect_uri = "http://localhost:8000/services/gtm/api/oauth/github/callback"
 
+[global.oauth.gitlab]
+provider = { auth_uri = "https://gitlab.com/oauth/authorize", token_uri = "https://gitlab.com/oauth/token" }
+client_id = "552bd6e872cfa02bafb92bc306e21fff465eddd9474826755685ad8a28197405"
+client_secret = "afecadc90e676415053ff1697956f9efcaebb6e611c845774f921e0c88766d75"
+redirect_uri = "http://localhost:8000/services/gtm/api/oauth/gitlab/callback"
+
 [global.oauth]
 login_redirect = "http://localhost:3000/services/gtm/front"
 register_redirect = "http://localhost:3000/services/gtm/front"

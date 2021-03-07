@@ -16,7 +16,7 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate validator_derive;
 
-// #[macro_use(info, warn)] extern crate log;
+#[macro_use(error)] extern crate log;
 
 use dotenv::dotenv;
 
@@ -66,6 +66,9 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::github_callback,
                 security::routes::github_login,
                 security::routes::github_register,
+                security::routes::gitlab_callback,
+                security::routes::gitlab_login,
+                security::routes::gitlab_register,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
@@ -94,5 +97,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(cors_fairing())
         .attach(security::config::manage())
         .attach(OAuth2::<security::oauth::GitHub>::fairing("github"))
+        .attach(OAuth2::<security::oauth::GitLab>::fairing("gitlab"))
         .register(catchers![not_found])
 }

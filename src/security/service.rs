@@ -5,7 +5,7 @@ use rocket_oauth2::TokenResponse;
 use crate::{security, user};
 use crate::errors::Errors;
 use crate::security::jwt::get_auth_user_from_token;
-use crate::security::oauth::{IdentityUser, LoginType};
+use crate::security::oauth::{LoginType};
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
 use crate::user_role_member;
@@ -74,13 +74,13 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt
     where TokenResponse<T>: LoginType
 {
     if let Some(auth_user) = get_auth_user_from_token(conn, jwt) {
-        let user = security::oauth::fetch_github_user(token.access_token()).await?;
+        let identity_hash = token.fetch_identity_hash().await?;
         if security::db::exists_oauth_login(conn, auth_user.user_id, token.get_login_type()) {
             security::db::update_oauth_login(
                 conn,
                 auth_user.user_id,
                 token.get_login_type(),
-                user.get_identity_hash(),
+                &identity_hash,
                 token.access_token(),
                 token.refresh_token(),
                 token.expires_in());
@@ -89,7 +89,7 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt
                 conn,
                 auth_user.user_id,
                 token.get_login_type(),
-                user.get_identity_hash(),
+                &identity_hash,
                 token.access_token(),
                 token.refresh_token(),
                 token.expires_in());
