@@ -34,3 +34,6 @@ ALTER TABLE users
 
 ALTER TABLE users
     ALTER COLUMN password DROP NOT NULL;
+
+ALTER TABLE users
+    DROP CONSTRAINT users_email_key;
