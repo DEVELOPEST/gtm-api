@@ -2,11 +2,13 @@ use async_trait::async_trait;
 use rocket_oauth2::TokenResponse;
 
 use serde::Deserialize;
+use reqwest::Error;
 
 #[async_trait]
 pub trait LoginType {
     fn get_login_type(&self) -> i32;
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error>;
+    async fn fetch_username(&self) -> Result<String, reqwest::Error>;
 }
 
 pub struct GitHub;
@@ -22,6 +24,11 @@ impl LoginType for TokenResponse<GitHub> {
         let user = fetch_github_user(&self.access_token()).await?;
         Ok(user.get_identity_hash().to_string())
     }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_github_user(&self.access_token()).await?;
+        Ok(user.login)
+    }
 }
 
 #[async_trait]
@@ -34,6 +41,11 @@ impl LoginType for TokenResponse<GitLab> {
         let user = fetch_gitlab_user(&self.access_token()).await?;
         Ok(user.get_identity_hash().to_string())
     }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_gitlab_user(&self.access_token()).await?;
+        Ok(user.username)
+    }
 }
 
 pub trait IdentityUser {
@@ -42,7 +54,7 @@ pub trait IdentityUser {
 
 #[derive(Deserialize)]
 pub struct GithubUser {
-    // pub login: String,
+    pub login: String,
     // pub id: i64,
     pub node_id: String,
 }
@@ -50,6 +62,7 @@ pub struct GithubUser {
 #[derive(Deserialize)]
 pub struct GitlabUser {
     pub id: i64,
+    pub username: String
 }
 
 impl IdentityUser for GithubUser {

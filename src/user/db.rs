@@ -1,21 +1,24 @@
-use diesel::{Insertable};
+use std::fmt::{Display, Formatter};
+
+use diesel::Insertable;
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
-use crate::user::model::User;
-use crate::schema::users;
-use crate::schema::user_role_members;
+
 use crate::schema::roles;
+use crate::schema::user_role_members;
+use crate::schema::users;
 use crate::user::dwh::UserDWH;
+use crate::user::model::User;
+use std::fmt;
 
 #[derive(Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
     pub username: &'a str,
-    pub password: &'a str,
+    pub password: Option<String>,
 }
 
 pub enum UserCreationError {
-    DuplicatedEmail,
     DuplicatedUsername,
 }
 
@@ -31,10 +34,18 @@ impl From<Error> for UserCreationError {
     }
 }
 
+impl Display for UserCreationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            UserCreationError::DuplicatedUsername => write!(f, "Duplicate Username")
+        }
+    }
+}
+
 pub fn create(
     conn: &PgConnection,
     username: &str,
-    password: &str,
+    password: Option<String>,
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
     let new_user = &NewUser {

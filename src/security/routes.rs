@@ -62,10 +62,9 @@ pub fn register(
 
     extractor.check()?;
 
-    let created_user = security::service::new_user(&conn, &email, &password)
+    let created_user = security::service::new_user(&conn, &email, Option::from(password))
         .map_err(|error| {
             let field = match error {
-                UserCreationError::DuplicatedEmail => "email",
                 UserCreationError::DuplicatedUsername => "username",
             };
             Errors::new(&[(field, "has already been taken")], Option::from(Status::Conflict))
@@ -113,7 +112,7 @@ pub struct OAuthRegisterParams {
 }
 
 #[get("/oauth/register/github?<params..>")]
-pub fn github_register(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+pub fn github_register(oauth2: OAuth2<GitHub>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
     oauth_register(oauth2, cookies, &["user:read"], params.into_inner())
 }
 
@@ -123,12 +122,12 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 }
 
 #[get("/oauth/github/callback")]
-pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
+pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 
 #[get("/oauth/register/gitlab?<params..>")]
-pub fn gitlab_register(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+pub fn gitlab_register(oauth2: OAuth2<GitLab>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
     oauth_register(oauth2, cookies, &["read_user"], params.into_inner())
 }
 
@@ -138,7 +137,7 @@ pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirec
 }
 
 #[get("/oauth/gitlab/callback")]
-pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
+pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 
@@ -166,6 +165,18 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, mut cookies: Cookies<'
         return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
 
-    let token = rt.block_on(security::service::oauth_login(&conn, token));
-    Redirect::to(format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), token.unwrap_or("".to_string())))
+    let jwt = rt.block_on(security::service::oauth_login(&conn, &token));
+    let url = match jwt {
+        None => {
+            let username = rt.block_on(token.fetch_username())
+                .map_err(|e| error!("Error fetching username: {}", e))
+                .unwrap_or("Anonymous User".to_string());
+            let user = security::service::new_user(&conn, &username, None)
+                .map_err(|e| error!("Error creating user: {}", e))
+                .unwrap();
+            security::jwt::generate_token_for_user(&conn, user).unwrap()
+        }
+        Some(token) => {format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), token)}
+    };
+    Redirect::to(url)
 }

@@ -5,18 +5,18 @@ use rocket_oauth2::TokenResponse;
 use crate::{security, user};
 use crate::errors::Errors;
 use crate::security::jwt::get_auth_user_from_token;
-use crate::security::oauth::{LoginType};
+use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
 use crate::user_role_member;
 
 pub fn new_user(
     conn: &PgConnection,
-    email: &str,
-    password: &str,
+    username: &str,
+    password: Option<String>,
 ) -> Result<User, UserCreationError> {
-    let hash = crypt_password(password);
-    let user_result = user::db::create(&conn, &email, &hash)?;
+    let hash = password.map(|pass| crypt_password(&pass));
+    let user_result = user::db::create(&conn, &username, hash)?;
     user_role_member::db::create(conn, user_result.id.clone(), 1);
     Ok(user_result)
 }
@@ -98,11 +98,19 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt
     Ok(())
 }
 
-pub async fn oauth_login<T>(conn: &PgConnection, token: TokenResponse<T>) -> Option<String>
+pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Option<String>
     where TokenResponse<T>: LoginType
 {
     let identity_hash = token.fetch_identity_hash().await.ok()?;
     if let Some(user) = security::db::find_user_for_oath_login(conn, &identity_hash, token.get_login_type()) {
+        security::db::update_oauth_login(
+            conn,
+            user.id,
+            token.get_login_type(),
+            &identity_hash,
+            token.access_token(),
+            token.refresh_token(),
+            token.expires_in());
         return security::jwt::generate_token_for_user(conn, user);
     }
     None
