@@ -1,5 +1,4 @@
-use rocket::http::{Cookie, Cookies, SameSite, Status};
-use rocket::request::Form;
+use rocket::http::{Cookies, Status};
 use rocket::response::Redirect;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_oauth2::{OAuth2, TokenResponse};
@@ -106,16 +105,6 @@ pub fn change_password(
     security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
 }
 
-#[derive(FromForm, Default, Validate, Deserialize)]
-pub struct OAuthRegisterParams {
-    token: Option<String>,
-}
-
-// #[get("/oauth/register/github?<params..>")]
-// pub fn github_register(oauth2: OAuth2<GitHub>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
-//     oauth_register(oauth2, cookies, &["user:read"], params.into_inner())
-// }
-
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
@@ -125,11 +114,6 @@ pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirec
 pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
-
-// #[get("/oauth/register/gitlab?<params..>")]
-// pub fn gitlab_register(oauth2: OAuth2<GitLab>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
-//     oauth_register(oauth2, cookies, &["read_user"], params.into_inner())
-// }
 
 #[get("/oauth/login/gitlab")]
 pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
@@ -141,20 +125,7 @@ pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookie
     oauth_callback(conn, token, cookies)
 }
 
-fn oauth_register<T>(oauth2: OAuth2<T>, mut cookies: Cookies<'_>, scopes: &[&str], params: OAuthRegisterParams) -> Redirect
-    where T: 'static
-{
-    if params.token.is_none() {
-        return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
-    }
-    cookies.add_private(Cookie::build(security::config::JWT_COOKIE.clone(), params.token.unwrap())
-        .same_site(SameSite::Lax)
-        .finish());
-
-    oauth2.get_redirect(&mut cookies, scopes).unwrap()
-}
-
-fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, mut cookies: Cookies<'_>) -> Redirect
+fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) -> Redirect
     where TokenResponse<T>: LoginType
 {
     let mut rt = tokio::runtime::Runtime::new().unwrap();

@@ -16,7 +16,7 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate validator_derive;
 
-#[macro_use(info, error)] extern crate log;
+#[macro_use(error)] extern crate log;
 
 use dotenv::dotenv;
 
@@ -65,10 +65,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::renew_token,
                 security::routes::github_callback,
                 security::routes::github_login,
-                // security::routes::github_register,
                 security::routes::gitlab_callback,
                 security::routes::gitlab_login,
-                // security::routes::gitlab_register,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
