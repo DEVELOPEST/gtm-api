@@ -5,9 +5,9 @@ table! {
         hash -> Text,
         message -> Text,
         email -> Text,
-        git_user_name -> Text,
         branch -> Text,
         timestamp -> Int8,
+        git_user_name -> Text,
     }
 }
 
@@ -43,6 +43,25 @@ table! {
         id -> Int4,
         name -> Text,
         added_at -> Timestamptz,
+    }
+}
+
+table! {
+    login_types (id) {
+        id -> Int4,
+        name -> Varchar,
+    }
+}
+
+table! {
+    logins (id) {
+        id -> Int4,
+        user -> Int4,
+        login_type -> Int4,
+        identity_hash -> Text,
+        token -> Text,
+        refresh_token -> Nullable<Text>,
+        exp -> Nullable<Int8>,
     }
 }
 
@@ -99,35 +118,16 @@ table! {
     }
 }
 
-table! {
-    login_types (id) {
-        id -> Int4,
-        name -> VarChar,
-    }
-}
-
-table! {
-    logins (id) {
-        id -> Int4,
-        user -> Int4,
-        login_type -> Int4,
-        identity_hash -> Text,
-        token -> Text,
-        refresh_token -> Nullable<Text>,
-        exp -> Nullable<BigInt>,
-    }
-}
-
 joinable!(commits -> repositories (repository_id));
 joinable!(files -> commits (commit));
 joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
+joinable!(logins -> login_types (login_type));
+joinable!(logins -> users (user));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_role_members -> roles (role));
 joinable!(user_role_members -> users (user));
-joinable!(logins -> login_types (login_type));
-joinable!(logins -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
@@ -135,12 +135,12 @@ allow_tables_to_appear_in_same_query!(
     group_accesses,
     group_group_members,
     groups,
+    login_types,
+    logins,
     repositories,
     roles,
     timeline,
     tokens,
     user_role_members,
     users,
-    logins,
-    login_types,
 );
