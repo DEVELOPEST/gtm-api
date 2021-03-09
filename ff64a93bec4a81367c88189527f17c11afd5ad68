@@ -1,0 +1,7 @@
+[ver:1,total:3780,branch:feature/API-30]
+src/security/routes.rs:1604,1615204800:60,1615291200:490,1615294800:1054,m
+.gtm/Cargo-> Run gtm-api.app:669,1615204800:410,1615294800:259,r
+src/security/service.rs:546,1615291200:95,1615294800:451,m
+src/user/db.rs:481,1615294800:481,m
+src/security/oauth.rs:438,1615291200:135,1615294800:303,m
+.gtm/Cargo-> Build `Run gtm-api`.app:42,1615204800:10,1615294800:32,r
