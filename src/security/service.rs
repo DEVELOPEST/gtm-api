@@ -4,7 +4,6 @@ use rocket_oauth2::TokenResponse;
 
 use crate::{security, user};
 use crate::errors::Errors;
-use crate::security::jwt::get_auth_user_from_token;
 use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
@@ -70,31 +69,30 @@ fn crypt_password(password: &str) -> String {
     scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error")
 }
 
-pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, jwt: &str) -> Result<(), reqwest::Error>
+pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, user_id: i32) -> Result<(), reqwest::Error>
     where TokenResponse<T>: LoginType
 {
-    if let Some(auth_user) = get_auth_user_from_token(conn, jwt) {
-        let identity_hash = token.fetch_identity_hash().await?;
-        if security::db::exists_oauth_login(conn, auth_user.user_id, token.get_login_type()) {
-            security::db::update_oauth_login(
-                conn,
-                auth_user.user_id,
-                token.get_login_type(),
-                &identity_hash,
-                token.access_token(),
-                token.refresh_token(),
-                token.expires_in());
-        } else {
-            security::db::create_oauth_login(
-                conn,
-                auth_user.user_id,
-                token.get_login_type(),
-                &identity_hash,
-                token.access_token(),
-                token.refresh_token(),
-                token.expires_in());
-        }
+    let identity_hash = token.fetch_identity_hash().await?;
+    if security::db::exists_oauth_login(conn, user_id, token.get_login_type()) {
+        security::db::update_oauth_login(
+            conn,
+            user_id,
+            token.get_login_type(),
+            &identity_hash,
+            token.access_token(),
+            token.refresh_token(),
+            token.expires_in());
+    } else {
+        security::db::create_oauth_login(
+            conn,
+            user_id,
+            token.get_login_type(),
+            &identity_hash,
+            token.access_token(),
+            token.refresh_token(),
+            token.expires_in());
     }
+
     Ok(())
 }
 
@@ -114,4 +112,17 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Op
         return security::jwt::generate_token_for_user(conn, user);
     }
     None
+}
+
+pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>) -> String
+    where TokenResponse<T>: LoginType
+{
+    let username = token.fetch_username().await
+        .map_err(|e| error!("Error fetching username: {}", e))
+        .unwrap_or("Anonymous User".to_string());
+    let user = new_user(&conn, &username, None)
+        .map_err(|e| error!("Error creating user: {}", e))
+        .unwrap();
+    oauth_register(&conn, token, user.id);
+    security::jwt::generate_token_for_user(&conn, user).unwrap()
 }

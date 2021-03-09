@@ -159,24 +159,18 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, mut cookies: Cookies<'
 {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
-        if let Err(_) = rt.block_on(security::service::oauth_register(&conn, token, client_token.value())) {
-            error!("OAuth register error");
+        if let Some(auth_user) = security::jwt::get_auth_user_from_token(&conn, client_token.value()) {
+            if let Err(_) = rt.block_on(security::service::oauth_register(&conn, token, auth_user.user_id)) {
+                error!("OAuth register error");
+            }
         }
         return Redirect::to(security::config::REGISTER_REDIRECT.read().unwrap().clone());
     }
 
     let jwt = rt.block_on(security::service::oauth_login(&conn, &token));
-    let url = match jwt {
-        None => {
-            let username = rt.block_on(token.fetch_username())
-                .map_err(|e| error!("Error fetching username: {}", e))
-                .unwrap_or("Anonymous User".to_string());
-            let user = security::service::new_user(&conn, &username, None)
-                .map_err(|e| error!("Error creating user: {}", e))
-                .unwrap();
-            security::jwt::generate_token_for_user(&conn, user).unwrap()
-        }
-        Some(token) => {format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), token)}
+    let jwt_token = match jwt {
+        None => rt.block_on(security::service::login_and_register(&conn, token)),
+        Some(token) => token
     };
-    Redirect::to(url)
+    Redirect::to( format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), jwt_token))
 }
