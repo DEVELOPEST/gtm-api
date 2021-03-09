@@ -32,8 +32,7 @@ ALTER TABLE users
     RENAME COLUMN email
         TO username;
 
-ALTER TABLE users
-    ALTER COLUMN password DROP NOT NULL;
+ALTER TABLE users RENAME CONSTRAINT users_email_key TO users_username_key;
 
 ALTER TABLE users
-    DROP CONSTRAINT users_email_key;
+    ALTER COLUMN password DROP NOT NULL;

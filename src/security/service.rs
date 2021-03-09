@@ -2,7 +2,7 @@ use crypto::scrypt::{scrypt_check, scrypt_simple, ScryptParams};
 use diesel::PgConnection;
 use rocket_oauth2::TokenResponse;
 
-use crate::{security, user};
+use crate::{common, security, user};
 use crate::errors::Errors;
 use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
@@ -117,12 +117,17 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Op
 pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>) -> String
     where TokenResponse<T>: LoginType
 {
-    let username = token.fetch_username().await
+    let mut username = token.fetch_username().await
         .map_err(|e| error!("Error fetching username: {}", e))
         .unwrap_or("Anonymous User".to_string());
+    if user::db::find_by_username(conn, &username).is_some() {
+        username = format!("{}{}", username, common::random::random_string(5))
+    }
     let user = new_user(&conn, &username, None)
         .map_err(|e| error!("Error creating user: {}", e))
         .unwrap();
-    oauth_register(&conn, token, user.id);
+    oauth_register(&conn, token, user.id).await
+        .map_err(|e| error!("Error registering oauth for user: {}", e))
+        .unwrap();
     security::jwt::generate_token_for_user(&conn, user).unwrap()
 }

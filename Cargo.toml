@@ -1,6 +1,6 @@
 [package]
 name = "gtm-api"
-version = "0.1.0"
+version = "0.1.4"
 authors = ["mjurge", "taannu"]
 edition = "2018"
 
@@ -27,6 +27,7 @@ rocket_oauth2 = "0.4.1"
 reqwest = { version = "0.10.9", features = ["json"] }
 tokio = { version = "0.2", features = ["full"] }
 async-trait = "0.1.47"
+rand = "0.8.3"
 
 
 [dependencies.rocket_contrib]
