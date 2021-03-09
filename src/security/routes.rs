@@ -111,10 +111,10 @@ pub struct OAuthRegisterParams {
     token: Option<String>,
 }
 
-#[get("/oauth/register/github?<params..>")]
-pub fn github_register(oauth2: OAuth2<GitHub>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
-    oauth_register(oauth2, cookies, &["user:read"], params.into_inner())
-}
+// #[get("/oauth/register/github?<params..>")]
+// pub fn github_register(oauth2: OAuth2<GitHub>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+//     oauth_register(oauth2, cookies, &["user:read"], params.into_inner())
+// }
 
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
@@ -126,10 +126,10 @@ pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, cookies: Cookie
     oauth_callback(conn, token, cookies)
 }
 
-#[get("/oauth/register/gitlab?<params..>")]
-pub fn gitlab_register(oauth2: OAuth2<GitLab>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
-    oauth_register(oauth2, cookies, &["read_user"], params.into_inner())
-}
+// #[get("/oauth/register/gitlab?<params..>")]
+// pub fn gitlab_register(oauth2: OAuth2<GitLab>, cookies: Cookies<'_>, params: Form<OAuthRegisterParams>) -> Redirect {
+//     oauth_register(oauth2, cookies, &["read_user"], params.into_inner())
+// }
 
 #[get("/oauth/login/gitlab")]
 pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
@@ -158,7 +158,7 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, mut cookies: Cookies<'
     where TokenResponse<T>: LoginType
 {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
-    if let Some(client_token) = cookies.get_private(&security::config::JWT_COOKIE) {
+    if let Some(client_token) = cookies.get(&security::config::JWT_COOKIE) {
         if let Some(auth_user) = security::jwt::get_auth_user_from_token(&conn, client_token.value()) {
             if let Err(_) = rt.block_on(security::service::oauth_register(&conn, token, auth_user.user_id)) {
                 error!("OAuth register error");
