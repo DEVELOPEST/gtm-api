@@ -23,5 +23,5 @@ client_secret = "afecadc90e676415053ff1697956f9efcaebb6e611c845774f921e0c88766d7
 redirect_uri = "http://localhost:8000/services/gtm/api/oauth/gitlab/callback"
 
 [global.oauth]
-login_redirect = "http://localhost:3000/services/gtm/front"
-register_redirect = "http://localhost:3000/services/gtm/front"
+login_redirect = "http://localhost:3000/services/gtm/front/login"
+register_redirect = "http://localhost:3000/services/gtm/front/login"
