@@ -13,6 +13,7 @@ pub trait LoginType {
 
 pub struct GitHub;
 pub struct GitLab;
+pub struct Microsoft;
 
 #[async_trait]
 impl LoginType for TokenResponse<GitHub> {
@@ -48,6 +49,23 @@ impl LoginType for TokenResponse<GitLab> {
     }
 }
 
+#[async_trait]
+impl LoginType for TokenResponse<Microsoft> {
+    fn get_login_type(&self) -> i32 {
+        return 3;
+    }
+
+    async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
+        let user = fetch_microsoft_user(&self.access_token()).await?;
+        Ok(user.get_identity_hash().to_string())
+    }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_microsoft_user(&self.access_token()).await?;
+        Ok(user.display_name.to_string())
+    }
+}
+
 pub trait IdentityUser {
     fn get_identity_hash(&self) -> String;
 }
@@ -65,6 +83,13 @@ pub struct GitlabUser {
     pub username: String
 }
 
+#[derive(Deserialize)]
+pub struct MicrosoftUser {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    pub id: String,
+}
+
 impl IdentityUser for GithubUser {
     fn get_identity_hash(&self) -> String {
         return self.node_id.clone();
@@ -72,6 +97,12 @@ impl IdentityUser for GithubUser {
 }
 
 impl IdentityUser for GitlabUser {
+    fn get_identity_hash(&self) -> String {
+        return self.id.to_string();
+    }
+}
+
+impl IdentityUser for MicrosoftUser {
     fn get_identity_hash(&self) -> String {
         return self.id.to_string();
     }
@@ -98,5 +129,17 @@ pub async fn fetch_gitlab_user(token: &str) -> Result<GitlabUser, reqwest::Error
         .send()
         .await?
         .json::<GitlabUser>()
+        .await
+}
+
+pub async fn fetch_microsoft_user(token: &str) -> Result<MicrosoftUser, reqwest::Error> {
+    let client = reqwest::Client::new();
+    client.get("https://graph.microsoft.com/v1.0/me")
+        .header("Authorization", format!("Bearer {}", token))
+        .header("User-Agent", "gtm-api")
+        .header("Accept", "application/json")
+        .send()
+        .await?
+        .json::<MicrosoftUser>()
         .await
 }

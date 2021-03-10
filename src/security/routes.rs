@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
-use crate::security::oauth::{GitHub, GitLab, LoginType};
+use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
@@ -122,6 +122,16 @@ pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirec
 
 #[get("/oauth/gitlab/callback")]
 pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+#[get("/oauth/login/microsoft")]
+pub fn microsoft_login(oauth2: OAuth2<Microsoft>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["User.Read"]).unwrap()
+}
+
+#[get("/oauth/microsoft/callback")]
+pub fn microsoft_callback(conn: Conn, token: TokenResponse<Microsoft>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 
