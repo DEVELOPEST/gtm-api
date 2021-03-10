@@ -18,3 +18,5 @@ ALTER TABLE users RENAME CONSTRAINT users_username_key TO users_email_key;
 
 ALTER TABLE users
     ALTER COLUMN password SET NOT NULL;
+
+DROP TABLE IF EXISTS emails;
