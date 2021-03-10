@@ -67,6 +67,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::github_login,
                 security::routes::gitlab_callback,
                 security::routes::gitlab_login,
+                security::routes::microsoft_callback,
+                security::routes::microsoft_login,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
@@ -96,5 +98,6 @@ pub fn rocket() -> rocket::Rocket {
         .attach(security::config::manage())
         .attach(OAuth2::<security::oauth::GitHub>::fairing("github"))
         .attach(OAuth2::<security::oauth::GitLab>::fairing("gitlab"))
+        .attach(OAuth2::<security::oauth::Microsoft>::fairing("microsoft"))
         .register(catchers![not_found])
 }
