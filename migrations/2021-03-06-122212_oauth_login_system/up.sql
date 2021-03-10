@@ -15,22 +15,28 @@ VALUES (1, 'oauth_token_github'),
 CREATE TABLE logins
 (
     id            SERIAL PRIMARY KEY,
-    "user"        INTEGER NOT NULL,
-    login_type    INTEGER NOT NULL,
+    "user"        INTEGER NOT NULL REFERENCES "users" ON UPDATE CASCADE ON DELETE CASCADE,
+    login_type    INTEGER NOT NULL REFERENCES login_types ON UPDATE CASCADE ON DELETE RESTRICT,
     identity_hash TEXT    NOT NULL,
     token         TEXT    NOT NULL,
     refresh_token TEXT    NULL,
     exp           BIGINT  NULL,
-    CONSTRAINT ak_user_login_type UNIQUE ("user", login_type),
-    CONSTRAINT fk_user_user_id FOREIGN KEY ("user") REFERENCES "users"(id) ON DELETE CASCADE,
-    CONSTRAINT fk_login_type_login_type_id FOREIGN KEY (login_type) REFERENCES login_types(id) ON DELETE RESTRICT
+    CONSTRAINT ak_user_login_type UNIQUE ("user", login_type)
 );
 
 ALTER TABLE users
     RENAME COLUMN email
         TO username;
 
-ALTER TABLE users RENAME CONSTRAINT users_email_key TO users_username_key;
+ALTER TABLE users
+    RENAME CONSTRAINT users_email_key TO users_username_key;
 
 ALTER TABLE users
     ALTER COLUMN password DROP NOT NULL;
+
+CREATE TABLE emails
+(
+    id      SERIAL PRIMARY KEY,
+    "user"  INTEGER     NOT NULL REFERENCES "users" ON UPDATE CASCADE ON DELETE CASCADE,
+    "email" TEXT UNIQUE NOT NULL
+)

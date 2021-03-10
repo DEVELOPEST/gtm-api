@@ -12,6 +12,14 @@ table! {
 }
 
 table! {
+    emails (id) {
+        id -> Int4,
+        user -> Int4,
+        email -> Text,
+    }
+}
+
+table! {
     files (id) {
         id -> Int4,
         commit -> Int4,
@@ -119,6 +127,7 @@ table! {
 }
 
 joinable!(commits -> repositories (repository_id));
+joinable!(emails -> users (user));
 joinable!(files -> commits (commit));
 joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
@@ -131,6 +140,7 @@ joinable!(user_role_members -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
+    emails,
     files,
     group_accesses,
     group_group_members,

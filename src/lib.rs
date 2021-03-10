@@ -37,6 +37,7 @@ mod commit;
 mod role;
 mod user_role_member;
 mod group_access;
+mod email;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;

@@ -107,7 +107,7 @@ pub fn change_password(
 
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["user:read"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["user:email"]).unwrap()
 }
 
 #[get("/oauth/github/callback")]
@@ -127,7 +127,7 @@ pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookie
 
 #[get("/oauth/login/microsoft")]
 pub fn microsoft_login(oauth2: OAuth2<Microsoft>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["User.Read"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["User.ReadBasic.All"]).unwrap()
 }
 
 #[get("/oauth/microsoft/callback")]
@@ -141,7 +141,7 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) 
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get(&security::config::JWT_COOKIE) {
         if let Some(auth_user) = security::jwt::get_auth_user_from_token(&conn, client_token.value()) {
-            if let Err(_) = rt.block_on(security::service::oauth_register(&conn, token, auth_user.user_id)) {
+            if let Err(_) = rt.block_on(security::service::oauth_register(&conn, &token, auth_user.user_id)) {
                 error!("OAuth register error");
             }
         }

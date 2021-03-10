@@ -8,6 +8,7 @@ use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
 use crate::user_role_member;
+use crate::email;
 
 pub fn new_user(
     conn: &PgConnection,
@@ -69,7 +70,7 @@ fn crypt_password(password: &str) -> String {
     scrypt_simple(password, &ScryptParams::new(10, 8, 1)).expect("hash error")
 }
 
-pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, user_id: i32) -> Result<(), reqwest::Error>
+pub async fn oauth_register<T>(conn: &PgConnection, token: &TokenResponse<T>, user_id: i32) -> Result<(), reqwest::Error>
     where TokenResponse<T>: LoginType
 {
     let identity_hash = token.fetch_identity_hash().await?;
@@ -92,6 +93,8 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: TokenResponse<T>, use
             token.refresh_token(),
             token.expires_in());
     }
+    let emails = token.fetch_emails().await?;
+    email::service::create_emails_for_user(conn, user_id, emails.iter().map(|x| &**x).collect());
 
     Ok(())
 }
@@ -109,6 +112,8 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Op
             token.access_token(),
             token.refresh_token(),
             token.expires_in());
+        let emails = token.fetch_emails().await.ok()?;
+        email::service::create_emails_for_user(conn, user.id, emails.iter().map(|x| &**x).collect());
         return security::jwt::generate_token_for_user(conn, user);
     }
     None
@@ -126,7 +131,7 @@ pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>)
     let user = new_user(&conn, &username, None)
         .map_err(|e| error!("Error creating user: {}", e))
         .unwrap();
-    oauth_register(&conn, token, user.id).await
+    oauth_register(&conn, &token, user.id).await
         .map_err(|e| error!("Error registering oauth for user: {}", e))
         .unwrap();
     security::jwt::generate_token_for_user(&conn, user).unwrap()
