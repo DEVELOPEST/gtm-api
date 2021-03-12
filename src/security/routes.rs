@@ -60,6 +60,15 @@ pub fn delete_user_login(
     Ok(json!({}))
 }
 
+#[delete("/auth/account")]
+pub fn delete_account(
+    auth_user: AuthUser,
+    conn: Conn,
+) -> Result<JsonValue, Errors> {
+    security::db::delete_account(&conn, auth_user.user_id);
+    Ok(json!({}))
+}
+
 #[derive(Deserialize)]
 pub struct NewUser {
     user: NewUserData,
