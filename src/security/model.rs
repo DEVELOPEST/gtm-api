@@ -1,6 +1,7 @@
 use diesel::{Insertable, Queryable};
 
 use crate::schema::logins;
+use crate::schema::login_types;
 
 #[derive(Insertable, Queryable)]
 #[table_name = "logins"]
@@ -12,4 +13,11 @@ pub struct Login {
     pub token: String,
     pub refresh_token: Option<String>,
     pub exp: Option<i64>,
+}
+
+#[derive(Insertable, Queryable)]
+#[table_name = "login_types"]
+pub struct LoginType {
+    pub id: i32,
+    pub name: String,
 }
