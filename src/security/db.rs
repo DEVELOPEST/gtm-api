@@ -117,3 +117,10 @@ pub fn delete_login_by_user_and_type(
                 .and(logins::login_type.eq(login_type.unwrap().id))))
         .execute(conn)
 }
+
+pub fn delete_account(
+    conn: &PgConnection,
+    user_id: i32,
+) -> Result<usize, Error> {
+    diesel::delete(users::table.filter(users::id.eq(user_id))).execute(conn)
+}
