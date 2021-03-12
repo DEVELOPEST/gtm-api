@@ -34,9 +34,40 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
     Ok(json!({"jwt": token}))
 }
 
+#[get("/auth/login", format = "json")]
+pub fn get_user_logins(
+    auth_user: AuthUser,
+    conn: Conn,
+) -> Result<JsonValue, Errors> {
+
+    let logins = security::db::find_all_logins_by_user(&conn, auth_user.user_id);
+    Ok(json!(logins))
+}
+
+#[delete("/auth/login", format = "json", data = "<login_type>")]
+pub fn delete_user_login(
+    auth_user: AuthUser,
+    conn: Conn,
+    login_type: Json<Type>,
+) -> Result<JsonValue, Errors> {
+
+    let login_type = login_type.into_inner();
+
+    let mut extractor = FieldValidator::validate(&login_type);
+    let login_type_string = extractor.extract("login_type", login_type.login_type);
+
+    security::db::delete_login_by_user_and_type(&conn, auth_user.user_id, &login_type_string);
+    Ok(json!({}))
+}
+
 #[derive(Deserialize)]
 pub struct NewUser {
     user: NewUserData,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct Type {
+    login_type: Option<String>,
 }
 
 #[derive(Deserialize, Validate)]
