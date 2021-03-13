@@ -73,6 +73,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::get_user_logins,
                 security::routes::delete_user_login,
                 security::routes::delete_account,
+                security::routes::has_password,
+                security::routes::create_password,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,

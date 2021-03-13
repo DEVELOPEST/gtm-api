@@ -53,7 +53,8 @@ pub fn change_password(
     conn: &PgConnection,
     user_id: i32,
     old_password: String,
-    new_password: String) -> Result<(), Errors> {
+    new_password: String
+) -> Result<(), Errors> {
     let user = user::db::find(&conn, user_id).unwrap();
 
     if user.password.is_some() {
@@ -61,6 +62,17 @@ pub fn change_password(
             return Err(Errors::new(&[("password", "Wrong password!")], None));
         }
     }
+
+    user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
+    Ok(())
+}
+
+pub fn create_password(
+    conn: &PgConnection,
+    user_id: i32,
+    new_password: String
+) -> Result<(), Errors> {
+    let user = user::db::find(&conn, user_id).unwrap();
 
     user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
     Ok(())
