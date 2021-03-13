@@ -30,4 +30,4 @@ redirect_uri = "http://localhost:8000/services/gtm/api/oauth/microsoft/callback"
 
 [global.oauth]
 login_redirect = "http://localhost:3000/services/gtm/front/login"
-register_redirect = "http://localhost:3000/services/gtm/front/login"
+register_redirect = "http://localhost:3000/services/gtm/front/profile"

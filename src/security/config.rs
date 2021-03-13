@@ -11,7 +11,7 @@ lazy_static! {
     pub static ref LOGIN_REDIRECT: RwLock<String> = RwLock::new("/".to_string());
     pub static ref REGISTER_REDIRECT: RwLock<String> = RwLock::new("/".to_string());
 
-    pub static ref JWT_COOKIE: String = "user_jwt".to_string();
+    pub static ref JWT_COOKIE: String = "jwt".to_string();
 }
 
 pub fn manage() -> AdHoc {
