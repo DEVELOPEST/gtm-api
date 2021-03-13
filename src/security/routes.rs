@@ -56,7 +56,9 @@ pub fn delete_user_login(
     let mut extractor = FieldValidator::validate(&login_type);
     let login_type_string = extractor.extract("login_type", login_type.login_type);
 
-    security::db::delete_login_by_user_and_type(&conn, auth_user.user_id, &login_type_string);
+    security::db::delete_login_by_user_and_type(&conn, auth_user.user_id, &login_type_string)
+        .map_err(|err| error!("Error deleting login: {}", err))
+        .unwrap();
     Ok(json!({}))
 }
 
@@ -65,7 +67,9 @@ pub fn delete_account(
     auth_user: AuthUser,
     conn: Conn,
 ) -> Result<JsonValue, Errors> {
-    security::db::delete_account(&conn, auth_user.user_id);
+    security::db::delete_account(&conn, auth_user.user_id)
+        .map_err(|err| error!("Error deleting account: {}", err))
+        .unwrap();
     Ok(json!({}))
 }
 

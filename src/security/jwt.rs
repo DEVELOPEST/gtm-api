@@ -26,6 +26,7 @@ pub struct AuthToken {
     // expiration
     pub exp: i64,
     pub user: i32,
+    pub username: String,
     pub roles: Vec<String>,
 }
 
@@ -72,6 +73,7 @@ pub fn generate_token_for_user(conn: &PgConnection, user: User) -> Option<String
         iat: now,
         exp: now + TOKEN_DURATION,
         user: user.id,
+        username: user.username,
         roles: role::db::find_all_by_user(conn, user.id)
             .into_iter().map(|x| x.attach()).collect(),
     };
