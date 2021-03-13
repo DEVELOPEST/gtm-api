@@ -5,6 +5,7 @@ use crate::security::model::Login;
 use crate::user::model::User;
 use diesel::result::Error;
 use crate::security::model::LoginType;
+use crate::user;
 
 pub fn exists_oauth_login(conn: &PgConnection, user_id: i32, login_type: i32) -> bool {
     use diesel::dsl::exists;
@@ -123,4 +124,8 @@ pub fn delete_account(
     user_id: i32,
 ) -> Result<usize, Error> {
     diesel::delete(users::table.filter(users::id.eq(user_id))).execute(conn)
+}
+
+pub fn exists_password(conn: &PgConnection, user_id: i32) -> bool {
+    user::db::find(conn, user_id).unwrap().password.is_some()
 }

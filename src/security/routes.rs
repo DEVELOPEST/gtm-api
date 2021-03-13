@@ -73,6 +73,16 @@ pub fn delete_account(
     Ok(json!({}))
 }
 
+#[get("/auth/password")]
+pub fn has_password(
+    auth_user: AuthUser,
+    conn: Conn,
+) -> Result<JsonValue, Errors> {
+    let has_password = security::db::exists_password(&conn, auth_user.user_id);
+    println!("{}", has_password);
+    Ok(json!(has_password))
+}
+
 #[derive(Deserialize)]
 pub struct NewUser {
     user: NewUserData,
@@ -133,7 +143,8 @@ pub struct PasswordChange {
     #[validate(length(min = 8))]
     new_password: Option<String>,
 }
-
+//user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
+//     Ok(())
 #[put("/auth/password", format = "json", data = "<change_password>")]
 pub fn change_password(
     auth_user: AuthUser,
@@ -147,6 +158,26 @@ pub fn change_password(
     extractor.check()?;
 
     security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
+}
+
+#[derive(Deserialize, Validate)]
+pub struct PasswordCreate {
+    #[validate(length(min = 8))]
+    new_password: Option<String>,
+}
+
+#[put("/auth/password-create", format = "json", data = "<create_password>")]
+pub fn create_password(
+    auth_user: AuthUser,
+    create_password: Json<PasswordCreate>,
+    conn: Conn,
+) -> Result<(), Errors> {
+    let create_password = create_password.into_inner();
+    let mut extractor = FieldValidator::validate(&create_password);
+    let new_password = extractor.extract("new_password", create_password.new_password);
+    extractor.check()?;
+
+    security::service::create_password(&conn, auth_user.user_id, new_password)
 }
 
 #[get("/oauth/login/github")]
