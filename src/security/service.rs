@@ -128,7 +128,8 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Op
         let emails = token.fetch_emails().await.ok()?;
         email::service::create_emails_for_user(conn, user.id, emails.iter().map(|x| &**x).collect());
         give_group_accesses(conn, token, user.id).await
-            .map_err(|e| error!("Error giving group accesses: {}", e));
+            .map_err(|e| error!("Error giving group accesses: {}", e))
+            .unwrap();
         return security::jwt::generate_token_for_user(conn, user);
     }
     None

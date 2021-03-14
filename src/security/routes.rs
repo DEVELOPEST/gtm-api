@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
-use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft};
+use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
@@ -192,11 +192,21 @@ pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, cookies: Cookie
 
 #[get("/oauth/login/gitlab")]
 pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["read_user"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["api"]).unwrap()
 }
 
 #[get("/oauth/gitlab/callback")]
 pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+#[get("/oauth/login/gitlab-taltech")]
+pub fn gitlab_taltech_login(oauth2: OAuth2<GitLabTalTech>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["api"]).unwrap()
+}
+
+#[get("/oauth/gitlab-taltech/callback")]
+pub fn gitlab_taltech_callback(conn: Conn, token: TokenResponse<GitLabTalTech>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 
