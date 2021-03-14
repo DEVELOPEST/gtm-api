@@ -71,6 +71,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::github_login,
                 security::routes::gitlab_callback,
                 security::routes::gitlab_login,
+                security::routes::gitlab_taltech_callback,
+                security::routes::gitlab_taltech_login,
                 security::routes::microsoft_callback,
                 security::routes::microsoft_login,
                 security::routes::get_user_logins,
