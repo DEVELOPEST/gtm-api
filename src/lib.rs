@@ -16,7 +16,7 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate validator_derive;
 
-// #[macro_use(info, warn)] extern crate log;
+#[macro_use(error)] extern crate log;
 
 use dotenv::dotenv;
 
@@ -37,9 +37,11 @@ mod commit;
 mod role;
 mod user_role_member;
 mod group_access;
+mod email;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
+use rocket_oauth2::OAuth2;
 
 #[catch(404)]
 fn not_found() -> JsonValue {
@@ -62,6 +64,17 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::login,
                 security::routes::register,
                 security::routes::renew_token,
+                security::routes::github_callback,
+                security::routes::github_login,
+                security::routes::gitlab_callback,
+                security::routes::gitlab_login,
+                security::routes::microsoft_callback,
+                security::routes::microsoft_login,
+                security::routes::get_user_logins,
+                security::routes::delete_user_login,
+                security::routes::delete_account,
+                security::routes::has_password,
+                security::routes::create_password,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,
@@ -88,7 +101,9 @@ pub fn rocket() -> rocket::Rocket {
         .attach(db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())
-        .attach(security::jwt::manage())
-        .attach(security::api_key::manage())
+        .attach(security::config::manage())
+        .attach(OAuth2::<security::oauth::GitHub>::fairing("github"))
+        .attach(OAuth2::<security::oauth::GitLab>::fairing("gitlab"))
+        .attach(OAuth2::<security::oauth::Microsoft>::fairing("microsoft"))
         .register(catchers![not_found])
 }

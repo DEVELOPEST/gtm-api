@@ -61,11 +61,17 @@ pub fn create_all(
 pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<PathlessFileEditDWH> {
     let edit_timeline: Vec<PathlessFileEditDWH> = sql_query(format!("
     {}
-    SELECT repositories.user, timeline.time, files.lines_added, files.lines_deleted, timeline.timestamp
+    SELECT coalesce(users.username, commits.email) AS user,
+           timeline.time,
+           files.lines_added,
+           files.lines_deleted,
+           timeline.timestamp
     FROM timeline
-    INNER JOIN files ON timeline.file = files.id
-    INNER JOIN commits ON files.commit = commits.id
-    INNER JOIN repositories ON commits.repository_id = repositories.id
+        INNER JOIN files ON timeline.file = files.id
+        INNER JOIN commits ON files.commit = commits.id
+        INNER JOIN repositories ON commits.repository_id = repositories.id
+        LEFT JOIN emails ON commits.email = emails.email
+        LEFT JOIN users ON emails.user = users.id
     WHERE repositories.group IN (
         SELECT  group_repos_query.child
         FROM    group_repos_query
@@ -87,7 +93,7 @@ pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: 
     let edit_timeline: Vec<FileEditDWH> = sql_query(format!("
     {}
     SELECT
-        repositories.user,
+        coalesce(users.username, commits.email) AS user,
         files.path,
         timeline.time,
         files.lines_added,
@@ -95,9 +101,11 @@ pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: 
         timeline.timestamp,
         commits.hash AS commit_hash
     FROM timeline
-    INNER JOIN files ON timeline.file = files.id
-    INNER JOIN commits ON files.commit = commits.id
-    INNER JOIN repositories ON commits.repository_id = repositories.id
+        INNER JOIN files ON timeline.file = files.id
+        INNER JOIN commits ON files.commit = commits.id
+        INNER JOIN repositories ON commits.repository_id = repositories.id
+        LEFT JOIN emails ON commits.email = emails.email
+        LEFT JOIN users ON emails.user = users.id
     WHERE repositories.group IN (
         SELECT  group_repos_query.child
         FROM    group_repos_query

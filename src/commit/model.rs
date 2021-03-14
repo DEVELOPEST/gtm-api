@@ -8,9 +8,9 @@ pub struct Commit {
     pub hash: String,
     pub message: String,
     pub email: String,
-    pub git_user_name: String,
     pub branch: String,
     pub time: i64,
+    pub git_user_name: String,
 }
 
 impl Commit {
