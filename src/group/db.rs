@@ -57,7 +57,7 @@ pub fn find_all(conn: &PgConnection) -> Vec<Group> {
 pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupUserStats> {
     let stats: Vec<GroupUserStats> = sql_query(format!("
         {}
-        SELECT commits.email                              AS name,
+        SELECT coalesce(users.username, commits.email)    AS name,
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
@@ -66,6 +66,8 @@ pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64,
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
             LEFT JOIN files ON files.commit = commits.id
+            LEFT JOIN emails ON commits.email = emails.email
+            LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
             SELECT group_repos_query.child
             FROM group_repos_query
@@ -76,7 +78,7 @@ pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64,
                 WHERE g.name = $1))
             AND commits.timestamp >= $2
             AND commits.timestamp < $3
-        GROUP BY commits.email
+        GROUP BY coalesce(users.username, commits.email)
         ORDER BY total_time DESC;", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
@@ -95,11 +97,13 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
             coalesce(count(commits.id)::bigint, 0)        AS commits,
-            commits.email                                 AS user
+            coalesce(users.username, commits.email)       AS user
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
             LEFT JOIN files ON files.commit = commits.id
+            LEFT JOIN emails ON commits.email = emails.email
+            LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
             SELECT group_repos_query.child
             FROM group_repos_query
@@ -111,7 +115,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             AND commits.timestamp >= $2
             AND commits.timestamp < $3
             AND files.path IS NOT NULL
-        GROUP BY files.path, commits.email;", GROUP_CHILDREN_QUERY))
+        GROUP BY files.path, coalesce(users.username, commits.email);", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)

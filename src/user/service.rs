@@ -17,7 +17,7 @@ pub fn find_all(conn: &PgConnection) -> Vec<UserJson> {
         if !role_added_to_user {
             user_jsons.push(UserJson{
                 id: user_dwh.id as i32,
-                email: user_dwh.email.to_string(),
+                username: user_dwh.email.to_string(),
                 roles: vec![user_dwh.role.clone()]
             })
         }
