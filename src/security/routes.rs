@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
-use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech};
+use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech, Bitbucket};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
@@ -192,7 +192,7 @@ pub fn github_callback(conn: Conn, token: TokenResponse<GitHub>, cookies: Cookie
 
 #[get("/oauth/login/gitlab")]
 pub fn gitlab_login(oauth2: OAuth2<GitLab>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["api"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["read_user"]).unwrap()
 }
 
 #[get("/oauth/gitlab/callback")]
@@ -217,6 +217,16 @@ pub fn microsoft_login(oauth2: OAuth2<Microsoft>, mut cookies: Cookies<'_>) -> R
 
 #[get("/oauth/microsoft/callback")]
 pub fn microsoft_callback(conn: Conn, token: TokenResponse<Microsoft>, cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+#[get("/oauth/login/bitbucket")]
+pub fn bitbucket_login(oauth2: OAuth2<Bitbucket>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["account repository"]).unwrap()
+}
+
+#[get("/oauth/bitbucket/callback")]
+pub fn bitbucket_callback(conn: Conn, token: TokenResponse<Bitbucket>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 

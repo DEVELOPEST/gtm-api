@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use reqwest::Error;
 use rocket_oauth2::TokenResponse;
 
+use crate::bitbucket::resource::BitbucketUser;
 use crate::common::git::{GitRepo, RepoCredentials};
 use crate::github::resource::GithubUser;
 use crate::github::service::{fetch_emails_from_github, fetch_github_user, fetch_repos_from_github};
@@ -9,6 +10,7 @@ use crate::gitlab::resource::GitlabUser;
 use crate::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab, GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
 use crate::microsoft::resource::MicrosoftUser;
 use crate::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
+use crate::bitbucket::services::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
 
 #[async_trait]
 pub trait LoginType {
@@ -22,7 +24,10 @@ pub trait LoginType {
 pub struct GitHub;
 pub struct GitLab;
 pub struct GitLabTalTech;
+
 pub struct Microsoft;
+
+pub struct Bitbucket;
 
 #[async_trait]
 impl LoginType for TokenResponse<GitHub> {
@@ -144,6 +149,38 @@ impl LoginType for TokenResponse<Microsoft> {
     }
 }
 
+#[async_trait]
+impl LoginType for TokenResponse<Bitbucket> {
+    fn get_login_type(&self) -> i32 {
+        return 5;
+    }
+
+    async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
+        let user = fetch_bitbucket_user(&self.access_token()).await?;
+        Ok(user.get_identity_hash().to_string())
+    }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_bitbucket_user(&self.access_token()).await?;
+        Ok(user.username)
+    }
+
+    async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
+        let emails_res = fetch_emails_from_bitbucket(&self.access_token()).await?;
+        let emails = emails_res.iter()
+            .filter(|email| email.is_confirmed)
+            .map(|email| email.email.clone()).collect();
+        Ok(emails)
+    }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_bitbucket(&self.access_token()).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
+    }
+}
+
 pub trait IdentityUser {
     fn get_identity_hash(&self) -> String;
 }
@@ -163,5 +200,11 @@ impl IdentityUser for GitlabUser {
 impl IdentityUser for MicrosoftUser {
     fn get_identity_hash(&self) -> String {
         return self.id.to_string();
+    }
+}
+
+impl IdentityUser for BitbucketUser {
+    fn get_identity_hash(&self) -> String {
+        return self.account_id.to_string();
     }
 }
