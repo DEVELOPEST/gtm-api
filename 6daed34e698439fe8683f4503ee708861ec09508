@@ -1,0 +1,14 @@
+[ver:1,total:4920,branch:feature/API-52]
+.gtm/Cargo-> Run gtm-api.app:2193,1615730400:1469,1615734000:724,r
+src/gitlab/service.rs:772,1615734000:35,1615744800:737,m
+Rocket.toml:629,1615730400:609,1615734000:20,m
+src/security/routes.rs:334,1615734000:28,1615744800:306,m
+migrations/2021-03-06-122212_oauth_login_system/up.sql:315,1615744800:315,m
+src/security/oauth.rs:280,1615744800:280,m
+.gtm/Cargo-> Build `Run gtm-api`.app:91,1615730400:22,1615734000:22,1615744800:47,r
+src/security/service.rs:79,1615734000:71,1615744800:8,m
+migrations/2021-03-14-182318_add_oauth_login_types/up.sql:75,1615744800:75,m
+Cargo.toml:60,1615730400:60,r
+migrations/2021-03-14-182318_add_oauth_login_types/down.sql:50,1615744800:50,m
+src/lib.rs:34,1615744800:34,m
+src/group/routes.rs:8,1615744800:8,r
