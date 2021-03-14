@@ -10,8 +10,7 @@ CREATE TABLE login_types
 INSERT INTO login_types (id, name)
 VALUES (1, 'oauth_token_github'),
        (2, 'oauth_bearer_gitlab'),
-       (3, 'oauth_bearer_microsoft'),
-       (4, 'oauth_bearer_gitlab.cs.ttu.ee');
+       (3, 'oauth_bearer_microsoft');
 
 CREATE TABLE logins
 (
