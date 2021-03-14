@@ -3,12 +3,13 @@ use diesel::PgConnection;
 use rocket_oauth2::TokenResponse;
 
 use crate::{common, security, user};
+use crate::email;
 use crate::errors::Errors;
+use crate::group_access;
 use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
 use crate::user::model::User;
 use crate::user_role_member;
-use crate::email;
 
 pub fn new_user(
     conn: &PgConnection,
@@ -107,7 +108,7 @@ pub async fn oauth_register<T>(conn: &PgConnection, token: &TokenResponse<T>, us
     }
     let emails = token.fetch_emails().await?;
     email::service::create_emails_for_user(conn, user_id, emails.iter().map(|x| &**x).collect());
-
+    give_group_accesses(conn, token, user_id).await?;
     Ok(())
 }
 
@@ -126,6 +127,8 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Op
             token.expires_in());
         let emails = token.fetch_emails().await.ok()?;
         email::service::create_emails_for_user(conn, user.id, emails.iter().map(|x| &**x).collect());
+        give_group_accesses(conn, token, user.id).await
+            .map_err(|e| error!("Error giving group accesses: {}", e));
         return security::jwt::generate_token_for_user(conn, user);
     }
     None
@@ -147,4 +150,15 @@ pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>)
         .map_err(|e| error!("Error registering oauth for user: {}", e))
         .unwrap();
     security::jwt::generate_token_for_user(&conn, user).unwrap()
+}
+
+async fn give_group_accesses<T>(
+    conn: &PgConnection,
+    token: &TokenResponse<T>,
+    user_id: i32,
+) -> Result<(), reqwest::Error>
+    where TokenResponse<T>: LoginType
+{
+    let repos = token.fetch_accessible_repositories().await?;
+    Ok(group_access::service::create_group_accesses_for_user(conn, repos, user_id).unwrap())
 }

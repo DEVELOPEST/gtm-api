@@ -1,9 +1,14 @@
 use async_trait::async_trait;
 use reqwest::Error;
 use rocket_oauth2::TokenResponse;
-use serde::Deserialize;
 
-use crate::common;
+use crate::common::git::{GitRepo, RepoCredentials};
+use crate::github::resource::GithubUser;
+use crate::github::service::{fetch_emails_from_github, fetch_github_user, fetch_repos_from_github};
+use crate::gitlab::resource::GitlabUser;
+use crate::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab};
+use crate::microsoft::resource::MicrosoftUser;
+use crate::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
 
 #[async_trait]
 pub trait LoginType {
@@ -11,6 +16,7 @@ pub trait LoginType {
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error>;
     async fn fetch_username(&self) -> Result<String, reqwest::Error>;
     async fn fetch_emails(&self) -> Result<Vec<String>, reqwest::Error>;
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, reqwest::Error>;
 }
 
 pub struct GitHub;
@@ -41,6 +47,13 @@ impl LoginType for TokenResponse<GitHub> {
             .collect();
         Ok(emails)
     }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_github(&self.access_token()).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
+    }
 }
 
 #[async_trait]
@@ -63,6 +76,13 @@ impl LoginType for TokenResponse<GitLab> {
         let emails_res = fetch_emails_from_gitlab(&self.access_token()).await?;
         let emails = emails_res.iter().map(|email| email.email.clone()).collect();
         Ok(emails)
+    }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_gitlab(&self.access_token()).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
     }
 }
 
@@ -87,46 +107,14 @@ impl LoginType for TokenResponse<Microsoft> {
         let emails = emails_wrapper.value.iter().map(|email| email.address.clone()).collect();
         Ok(emails)
     }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        Ok(vec![])
+    }
 }
 
 pub trait IdentityUser {
     fn get_identity_hash(&self) -> String;
-}
-
-#[derive(Deserialize)]
-pub struct GithubUser {
-    pub login: String,
-    // pub id: i64,
-    pub node_id: String,
-}
-
-#[derive(Deserialize)]
-pub struct GitlabUser {
-    pub id: i64,
-    pub username: String
-}
-
-#[derive(Deserialize)]
-pub struct MicrosoftUser {
-    #[serde(rename = "displayName")]
-    pub display_name: String,
-    pub id: String,
-}
-
-#[derive(Deserialize)]
-pub struct MicrosoftEmail {
-    pub address: String,
-}
-
-#[derive(Deserialize)]
-pub struct GitlabEmail {
-    pub email: String,
-}
-
-#[derive(Deserialize)]
-pub struct GithubEmail {
-    pub email: String,
-    pub verified: bool,
 }
 
 impl IdentityUser for GithubUser {
@@ -145,76 +133,4 @@ impl IdentityUser for MicrosoftUser {
     fn get_identity_hash(&self) -> String {
         return self.id.to_string();
     }
-}
-
-pub async fn fetch_github_user(token: &str) -> Result<GithubUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://api.github.com/user")
-        .header("Authorization", format!("token {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/vnd.github.v3+json")
-        .send()
-        .await?
-        .json::<GithubUser>()
-        .await
-}
-
-pub async fn fetch_gitlab_user(token: &str) -> Result<GitlabUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://gitlab.com/api/v4/user")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<GitlabUser>()
-        .await
-}
-
-pub async fn fetch_microsoft_user(token: &str) -> Result<MicrosoftUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://graph.microsoft.com/v1.0/me")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<MicrosoftUser>()
-        .await
-}
-
-pub async fn fetch_emails_from_microsoft(token: &str) -> Result<common::json::Value<Vec<MicrosoftEmail>>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://graph.microsoft.com/beta/me/profile/emails")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<common::json::Value<Vec<MicrosoftEmail>>>()
-        .await
-}
-
-pub async fn fetch_emails_from_gitlab(token: &str) -> Result<Vec<GitlabEmail>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://gitlab.com/api/v4/user/emails")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<Vec<GitlabEmail>>()
-        .await
-}
-
-pub async fn fetch_emails_from_github(token: &str) -> Result<Vec<GithubEmail>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://api.github.com/user/emails")
-        .header("Authorization", format!("token {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/vnd.github.v3+json")
-        .send()
-        .await?
-        .json::<Vec<GithubEmail>>()
-        .await
 }
