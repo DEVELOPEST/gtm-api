@@ -38,6 +38,9 @@ mod role;
 mod user_role_member;
 mod group_access;
 mod email;
+mod github;
+mod gitlab;
+mod microsoft;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
