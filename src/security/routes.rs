@@ -143,8 +143,7 @@ pub struct PasswordChange {
     #[validate(length(min = 8))]
     new_password: Option<String>,
 }
-//user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
-//     Ok(())
+
 #[put("/auth/password", format = "json", data = "<change_password>")]
 pub fn change_password(
     auth_user: AuthUser,
