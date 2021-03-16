@@ -2,3 +2,9 @@
 src/security/service.rs:425,1615896000:425,m
 src/security/routes.rs:195,1615892400:120,1615896000:75,m
 src/security/oauth.rs:100,1615896000:100,m
+
+[ver:1,total:840,branch:master]
+Rocket.toml:360,1615892400:360,m
+migrations/2021-03-14-182318_add_oauth_login_types/up.sql:180,1615892400:180,m
+src/security/routes.rs:180,1615892400:180,m
+Cargo.toml:120,1615892400:120,m
