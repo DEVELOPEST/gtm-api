@@ -1,5 +1,0 @@
-[ver:1,total:1380,branch:feature/API-52]
-.gtm/Cargo-> Run gtm-api.app:640,1615881600:480,1615885200:160,r
-src/security/routes.rs:470,1615881600:360,1615885200:110,m
-src/common/json.rs:180,1615752000:180,r
-.gtm/Cargo-> Build `Run gtm-api`.app:90,1615881600:60,1615885200:30,r
