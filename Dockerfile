@@ -2,6 +2,7 @@ FROM ubuntu:latest
 
 RUN apt-get update
 RUN apt-get install -y libpq-dev
+RUN apt-get update && apt-get -y install ca-certificates libssl-dev
 
 VOLUME /gtm/gtm-api
 

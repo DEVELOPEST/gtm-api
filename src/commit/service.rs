@@ -5,7 +5,7 @@ use crate::{commit, repository};
 use crate::db::Conn;
 use crate::errors::Errors;
 use crate::security::api_key::ApiKey;
-use crate::security::api_key;
+use crate::security;
 
 #[derive(Serialize)]
 pub struct LastCommitHash {
@@ -27,7 +27,7 @@ pub fn find_last_commit_hash(
                                        Option::from(Status::BadRequest)))
     };
 
-    if api_key.key != *api_key::API_KEY.read().unwrap() {
+    if api_key.key != *security::config::API_KEY.read().unwrap() {
         return Err(Errors::new(&[("invalid_token", "Invalid token!")],
                                Option::from(Status::Unauthorized))
         );
