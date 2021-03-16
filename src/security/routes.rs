@@ -96,7 +96,7 @@ pub struct Type {
 #[derive(Deserialize, Validate)]
 struct NewUserData {
     #[validate(length(min = 1))]
-    email: Option<String>,
+    username: Option<String>,
     #[validate(length(min = 8))]
     password: Option<String>,
 }
@@ -110,12 +110,12 @@ pub fn register(
     let new_user = new_user.into_inner().user;
 
     let mut extractor = FieldValidator::validate(&new_user);
-    let email = extractor.extract("email", new_user.email);
+    let username = extractor.extract("username", new_user.username);
     let password = extractor.extract("password", new_user.password);
 
     extractor.check()?;
 
-    let created_user = security::service::new_user(&conn, &email, Option::from(password))
+    let created_user = security::service::new_user(&conn, &username, Option::from(password))
         .map_err(|error| {
             let field = match error {
                 UserCreationError::DuplicatedUsername => "username",
