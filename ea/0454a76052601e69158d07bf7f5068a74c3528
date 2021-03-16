@@ -1,0 +1,4 @@
+[ver:1,total:720,branch:master]
+src/security/service.rs:425,1615896000:425,m
+src/security/routes.rs:195,1615892400:120,1615896000:75,m
+src/security/oauth.rs:100,1615896000:100,m
