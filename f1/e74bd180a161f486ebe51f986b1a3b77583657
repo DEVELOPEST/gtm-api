@@ -1,0 +1,6 @@
+[ver:1,total:1860,branch:master]
+src/security/routes.rs:1080,1615899600:900,1615903200:180,m
+.gtm/Cargo-> Run gtm-api.app:456,1615917600:456,r
+src/security/service.rs:180,1615903200:180,m
+src/microsoft/service.rs:111,1615917600:111,m
+.gtm/Cargo-> Build `Run gtm-api`.app:33,1615917600:33,r
