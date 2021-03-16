@@ -7,9 +7,9 @@ use crate::errors::Errors;
 #[derive(Queryable, Serialize)]
 pub struct User {
     pub id: i32,
-    pub email: String,
+    pub username: String,
     #[serde(skip_serializing)]
-    pub password: String,
+    pub password: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -33,15 +33,15 @@ impl AuthUser {
 #[serde(rename_all = "camelCase")]
 pub struct UserJson {
     pub id: i32,
-    pub email: String,
+    pub username: String,
     pub roles: Vec<String>,
 }
 
 impl User {
-    pub fn attach(self, roles: Vec<String>) -> UserJson {
+    pub fn attach(&self, roles: Vec<String>) -> UserJson {
         UserJson {
             id: self.id,
-            email: self.email,
+            username: self.username.clone(),
             roles,
         }
     }

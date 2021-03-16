@@ -1,21 +1,24 @@
-use diesel::{Insertable};
+use std::fmt::{Display, Formatter};
+
+use diesel::Insertable;
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
-use crate::user::model::User;
-use crate::schema::users;
-use crate::schema::user_role_members;
+
 use crate::schema::roles;
+use crate::schema::user_role_members;
+use crate::schema::users;
 use crate::user::dwh::UserDWH;
+use crate::user::model::User;
+use std::fmt;
 
 #[derive(Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
-    pub email: &'a str,
-    pub password: &'a str,
+    pub username: &'a str,
+    pub password: Option<String>,
 }
 
 pub enum UserCreationError {
-    DuplicatedEmail,
     DuplicatedUsername,
 }
 
@@ -31,14 +34,22 @@ impl From<Error> for UserCreationError {
     }
 }
 
+impl Display for UserCreationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            UserCreationError::DuplicatedUsername => write!(f, "Duplicate Username")
+        }
+    }
+}
+
 pub fn create(
     conn: &PgConnection,
-    email: &str,
-    password: &str,
+    username: &str,
+    password: Option<String>,
 ) -> Result<User, UserCreationError> {
     // see https://blog.filippo.io/the-scrypt-parameters
     let new_user = &NewUser {
-        email,
+        username,
         password,
     };
 
@@ -68,9 +79,9 @@ pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
         .ok()
 }
 
-pub fn find_by_email(conn: &PgConnection, email: &str) -> Option<User> {
+pub fn find_by_username(conn: &PgConnection, username: &str) -> Option<User> {
     users::table
-        .filter(users::email.eq(email))
+        .filter(users::username.eq(username))
         .first::<User>(conn).ok()
 }
 
@@ -88,7 +99,7 @@ pub fn find_all(conn: &PgConnection) -> Vec<UserDWH> {
     let users: Vec<UserDWH> = users::table
         .inner_join(user_role_members::table)
         .inner_join(roles::table.on(roles::id.eq(user_role_members::role)))
-        .select((users::id, users::email, users::password, roles::name))
+        .select((users::id, users::username, users::password, roles::name))
         .load::<UserDWH>(conn)
         .expect("Cannot load users");
     users

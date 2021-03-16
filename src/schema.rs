@@ -5,9 +5,17 @@ table! {
         hash -> Text,
         message -> Text,
         email -> Text,
-        git_user_name -> Text,
         branch -> Text,
         timestamp -> Int8,
+        git_user_name -> Text,
+    }
+}
+
+table! {
+    emails (id) {
+        id -> Int4,
+        user -> Int4,
+        email -> Text,
     }
 }
 
@@ -43,6 +51,25 @@ table! {
         id -> Int4,
         name -> Text,
         added_at -> Timestamptz,
+    }
+}
+
+table! {
+    login_types (id) {
+        id -> Int4,
+        name -> Varchar,
+    }
+}
+
+table! {
+    logins (id) {
+        id -> Int4,
+        user -> Int4,
+        login_type -> Int4,
+        identity_hash -> Text,
+        token -> Text,
+        refresh_token -> Nullable<Text>,
+        exp -> Nullable<Int8>,
     }
 }
 
@@ -85,13 +112,6 @@ table! {
 }
 
 table! {
-    user_group_members (user, group) {
-        user -> Int4,
-        group -> Int4,
-    }
-}
-
-table! {
     user_role_members (user, role) {
         user -> Int4,
         role -> Int4,
@@ -101,33 +121,36 @@ table! {
 table! {
     users (id) {
         id -> Int4,
-        email -> Text,
-        password -> Text,
+        username -> Text,
+        password -> Nullable<Text>,
     }
 }
 
 joinable!(commits -> repositories (repository_id));
+joinable!(emails -> users (user));
 joinable!(files -> commits (commit));
 joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
+joinable!(logins -> login_types (login_type));
+joinable!(logins -> users (user));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
-joinable!(user_group_members -> groups (group));
-joinable!(user_group_members -> users (user));
 joinable!(user_role_members -> roles (role));
 joinable!(user_role_members -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     commits,
+    emails,
     files,
     group_accesses,
     group_group_members,
     groups,
+    login_types,
+    logins,
     repositories,
     roles,
     timeline,
     tokens,
-    user_group_members,
     user_role_members,
     users,
 );
