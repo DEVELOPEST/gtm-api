@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Errors, FieldValidator};
 use crate::security;
-use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft};
+use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech, Bitbucket};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
@@ -96,7 +96,7 @@ pub struct Type {
 #[derive(Deserialize, Validate)]
 struct NewUserData {
     #[validate(length(min = 1))]
-    email: Option<String>,
+    username: Option<String>,
     #[validate(length(min = 8))]
     password: Option<String>,
 }
@@ -110,12 +110,12 @@ pub fn register(
     let new_user = new_user.into_inner().user;
 
     let mut extractor = FieldValidator::validate(&new_user);
-    let email = extractor.extract("email", new_user.email);
+    let username = extractor.extract("username", new_user.username);
     let password = extractor.extract("password", new_user.password);
 
     extractor.check()?;
 
-    let created_user = security::service::new_user(&conn, &email, Option::from(password))
+    let created_user = security::service::new_user(&conn, &username, Option::from(password))
         .map_err(|error| {
             let field = match error {
                 UserCreationError::DuplicatedUsername => "username",
@@ -143,8 +143,7 @@ pub struct PasswordChange {
     #[validate(length(min = 8))]
     new_password: Option<String>,
 }
-//user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
-//     Ok(())
+
 #[put("/auth/password", format = "json", data = "<change_password>")]
 pub fn change_password(
     auth_user: AuthUser,
@@ -200,6 +199,16 @@ pub fn gitlab_callback(conn: Conn, token: TokenResponse<GitLab>, cookies: Cookie
     oauth_callback(conn, token, cookies)
 }
 
+#[get("/oauth/login/gitlab-taltech")]
+pub fn gitlab_taltech_login(oauth2: OAuth2<GitLabTalTech>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["api"]).unwrap()
+}
+
+#[get("/oauth/gitlab-taltech/callback")]
+pub fn gitlab_taltech_callback(conn: Conn, token: TokenResponse<GitLabTalTech>, cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
 #[get("/oauth/login/microsoft")]
 pub fn microsoft_login(oauth2: OAuth2<Microsoft>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &["User.ReadBasic.All"]).unwrap()
@@ -207,6 +216,16 @@ pub fn microsoft_login(oauth2: OAuth2<Microsoft>, mut cookies: Cookies<'_>) -> R
 
 #[get("/oauth/microsoft/callback")]
 pub fn microsoft_callback(conn: Conn, token: TokenResponse<Microsoft>, cookies: Cookies<'_>) -> Redirect {
+    oauth_callback(conn, token, cookies)
+}
+
+#[get("/oauth/login/bitbucket")]
+pub fn bitbucket_login(oauth2: OAuth2<Bitbucket>, mut cookies: Cookies<'_>) -> Redirect {
+    oauth2.get_redirect(&mut cookies, &["account repository"]).unwrap()
+}
+
+#[get("/oauth/bitbucket/callback")]
+pub fn bitbucket_callback(conn: Conn, token: TokenResponse<Bitbucket>, cookies: Cookies<'_>) -> Redirect {
     oauth_callback(conn, token, cookies)
 }
 
