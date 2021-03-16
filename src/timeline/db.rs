@@ -48,10 +48,15 @@ pub fn create_all(
 pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<TimelineDWH> {
     let day_timeline: Vec<TimelineDWH> = sql_query(format!("
     {}
-    SELECT repositories.user, timeline.time, timeline.timestamp FROM timeline
-    INNER JOIN files ON timeline.file = files.id
-    INNER JOIN commits ON files.commit = commits.id
-    INNER JOIN repositories ON commits.repository_id = repositories.id
+    SELECT coalesce(users.username, commits.email) AS user,
+           timeline.time,
+           timeline.timestamp
+    FROM timeline
+        INNER JOIN files ON timeline.file = files.id
+        INNER JOIN commits ON files.commit = commits.id
+        INNER JOIN repositories ON commits.repository_id = repositories.id
+        LEFT JOIN emails ON commits.email = emails.email
+        LEFT JOIN users ON emails.user = users.id
     WHERE repositories.group IN (
         SELECT  group_repos_query.child
         FROM    group_repos_query
