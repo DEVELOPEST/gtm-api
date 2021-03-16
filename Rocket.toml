@@ -22,6 +22,18 @@ client_id = "552bd6e872cfa02bafb92bc306e21fff465eddd9474826755685ad8a28197405"
 client_secret = "afecadc90e676415053ff1697956f9efcaebb6e611c845774f921e0c88766d75"
 redirect_uri = "http://localhost:8000/services/gtm/api/oauth/gitlab/callback"
 
+[global.oauth.gitlab-taltech]
+provider = { auth_uri = "https://gitlab.cs.ttu.ee/oauth/authorize", token_uri = "https://gitlab.cs.ttu.ee/oauth/token" }
+client_id = "e155b5e0f2956471caee631ba3b7b8a8dc288648fe9c3ddc8641cfac7fe09c40"
+client_secret = "a03fbe033f5918125d0ee0df7d64bf46c4ba0a69d47f0189d20b528405f076a9"
+redirect_uri = "http://localhost:8000/services/gtm/api/oauth/gitlab-taltech/callback"
+
+[global.oauth.bitbucket]
+provider = { auth_uri = "https://bitbucket.org/site/oauth2/authorize", token_uri = "https://bitbucket.org/site/oauth2/access_token" }
+client_id = "ucRMVA3nk7jZvz8Suc"
+client_secret = "gNRCNSNHbb8pduWMj87HWQkMh7TjDACn"
+redirect_uri = "http://localhost:8000/services/gtm/api/oauth/bitbucket/callback"
+
 [global.oauth.microsoft]
 provider = "Microsoft"
 client_id = "b2c912c8-3a94-45fe-a5ec-a2549a0df5c4"

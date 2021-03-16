@@ -7,30 +7,24 @@ use crate::schema::group_accesses;
 
 #[derive(Insertable)]
 #[table_name = "group_accesses"]
-struct NewGroupAccess<> {
-    user: i32,
-    group: i32,
-    access_level_recursive: bool,
+pub struct NewGroupAccess<> {
+    pub user: i32,
+    pub group: i32,
+    pub access_level_recursive: bool,
 }
 
 pub fn create(
     conn: &PgConnection,
-    user: i32,
-    group: i32,
-    access_level_recursive: bool,
-) -> GroupAccess {
-    let new_group_access = &NewGroupAccess {
-        user,
-        group,
-        access_level_recursive,
-    };
-
-    let group_access = diesel::insert_into(group_accesses::table)
-        .values(new_group_access)
-        .get_result::<GroupAccess>(conn)
-        .expect("Error creating group access");
-
-    group_access
+    new_group_accesses: Vec<NewGroupAccess>,
+) -> usize {
+    if new_group_accesses.len() > 0 {
+        return diesel::insert_into(group_accesses::table)
+            .values(new_group_accesses)
+            .on_conflict_do_nothing()
+            .execute(conn)
+            .expect("Error creating group access");
+    }
+    0
 }
 
 pub fn delete(

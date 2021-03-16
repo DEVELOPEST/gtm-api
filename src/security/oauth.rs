@@ -1,9 +1,16 @@
 use async_trait::async_trait;
 use reqwest::Error;
 use rocket_oauth2::TokenResponse;
-use serde::Deserialize;
 
-use crate::common;
+use crate::bitbucket::resource::BitbucketUser;
+use crate::common::git::{GitRepo, RepoCredentials};
+use crate::github::resource::GithubUser;
+use crate::github::service::{fetch_emails_from_github, fetch_github_user, fetch_repos_from_github};
+use crate::gitlab::resource::GitlabUser;
+use crate::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab, GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
+use crate::microsoft::resource::MicrosoftUser;
+use crate::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
+use crate::bitbucket::services::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
 
 #[async_trait]
 pub trait LoginType {
@@ -11,11 +18,16 @@ pub trait LoginType {
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error>;
     async fn fetch_username(&self) -> Result<String, reqwest::Error>;
     async fn fetch_emails(&self) -> Result<Vec<String>, reqwest::Error>;
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, reqwest::Error>;
 }
 
 pub struct GitHub;
 pub struct GitLab;
+pub struct GitLabTalTech;
+
 pub struct Microsoft;
+
+pub struct Bitbucket;
 
 #[async_trait]
 impl LoginType for TokenResponse<GitHub> {
@@ -41,6 +53,13 @@ impl LoginType for TokenResponse<GitHub> {
             .collect();
         Ok(emails)
     }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_github(&self.access_token()).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
+    }
 }
 
 #[async_trait]
@@ -50,19 +69,56 @@ impl LoginType for TokenResponse<GitLab> {
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
-        let user = fetch_gitlab_user(&self.access_token()).await?;
+        let user = fetch_gitlab_user(&self.access_token(), GITLAB_COM_DOMAIN).await?;
         Ok(user.get_identity_hash().to_string())
     }
 
     async fn fetch_username(&self) -> Result<String, Error> {
-        let user = fetch_gitlab_user(&self.access_token()).await?;
+        let user = fetch_gitlab_user(&self.access_token(), GITLAB_COM_DOMAIN).await?;
         Ok(user.username)
     }
 
     async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
-        let emails_res = fetch_emails_from_gitlab(&self.access_token()).await?;
+        let emails_res = fetch_emails_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN).await?;
         let emails = emails_res.iter().map(|email| email.email.clone()).collect();
         Ok(emails)
+    }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
+    }
+}
+
+#[async_trait]
+impl LoginType for TokenResponse<GitLabTalTech> {
+    fn get_login_type(&self) -> i32 {
+        return 4;
+    }
+
+    async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
+        let user = fetch_gitlab_user(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        Ok(user.get_identity_hash().to_string())
+    }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_gitlab_user(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        Ok(user.username)
+    }
+
+    async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
+        let emails_res = fetch_emails_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        let emails = emails_res.iter().map(|email| email.email.clone()).collect();
+        Ok(emails)
+    }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
     }
 }
 
@@ -87,46 +143,46 @@ impl LoginType for TokenResponse<Microsoft> {
         let emails = emails_wrapper.value.iter().map(|email| email.address.clone()).collect();
         Ok(emails)
     }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        Ok(vec![])
+    }
+}
+
+#[async_trait]
+impl LoginType for TokenResponse<Bitbucket> {
+    fn get_login_type(&self) -> i32 {
+        return 5;
+    }
+
+    async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
+        let user = fetch_bitbucket_user(&self.access_token()).await?;
+        Ok(user.get_identity_hash().to_string())
+    }
+
+    async fn fetch_username(&self) -> Result<String, Error> {
+        let user = fetch_bitbucket_user(&self.access_token()).await?;
+        Ok(user.username)
+    }
+
+    async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
+        let emails_res = fetch_emails_from_bitbucket(&self.access_token()).await?;
+        let emails = emails_res.iter()
+            .filter(|email| email.is_confirmed)
+            .map(|email| email.email.clone()).collect();
+        Ok(emails)
+    }
+
+    async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
+        let repos = fetch_repos_from_bitbucket(&self.access_token()).await?;
+        Ok(repos.into_iter()
+            .filter_map(|r| r.get_repo_credentials())
+            .collect())
+    }
 }
 
 pub trait IdentityUser {
     fn get_identity_hash(&self) -> String;
-}
-
-#[derive(Deserialize)]
-pub struct GithubUser {
-    pub login: String,
-    // pub id: i64,
-    pub node_id: String,
-}
-
-#[derive(Deserialize)]
-pub struct GitlabUser {
-    pub id: i64,
-    pub username: String
-}
-
-#[derive(Deserialize)]
-pub struct MicrosoftUser {
-    #[serde(rename = "displayName")]
-    pub display_name: String,
-    pub id: String,
-}
-
-#[derive(Deserialize)]
-pub struct MicrosoftEmail {
-    pub address: String,
-}
-
-#[derive(Deserialize)]
-pub struct GitlabEmail {
-    pub email: String,
-}
-
-#[derive(Deserialize)]
-pub struct GithubEmail {
-    pub email: String,
-    pub verified: bool,
 }
 
 impl IdentityUser for GithubUser {
@@ -147,74 +203,8 @@ impl IdentityUser for MicrosoftUser {
     }
 }
 
-pub async fn fetch_github_user(token: &str) -> Result<GithubUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://api.github.com/user")
-        .header("Authorization", format!("token {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/vnd.github.v3+json")
-        .send()
-        .await?
-        .json::<GithubUser>()
-        .await
-}
-
-pub async fn fetch_gitlab_user(token: &str) -> Result<GitlabUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://gitlab.com/api/v4/user")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<GitlabUser>()
-        .await
-}
-
-pub async fn fetch_microsoft_user(token: &str) -> Result<MicrosoftUser, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://graph.microsoft.com/v1.0/me")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<MicrosoftUser>()
-        .await
-}
-
-pub async fn fetch_emails_from_microsoft(token: &str) -> Result<common::json::Value<Vec<MicrosoftEmail>>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://graph.microsoft.com/beta/me/profile/emails")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<common::json::Value<Vec<MicrosoftEmail>>>()
-        .await
-}
-
-pub async fn fetch_emails_from_gitlab(token: &str) -> Result<Vec<GitlabEmail>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://gitlab.com/api/v4/user/emails")
-        .header("Authorization", format!("Bearer {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/json")
-        .send()
-        .await?
-        .json::<Vec<GitlabEmail>>()
-        .await
-}
-
-pub async fn fetch_emails_from_github(token: &str) -> Result<Vec<GithubEmail>, reqwest::Error> {
-    let client = reqwest::Client::new();
-    client.get("https://api.github.com/user/emails")
-        .header("Authorization", format!("token {}", token))
-        .header("User-Agent", "gtm-api")
-        .header("Accept", "application/vnd.github.v3+json")
-        .send()
-        .await?
-        .json::<Vec<GithubEmail>>()
-        .await
+impl IdentityUser for BitbucketUser {
+    fn get_identity_hash(&self) -> String {
+        return self.account_id.to_string();
+    }
 }

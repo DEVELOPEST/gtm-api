@@ -38,6 +38,10 @@ mod role;
 mod user_role_member;
 mod group_access;
 mod email;
+mod github;
+mod gitlab;
+mod microsoft;
+mod bitbucket;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -68,8 +72,12 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::github_login,
                 security::routes::gitlab_callback,
                 security::routes::gitlab_login,
+                security::routes::gitlab_taltech_callback,
+                security::routes::gitlab_taltech_login,
                 security::routes::microsoft_callback,
                 security::routes::microsoft_login,
+                security::routes::bitbucket_callback,
+                security::routes::bitbucket_login,
                 security::routes::get_user_logins,
                 security::routes::delete_user_login,
                 security::routes::delete_account,
@@ -104,6 +112,8 @@ pub fn rocket() -> rocket::Rocket {
         .attach(security::config::manage())
         .attach(OAuth2::<security::oauth::GitHub>::fairing("github"))
         .attach(OAuth2::<security::oauth::GitLab>::fairing("gitlab"))
+        .attach(OAuth2::<security::oauth::GitLabTalTech>::fairing("gitlab-taltech"))
         .attach(OAuth2::<security::oauth::Microsoft>::fairing("microsoft"))
+        .attach(OAuth2::<security::oauth::Bitbucket>::fairing("bitbucket"))
         .register(catchers![not_found])
 }
