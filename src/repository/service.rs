@@ -52,7 +52,7 @@ pub fn create_repo(
 
     let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
     if !group::db::exists(&conn, &group_name) {
-        group::db::create(&conn, &group_name);
+        group::db::create(&conn, &group_name)?;
     }
     let group = group::db::find(&conn, &group_name).unwrap();
 
@@ -65,7 +65,7 @@ pub fn create_repo(
         &sync_url,
         &access_token,
         commits,
-    );
+    )?;
 
     Ok(repository)
 }

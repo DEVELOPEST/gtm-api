@@ -36,7 +36,7 @@ pub fn update(
         &conn,
         commits,
         repository.id,
-    );
+    )?;
 
     let _ = diesel::update(&repository).set((
         repositories::sync_url.eq(sync_url),
@@ -55,7 +55,7 @@ pub fn create(
     sync_url: &str,
     access_token: &str,
     commits: Vec<NewCommitData>,
-) -> RepositoryJson {
+) -> Result<RepositoryJson, Error> {
     let new_repository = &NewRepository {
         group,
         user,
@@ -78,8 +78,8 @@ pub fn create(
         &conn,
         commits,
         repository.id
-    );
-    repository.attach(commits_vec)
+    )?;
+    Ok(repository.attach(commits_vec))
 }
 
 pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bool {

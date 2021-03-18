@@ -40,8 +40,9 @@ impl<'a> Responder<'a> for Error {
                 ).respond_to(req)
             }
             Error::AuthorizationError(err) => {
-                status::Unauthorized(
-                    Option::from(Json(json!({ "error" : err })))
+                status::Custom(
+                    Status::Unauthorized,
+                    Json(json!({ "error" : err }))
                 ).respond_to(req)
             }
             Error::HttpError(err) => {
@@ -81,6 +82,12 @@ impl From<ValidationErrors> for Error {
 impl From<diesel::result::Error> for Error {
     fn from(err: diesel::result::Error) -> Self {
         Error::DatabaseError(err)
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Error::HttpError(err)
     }
 }
 

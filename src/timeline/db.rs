@@ -3,10 +3,10 @@ use diesel::{Insertable, sql_query, sql_types};
 use diesel::prelude::*;
 
 use crate::common::sql::GROUP_CHILDREN_QUERY;
-use crate::errors::FieldValidator;
+use crate::errors::{FieldValidator, Error};
 use crate::schema::timeline;
 use crate::timeline::dwh::TimelineDWH;
-use crate::timeline::model::{Timeline, TimelineJson};
+use crate::timeline::model::{Timeline};
 use crate::timeline::routes::NewTimelineData;
 
 #[derive(Insertable)]
@@ -21,12 +21,13 @@ pub fn create_all(
     conn: &PgConnection,
     files: Vec<NewTimelineData>,
     file: i32
-) -> Vec<TimelineJson> {
+) -> Result<Vec<Timeline>, Error> {
     let mut vec = Vec::new();
     for var in files {
         let mut extractor = FieldValidator::validate(&var);
         let timestamp = extractor.extract("timestamp", var.timestamp);
         let time = extractor.extract("time", var.time);
+        extractor.check()?;
 
         let new_timeline = &NewTimeline {
             file,
@@ -36,13 +37,10 @@ pub fn create_all(
 
         let timeline_json = diesel::insert_into(timeline::table)
             .values(new_timeline)
-            .get_result::<Timeline>(conn)
-            .expect("Error creating timeline")
-            .attach();
-
+            .get_result::<Timeline>(conn)?;
         vec.push(timeline_json)
     }
-    vec
+    Ok(vec)
 }
 
 pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<TimelineDWH> {

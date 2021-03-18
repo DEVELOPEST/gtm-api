@@ -42,7 +42,7 @@ pub fn create_group_accesses_for_user(
     repos: Vec<RepoCredentials>,
     user_id: i32,
 ) -> Result<(), Error> {
-    let groups = group::db::find_all(conn);
+    let groups = group::db::find_all(conn)?;
     let group_accesses: Vec<NewGroupAccess> = repos.into_iter()
         .filter_map(|r| Some(NewGroupAccess {
             user: Option::from(user_id),
