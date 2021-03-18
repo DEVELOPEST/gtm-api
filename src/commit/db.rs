@@ -56,7 +56,7 @@ pub fn create_all(
     conn: &PgConnection,
     commits: Vec<NewCommitData>,
     repository_id: i32
-) -> Vec<CommitJson> {
+) -> Result<Vec<CommitJson>, Error> {
     let mut vec = Vec::new();
     for var in commits {
         let author = var.author.unwrap_or_default();
@@ -80,16 +80,15 @@ pub fn create_all(
 
         let commit = diesel::insert_into(commits::table)
             .values(new_commit)
-            .get_result::<Commit>(conn)
-            .expect("Error creating commit");
+            .get_result::<Commit>(conn)?;
 
         let files_vec = file::db::create_all(
             &conn,
             var.files,
             commit.id
-        );
+        )?;
 
         vec.push(commit.attach(files_vec))
     }
-    vec
+    Ok(vec)
 }

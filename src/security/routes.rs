@@ -13,6 +13,7 @@ use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
+use crate::errors::Error::Custom;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -247,8 +248,11 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) 
 
     let jwt = rt.block_on(security::service::oauth_login(&conn, &token));
     let jwt_token = match jwt {
-        None => rt.block_on(security::service::login_and_register(&conn, token)),
-        Some(token) => token
+        Err(err) => match err {
+            Custom(_) => { rt.block_on(security::service::login_and_register(&conn, token)).unwrap() }
+            _ => { Err(Error::Custom("Something went wrong!".to_string())).unwrap() }
+        }
+        Ok(token) => token
     };
     Redirect::to( format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), jwt_token))
 }
