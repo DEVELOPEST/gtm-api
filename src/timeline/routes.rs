@@ -4,7 +4,7 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
+use crate::errors::{FieldValidator, Error};
 use crate::timeline;
 use crate::user::model::AuthUser;
 
@@ -37,7 +37,7 @@ pub fn get_timeline(
     group_name: String,
     params: Form<Period>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let period = params.into_inner();
 
     let mut validator = FieldValidator::validate(&period);
@@ -58,7 +58,7 @@ pub fn get_activity_timeline(
     group_name: String,
     params: Form<Period>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let period = params.into_inner();
 
     let mut validator = FieldValidator::validate(&period);
@@ -79,7 +79,7 @@ pub fn get_subdir_level_timeline(
     conn: Conn,
     group_name: String,
     params: Form<SubdirTimelineParams>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     // TODO: Validate role
     let timeline_params = params.into_inner();
 

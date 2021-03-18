@@ -4,7 +4,7 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
+use crate::errors::{ValidationErrors, FieldValidator, Error};
 use crate::group;
 use crate::group::model::{GroupJson, GroupWithAccessJson};
 use crate::group::service;
@@ -44,20 +44,22 @@ pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
 }
 
 #[get("/groups/accessible/user/<user_id>")]
-pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
+pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
     auth_user.has_role(&ADMIN)?;
     let groups: Vec<GroupWithAccessJson> = group::service::get_groups_with_access(&conn, user_id)
         .into_iter()
         .map(|x| {
             let group_id = x.id.clone();
-            x.attach_with_access(group_access::service::find_by_user_and_group(&conn, user_id, group_id))
+            x.attach_with_access(
+                group_access::service::find_by_user_and_group(&conn, user_id, group_id).ok()
+            )
         })
         .collect();
     Ok(json!({"groups": groups}))
 }
 
 #[get("/groups/not-accessible/user/<user_id>")]
-pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
+pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
     auth_user.has_role(&ADMIN)?;
     let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)
         .into_iter().map(|x| x.attach()).collect();
@@ -70,7 +72,7 @@ pub fn get_group_stats(
     conn: Conn,
     group_name: String,
     params: Form<GroupStatsParams>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
@@ -84,7 +86,7 @@ pub fn post_group_parents(
     group_name: String,
     parents: Json<NewGroupParentsRelation>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let parents = parents.into_inner();
     let mut extractor = FieldValidator::validate(&parents);
     let parents_vec = extractor.extract("parents", parents.parents);
@@ -101,7 +103,7 @@ pub fn post_group_children(
     group_name: String,
     children: Json<NewGroupChildrenRelation>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let children = children.into_inner();
     let mut extractor = FieldValidator::validate(&children);
     let children_vec = extractor.extract("children", children.children);

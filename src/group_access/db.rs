@@ -4,6 +4,7 @@ use diesel::{Insertable};
 
 use crate::group_access::model::GroupAccess;
 use crate::schema::group_accesses;
+use crate::errors::Error;
 
 #[derive(Insertable)]
 #[table_name = "group_accesses"]
@@ -53,12 +54,12 @@ pub fn find_by_user_and_group(
     conn: &PgConnection,
     user: i32,
     group: i32,
-) -> Option<GroupAccess> {
+) -> Result<GroupAccess, Error> {
     group_accesses::table
         .filter(group_accesses::user.eq(user)
             .and(group_accesses::group.eq(group)))
         .first::<GroupAccess>(conn)
-        .ok()
+        .map_err(Error::DatabaseError)
 }
 
 pub fn update(
