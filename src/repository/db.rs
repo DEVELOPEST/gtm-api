@@ -8,6 +8,7 @@ use crate::commit::routes::NewCommitData;
 use crate::repository;
 use crate::repository::model::{Repository, RepositoryJson};
 use crate::schema::repositories;
+use crate::errors::Error;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -28,8 +29,8 @@ pub fn update(
     sync_url: &str,
     access_token: &str,
     commits: Vec<NewCommitData>,
-) -> RepositoryJson {
-    let repository = repository::db::find(&conn, &user, &provider, &repo).unwrap();
+) -> Result<RepositoryJson, Error> {
+    let repository = repository::db::find(&conn, &user, &provider, &repo)?;
 
     let commits_vec = commit::db::create_all(
         &conn,
@@ -42,7 +43,7 @@ pub fn update(
         repositories::access_token.eq(access_token)
     )).execute(conn);
 
-    repository.attach(commits_vec)
+    Ok(repository.attach(commits_vec))
 }
 
 pub fn create(
@@ -93,13 +94,13 @@ pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bo
         .expect("Error loading repository")
 }
 
-pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Option<Repository> {
+pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Result<Repository, Error> {
     repositories::table
         .filter(repositories::user.eq(user)
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))
         .get_result::<Repository>(conn)
-        .ok()
+        .map_err(Error::DatabaseError)
 }
 
 pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) {

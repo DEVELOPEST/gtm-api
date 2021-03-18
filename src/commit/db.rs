@@ -9,6 +9,7 @@ use crate::commit::model::{Commit, CommitJson};
 use crate::commit::routes::NewCommitData;
 use crate::file;
 use crate::schema::commits;
+use crate::errors::Error;
 
 lazy_static! {
     static ref GIT_USER_NAME_EMAIL_REGEX: Regex = Regex::new("^(.*)\\s+<(.*)>$").unwrap();
@@ -29,26 +30,26 @@ struct NewCommit<'a> {
 pub fn find_last_by_repository_id(
     conn: &PgConnection,
     repository_id: i32,
-) -> Option<Commit> {
+) -> Result<Commit, Error> {
     commits::table
         .filter(commits::repository_id.eq(repository_id))
         .order(commits::timestamp.desc())
         .limit(1)
         .get_result::<Commit>(conn)
-        .ok()
+        .map_err(Error::DatabaseError)
 }
 
 
 pub fn find_all_by_repository_id(
     conn: &PgConnection,
     repository_id: i32
-) -> Vec<String> {
+) -> Result<Vec<String>, Error> {
     commits::table
         .filter(commits::repository_id.eq(repository_id))
         .order(commits::timestamp.desc())
         .select(commits::hash)
         .load::<String>(conn)
-        .expect("Cannot load commits")
+        .map_err(Error::DatabaseError)
 }
 
 pub fn create_all(

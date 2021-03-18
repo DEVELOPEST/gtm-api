@@ -5,7 +5,7 @@ use validator::Validate;
 use crate::commit;
 use crate::db::Conn;
 use crate::file::routes::NewFileData;
-use crate::errors::Errors;
+use crate::errors::{Error};
 use crate::security::api_key::ApiKey;
 
 #[derive(Deserialize, Validate)]
@@ -30,7 +30,7 @@ pub fn get_commit_hash(
     provider: String,
     user: String,
     repo: String,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     Ok(json!(commit::service::find_last_commit_hash(&conn, &api_key, &user, &provider, &repo)?))
 }
 

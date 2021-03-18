@@ -3,7 +3,7 @@ use validator::Validate;
 use rocket_contrib::json::{Json, JsonValue};
 
 use crate::group_access;
-use crate::errors::{Errors};
+use crate::errors::{Error};
 use crate::db::Conn;
 use crate::user::model::AuthUser;
 use crate::role::model::ADMIN;
@@ -32,7 +32,7 @@ pub fn post_group_accesses(
     auth_user: AuthUser,
     group_accesses: Json<Vec<NewGroupAccess>>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     auth_user.has_role(&ADMIN)?;
     group_access::service::add_group_accesses(&conn, group_accesses.into_inner())?;
     Ok(json!({}))
@@ -43,7 +43,7 @@ pub fn delete_group_accesses(
     auth_user: AuthUser,
     group_accesses: Json<Vec<DeleteGroupAccess>>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     auth_user.has_role(&ADMIN)?;
     group_access::service::delete_group_accesses(&conn, group_accesses.into_inner())?;
     Ok(json!({}))
@@ -54,7 +54,7 @@ pub fn toggle_recursive_access(
     auth_user: AuthUser,
     group_access: Json<UserGroupAccess>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     auth_user.has_role(&ADMIN)?;
     group_access::service::toggle_access(&conn, group_access.into_inner())?;
     Ok(json!({}))

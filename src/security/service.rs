@@ -4,7 +4,7 @@ use rocket_oauth2::TokenResponse;
 
 use crate::{common, security, user};
 use crate::email;
-use crate::errors::Errors;
+use crate::errors::{Error};
 use crate::group_access;
 use crate::security::oauth::LoginType;
 use crate::user::db::UserCreationError;
@@ -26,26 +26,26 @@ pub fn password_login(
     conn: &PgConnection,
     username: String,
     password: String,
-) -> Result<String, Errors> {
+) -> Result<String, Error> {
     let user = user::db::find_by_username(&conn, &username);
 
     if user.is_none() {
-        return Err(Errors::new(&[("username", "Cannot find user with username")], None));
+        return Err(Error::AuthorizationError("Invalid username!".to_string()));
     }
 
     let user = user.unwrap();
     match user.password.clone() {
-        None => { return Err(Errors::new(&[("password", "Password authentication not enabled for user!")], None)); }
+        None => { return Err(Error::AuthorizationError("Password authentication not enabled!".to_string())); }
         Some(pass) => {
             if !scrypt_check(&password, &pass).unwrap() {
-                return Err(Errors::new(&[("password", "Wrong password!")], None));
+                return Err(Error::AuthorizationError("Invalid password!".to_string()));
             }
         }
     }
 
     let jwt = security::jwt::generate_token_for_user(&conn, user);
     match jwt {
-        None => { Err(Errors::new(&[("jwt", "Error generating jwt for user")], None)) }
+        None => { Err(Error::Custom("Error generating jwt!".to_string())) }
         Some(token) => { Ok(token) }
     }
 }
@@ -55,12 +55,12 @@ pub fn change_password(
     user_id: i32,
     old_password: String,
     new_password: String
-) -> Result<(), Errors> {
+) -> Result<(), Error> {
     let user = user::db::find(&conn, user_id).unwrap();
 
     if user.password.is_some() {
         if !scrypt_check(&old_password, &user.password.unwrap()).unwrap() {
-            return Err(Errors::new(&[("password", "Wrong password!")], None));
+            return Err(Error::AuthorizationError("Bad password!".to_string()));
         }
     }
 
@@ -72,7 +72,7 @@ pub fn create_password(
     conn: &PgConnection,
     user_id: i32,
     new_password: String
-) -> Result<(), Errors> {
+) -> Result<(), Error> {
     let user = user::db::find(&conn, user_id).unwrap();
 
     user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());

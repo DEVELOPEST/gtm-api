@@ -1,6 +1,6 @@
 use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
-use crate::errors::Errors;
+use crate::errors::ValidationErrors;
 use crate::group::resource::GroupStatsJson;
 use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
@@ -34,7 +34,7 @@ pub fn get_group_stats(
     start: i64,
     end: i64,
     depth: i32,
-) -> Result<GroupStatsJson, Errors> {
+) -> Result<GroupStatsJson, ValidationErrors> {
     let user_stats = group::db::fetch_group_user_stats(conn, group_name, start, end);
     let file_stats = group::db::fetch_group_file_stats(conn, group_name, start, end);
     Ok(GroupStatsJson {
