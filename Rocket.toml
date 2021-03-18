@@ -36,8 +36,8 @@ redirect_uri = "http://localhost:8000/services/gtm/api/oauth/bitbucket/callback"
 
 [global.oauth.microsoft]
 provider = "Microsoft"
-client_id = "b2c912c8-3a94-45fe-a5ec-a2549a0df5c4"
-client_secret = "2.-0k5.~edUfhTPx3I04-Wbf516elI7gUl"
+client_id = "2bcef526-4611-4cb2-a9f0-6668644b9935"
+client_secret = "AOBO4WlISz_f.25u7ky3zN~6g_Eb-u83sJ"
 redirect_uri = "http://localhost:8000/services/gtm/api/oauth/microsoft/callback"
 
 [global.oauth]

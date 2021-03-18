@@ -160,7 +160,7 @@ impl LoginType for TokenResponse<Bitbucket> {
         Ok(user.get_identity_hash().to_string())
     }
 
-    async fn fetch_username(&self) -> Result<String, Error> {
+    async fn fetch_username(&self) -> Result<String, reqwest::Error> {
         let user = fetch_bitbucket_user(&self.access_token()).await?;
         Ok(user.username)
     }
