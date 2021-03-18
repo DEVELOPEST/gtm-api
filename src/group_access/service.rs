@@ -82,7 +82,11 @@ pub fn toggle_access(
     let user = extractor.extract("user", group_access.user);
     let group = extractor.extract("group", group_access.group);
     extractor.check()?;
-    let access = group_access::db::find_by_user_and_group(&conn, user, group).unwrap();
+    let access = group_access::db::find_by_user_and_group(&conn, user, group)?;
     group_access::db::update(&conn, access);
     Ok(json!({}))
+}
+
+pub fn check_group_access(conn: &Conn, user: i32, group: i32) {
+
 }

@@ -1,10 +1,12 @@
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
+use diesel::{Insertable, sql_query, sql_types};
 
 use crate::group_access::model::GroupAccess;
-use crate::schema::group_accesses;
+use crate::schema::{group_accesses, users};
 use crate::errors::Error;
+use crate::schema;
+use crate::common::sql::GROUP_CHILDREN_QUERY;
 
 #[derive(Insertable)]
 #[table_name = "group_accesses"]
@@ -60,6 +62,14 @@ pub fn find_by_user_and_group(
             .and(group_accesses::group.eq(group)))
         .first::<GroupAccess>(conn)
         .map_err(Error::DatabaseError)
+}
+
+pub fn check_group_access(
+    conn: &PgConnection,
+    user: i32,
+    group_name: &str,
+) -> Result<bool, Error> {
+    unimplemented!()
 }
 
 pub fn update(
