@@ -1,0 +1,24 @@
+[ver:1,total:5040,branch:feature/API-53]
+src/errors.rs:2125,1616072400:343,1616076000:1617,1616079600:165,m
+.gtm/Cargo-> Run gtm-api.app:400,1616072400:400,r
+src/repository/service.rs:378,1616076000:338,1616079600:40,m
+src/commit/service.rs:269,1616076000:269,m
+src/security/service.rs:256,1616072400:8,1616076000:248,m
+src/role/routes.rs:224,1616076000:224,m
+src/security/oauth.rs:180,1616072400:180,r
+src/group_access/service.rs:149,1616079600:149,m
+src/security/routes.rs:141,1616072400:9,1616076000:132,m
+src/commit/db.rs:123,1616076000:123,m
+src/user/db.rs:107,1616076000:107,m
+src/repository/db.rs:102,1616076000:102,m
+src/user/routes.rs:93,1616076000:93,m
+src/group_access/db.rs:88,1616079600:88,m
+src/repository/routes.rs:83,1616076000:83,m
+.gtm/Cargo-> Build `Run gtm-api`.app:80,1616076000:56,1616079600:24,r
+src/group/routes.rs:71,1616076000:31,1616079600:40,m
+src/user/model.rs:47,1616076000:47,m
+src/group_access/routes.rs:44,1616076000:20,1616079600:24,m
+src/timeline/routes.rs:30,1616076000:30,m
+src/commit/routes.rs:20,1616076000:20,m
+src/bitbucket/services.rs:20,1616072400:20,r
+src/group/model.rs:10,1616079600:10,r
