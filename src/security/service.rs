@@ -30,22 +30,22 @@ pub fn password_login(
     let user = user::db::find_by_username(&conn, &username);
 
     if user.is_none() {
-        return Err(Error::AuthorizationError("Invalid username!".to_string()));
+        return Err(Error::AuthorizationError("Invalid username!"));
     }
 
     let user = user.unwrap();
     match user.password.clone() {
-        None => { return Err(Error::AuthorizationError("Password authentication not enabled!".to_string())); }
+        None => { return Err(Error::AuthorizationError("Password authentication not enabled!")); }
         Some(pass) => {
             if !scrypt_check(&password, &pass).unwrap() {
-                return Err(Error::AuthorizationError("Invalid password!".to_string()));
+                return Err(Error::AuthorizationError("Invalid password!"));
             }
         }
     }
 
     let jwt = security::jwt::generate_token_for_user(&conn, user);
     match jwt {
-        None => { Err(Error::Custom("Error generating jwt!".to_string())) }
+        None => { Err(Error::Custom("Error generating jwt!")) }
         Some(token) => { Ok(token) }
     }
 }
@@ -60,7 +60,7 @@ pub fn change_password(
 
     if user.password.is_some() {
         if !scrypt_check(&old_password, &user.password.unwrap()).unwrap() {
-            return Err(Error::AuthorizationError("Bad password!".to_string()));
+            return Err(Error::AuthorizationError("Bad password!"));
         }
     }
 
@@ -76,6 +76,14 @@ pub fn create_password(
     let user = user::db::find(&conn, user_id).unwrap();
 
     user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
+    Ok(())
+}
+
+pub fn check_group_access(conn: &PgConnection, user: i32, group: &str) -> Result<(), Error> {
+    let accesses = group_access::service::get_group_access_count(conn, user, group)?;
+    if accesses <= 0 {
+        return Err(Error::AuthorizationError("No group access!"));
+    }
     Ok(())
 }
 
@@ -132,7 +140,7 @@ pub async fn oauth_login<T>(conn: &PgConnection, token: &TokenResponse<T>) -> Re
             return Ok(jwt);
         }
     }
-    Err(Error::Custom("Unable to find user!".to_string()))
+    Err(Error::Custom("Unable to find user!"))
 }
 
 pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>) -> Result<String, Error>
@@ -145,12 +153,12 @@ pub async fn login_and_register<T>(conn: &PgConnection, token: TokenResponse<T>)
         username = format!("{}{}", username, common::random::random_string(5))
     }
     let user = new_user(&conn, &username, None)
-        .map_err(|_| Error::Custom("Error creating user!".to_string()))?;
+        .map_err(|_| Error::Custom("Error creating user!"))?;
     oauth_register(&conn, &token, user.id).await?;
     if let Some(jwt) = security::jwt::generate_token_for_user(&conn, user) {
         return Ok(jwt);
     }
-    Err(Error::Custom("Unable to generate jwt!".to_string()))
+    Err(Error::Custom("Unable to generate jwt!"))
 }
 
 async fn give_group_accesses<T>(

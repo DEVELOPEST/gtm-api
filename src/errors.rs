@@ -8,10 +8,10 @@ use validator::{Validate, ValidationError};
 pub enum Error {
     ValidationError(ValidationErrors),
     DatabaseError(diesel::result::Error),
-    AuthorizationError(String),
+    AuthorizationError(&'static str),
     HttpError(reqwest::Error),
-    BadRequest(String),
-    Custom(String),
+    BadRequest(&'static str),
+    Custom(&'static str),
 }
 
 impl<'a> Responder<'a> for Error {

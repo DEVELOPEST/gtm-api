@@ -24,7 +24,7 @@ pub fn add_role_to_user(
     conn: Conn,
     user_role_data: Json<UserRoleMemberDto>,
 ) -> Result<JsonValue, Error> {
-    auth_user.has_role(&ADMIN)?;
+    auth_user.require_role(&ADMIN)?;
     let user_role_data = user_role_data.into_inner();
     let mut extractor = FieldValidator::validate(&user_role_data);
     let user = extractor.extract("user", user_role_data.user);
@@ -32,11 +32,11 @@ pub fn add_role_to_user(
     extractor.check()?;
 
     if !user::db::exists(&conn, user) {
-        return Err(Error::Custom("User does not exist!".to_string()));
+        return Err(Error::Custom("User does not exist!"));
     }
 
     if !role::db::exists(&conn, role) {
-        return Err(Error::Custom("Role does not exist!".to_string()));
+        return Err(Error::Custom("Role does not exist!"));
     }
 
     user_role_member::db::create(&conn, user, role);
@@ -50,7 +50,7 @@ pub fn delete_role_from_user(
     conn: Conn,
     user_role_data: Json<UserRoleMemberDto>
 ) -> Result<JsonValue, Error> {
-    auth_user.has_role(&ADMIN)?;
+    auth_user.require_role(&ADMIN)?;
     let user_role_data = user_role_data.into_inner();
     let mut extractor = FieldValidator::validate(&user_role_data);
     let user = extractor.extract("user", user_role_data.user);
@@ -58,11 +58,11 @@ pub fn delete_role_from_user(
     extractor.check()?;
 
     if !user::db::exists(&conn, user) {
-        return Err(Error::Custom("Cannot find user!".to_string()));
+        return Err(Error::Custom("Cannot find user!"));
     }
 
     if !role::db::exists(&conn, role) {
-        return Err(Error::Custom("Cannot find role!".to_string()));
+        return Err(Error::Custom("Cannot find role!"));
     }
 
     user_role_member::db::delete(&conn, user, role);

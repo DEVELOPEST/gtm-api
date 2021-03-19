@@ -5,7 +5,7 @@ use validator::Validate;
 
 use crate::db::Conn;
 use crate::errors::{FieldValidator, Error};
-use crate::group;
+use crate::{group, security};
 use crate::group::model::{GroupJson, GroupWithAccessJson};
 use crate::group::service;
 use crate::group_access;
@@ -44,7 +44,7 @@ pub fn get_groups(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
 
 #[get("/groups/accessible/user/<user_id>")]
 pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
-    auth_user.has_role(&ADMIN)?;
+    auth_user.require_role(&ADMIN)?;
     let groups: Vec<GroupWithAccessJson> = group::service::get_groups_with_access(&conn, user_id)?
         .into_iter()
         .map(|x| {
@@ -59,7 +59,7 @@ pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> 
 
 #[get("/groups/not-accessible/user/<user_id>")]
 pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
-    auth_user.has_role(&ADMIN)?;
+    auth_user.require_role(&ADMIN)?;
     let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)?
         .into_iter().map(|x| x.attach()).collect();
     Ok(json!({"groups": groups}))
@@ -67,11 +67,14 @@ pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) 
 
 #[get("/groups/<group_name>/stats?<params..>")]
 pub fn get_group_stats(
-    _auth_user: AuthUser,
+    auth_user: AuthUser,
     conn: Conn,
     group_name: String,
     params: Form<GroupStatsParams>,
 ) -> Result<JsonValue, Error> {
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);

@@ -250,7 +250,7 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) 
     let jwt_token = match jwt {
         Err(err) => match err {
             Custom(_) => { rt.block_on(security::service::login_and_register(&conn, token)).unwrap() }
-            _ => { Err(Error::Custom("Something went wrong!".to_string())).unwrap() }
+            _ => { Err(Error::Custom("Something went wrong!")).unwrap() }
         }
         Ok(token) => token
     };
