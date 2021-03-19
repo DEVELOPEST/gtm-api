@@ -1,7 +1,0 @@
-[ver:1,total:1980,branch:feature/API-53]
-src/group_access/db.rs:776,1616094000:776,m
-src/group_access/service.rs:615,1616094000:615,m
-src/repository/db.rs:448,1616094000:448,m
-.gtm/Cargo-> Build `Run gtm-api`.app:111,1616094000:111,r
-src/timeline/db.rs:15,1616094000:15,r
-src/group/service.rs:15,1616094000:15,r
