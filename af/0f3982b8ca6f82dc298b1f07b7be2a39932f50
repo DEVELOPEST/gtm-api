@@ -1,0 +1,21 @@
+[ver:1,total:3720,branch:feature/API-53]
+src/group_access/db.rs:1134,1616173200:971,1616176800:163,m
+.gtm/Cargo-> Run gtm-api.app:789,1616173200:170,1616176800:619,r
+src/errors.rs:428,1616173200:428,m
+src/security/service.rs:252,1616173200:252,m
+src/group_access/service.rs:214,1616173200:214,m
+src/timeline/routes.rs:209,1616173200:209,m
+src/common/sql.rs:132,1616173200:132,m
+.gtm/Cargo-> Build `Run gtm-api`.app:111,1616173200:71,1616176800:40,r
+src/timeline/db.rs:85,1616173200:85,r
+src/group/routes.rs:75,1616173200:75,m
+src/group_access/mod.rs:60,1616173200:60,m
+src/group_access/dwh.rs:60,1616173200:54,1616176800:6,m
+src/user/model.rs:58,1616173200:58,m
+src/role/routes.rs:36,1616173200:36,m
+src/repository/service.rs:23,1616173200:23,m
+src/commit/service.rs:12,1616173200:12,m
+src/security/routes.rs:12,1616173200:12,m
+src/group/db.rs:12,1616176800:12,r
+src/timeline/dwh.rs:12,1616173200:12,r
+src/group_access/routes.rs:6,1616173200:6,m
