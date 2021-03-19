@@ -23,7 +23,7 @@ pub fn find_last_commit_hash(
     let repository = repository::db::find(&conn, &user, &provider, &repo)?;
 
     if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!".to_string()));
+        return Err(Error::AuthorizationError("Invalid API key!"));
     }
 
     let last_commit = commit::db::find_last_by_repository_id(&conn, repository.id);

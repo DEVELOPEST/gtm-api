@@ -17,10 +17,10 @@ pub fn update_repo(
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
     repository::db::find(conn, user, provider, repo)
-        .map_err(|_| Error::BadRequest("Repository not found!".to_string()))?;
+        .map_err(|_| Error::BadRequest("Repository not found!"))?;
 
     if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!".to_string()));
+        return Err(Error::AuthorizationError("Invalid API key!"));
     }
 
     let repository = repository::db::update(
@@ -47,7 +47,7 @@ pub fn create_repo(
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
     if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!".to_string()));
+        return Err(Error::AuthorizationError("Invalid API key!"));
     }
 
     let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);

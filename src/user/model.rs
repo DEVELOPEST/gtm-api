@@ -18,9 +18,9 @@ pub struct AuthUser {
 }
 
 impl AuthUser {
-    pub fn has_role(&self, role: &String) -> Result<(), Error> {
+    pub fn require_role(&self, role: &String) -> Result<(), Error> {
         if !self.roles.contains(role) {
-            return Err(Error::AuthorizationError("Unauthorized!".to_string()));
+            return Err(Error::AuthorizationError("Unauthorized!"));
         }
         Ok(())
     }

@@ -3,9 +3,10 @@ use rocket_contrib::json::JsonValue;
 use serde::Deserialize;
 use validator::Validate;
 
+use crate::{security, timeline};
 use crate::db::Conn;
-use crate::errors::{FieldValidator, Error};
-use crate::timeline;
+use crate::errors::{Error, FieldValidator};
+use crate::role::model::ADMIN;
 use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate)]
@@ -33,13 +34,15 @@ pub struct SubdirTimelineParams {
 
 #[get("/<group_name>/timeline?<params..>")]
 pub fn get_timeline(
-    _auth_user: AuthUser,
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,
 ) -> Result<JsonValue, Error> {
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
     let period = params.into_inner();
-
     let mut validator = FieldValidator::validate(&period);
     let start = validator.extract("start", period.start);
     let end = validator.extract("end", period.end);
@@ -54,13 +57,15 @@ pub fn get_timeline(
 
 #[get("/<group_name>/activity?<params..>")]
 pub fn get_activity_timeline(
-    _auth_user: AuthUser,
+    auth_user: AuthUser,
     group_name: String,
     params: Form<Period>,
     conn: Conn,
 ) -> Result<JsonValue, Error> {
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
     let period = params.into_inner();
-
     let mut validator = FieldValidator::validate(&period);
     let start = validator.extract("start", period.start);
     let end = validator.extract("end", period.end);
@@ -75,12 +80,14 @@ pub fn get_activity_timeline(
 
 #[get("/<group_name>/subdirs-timeline?<params..>")]
 pub fn get_subdir_level_timeline(
-    _auth_user: AuthUser,
+    auth_user: AuthUser,
     conn: Conn,
     group_name: String,
     params: Form<SubdirTimelineParams>,
 ) -> Result<JsonValue, Error> {
-    // TODO: Validate role
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
     let timeline_params = params.into_inner();
 
     let mut validator = FieldValidator::validate(&timeline_params);

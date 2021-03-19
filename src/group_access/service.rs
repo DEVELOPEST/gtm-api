@@ -8,7 +8,7 @@ use crate::group_access;
 use crate::group_access::db;
 use crate::group_access::model::GroupAccessJson;
 use crate::group_access::routes::{DeleteGroupAccess, NewGroupAccess, UserGroupAccess};
-use diesel::PgConnection;
+use diesel::{PgConnection};
 
 pub fn add_group_accesses(
     conn: &PgConnection,
@@ -87,6 +87,6 @@ pub fn toggle_access(
     Ok(json!({}))
 }
 
-pub fn check_group_access(conn: &Conn, user: i32, group: i32) {
-
+pub fn get_group_access_count(conn: &PgConnection, user: i32, group: &str) -> Result<i64, Error>{
+    group_access::db::fetch_group_access_count(conn, user, group)
 }
