@@ -8,6 +8,7 @@ use crate::commit::routes::NewCommitData;
 use crate::repository;
 use crate::repository::model::{Repository, RepositoryJson};
 use crate::schema::repositories;
+use crate::errors::Error;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -28,21 +29,21 @@ pub fn update(
     sync_url: &str,
     access_token: &str,
     commits: Vec<NewCommitData>,
-) -> RepositoryJson {
-    let repository = repository::db::find(&conn, &user, &provider, &repo).unwrap();
+) -> Result<RepositoryJson, Error> {
+    let repository = repository::db::find(&conn, &user, &provider, &repo)?;
 
     let commits_vec = commit::db::create_all(
         &conn,
         commits,
         repository.id,
-    );
+    )?;
 
     let _ = diesel::update(&repository).set((
         repositories::sync_url.eq(sync_url),
         repositories::access_token.eq(access_token)
     )).execute(conn);
 
-    repository.attach(commits_vec)
+    Ok(repository.attach(commits_vec))
 }
 
 pub fn create(
@@ -54,7 +55,7 @@ pub fn create(
     sync_url: &str,
     access_token: &str,
     commits: Vec<NewCommitData>,
-) -> RepositoryJson {
+) -> Result<RepositoryJson, Error> {
     let new_repository = &NewRepository {
         group,
         user,
@@ -65,7 +66,7 @@ pub fn create(
     };
 
     if exists(conn, user, provider, repo) {
-        remove_repo(conn, user, provider, repo);
+        remove_repo(conn, user, provider, repo)?;
     }
 
     let repository = diesel::insert_into(repositories::table)
@@ -77,8 +78,8 @@ pub fn create(
         &conn,
         commits,
         repository.id
-    );
-    repository.attach(commits_vec)
+    )?;
+    Ok(repository.attach(commits_vec))
 }
 
 pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bool {
@@ -93,25 +94,25 @@ pub fn exists(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> bo
         .expect("Error loading repository")
 }
 
-pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Option<Repository> {
+pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Result<Repository, Error> {
     repositories::table
         .filter(repositories::user.eq(user)
             .and(repositories::provider.eq(provider)
                 .and(repositories::repo.eq(repo))))
         .get_result::<Repository>(conn)
-        .ok()
+        .map_err(Error::DatabaseError)
 }
 
-pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) {
-    diesel::delete(repositories::table.filter(repositories::user.eq(user)
+pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Result<usize, Error>{
+    let count = diesel::delete(repositories::table.filter(repositories::user.eq(user)
         .and(repositories::provider.eq(provider)
             .and(repositories::repo.eq(repo)))))
-        .execute(conn)
-        .expect("Cannot delete");
+        .execute(conn)?;
+    Ok(count)
 }
 
-pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Vec<Repository> {
-    sql_query("
+pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result<Vec<Repository>, Error> {
+    let res = sql_query("
     WITH RECURSIVE q AS
         (
         SELECT  group_group_members.child, 0 AS depth
@@ -136,7 +137,6 @@ pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Vec<Re
             FROM groups g
             WHERE g.name = $1))")
         .bind::<sql_types::Text, _>(name)
-        .load(conn)
-        .expect("Error finding repositories for group")
-
+        .load(conn)?;
+    Ok(res)
 }

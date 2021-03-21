@@ -2,18 +2,18 @@ use rocket_contrib::json::JsonValue;
 
 use crate::common::git::RepoCredentials;
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
+use crate::errors::{FieldValidator, Error};
 use crate::group;
 use crate::group_access;
 use crate::group_access::db;
 use crate::group_access::model::GroupAccessJson;
 use crate::group_access::routes::{DeleteGroupAccess, NewGroupAccess, UserGroupAccess};
-use diesel::PgConnection;
+use diesel::{PgConnection};
 
 pub fn add_group_accesses(
     conn: &PgConnection,
     group_accesses: Vec<NewGroupAccess>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let mut extractor = FieldValidator::default();
     let new_group_accesses = group_accesses.into_iter()
         .filter_map(|group_access| {
@@ -41,8 +41,8 @@ pub fn create_group_accesses_for_user(
     conn: &PgConnection,
     repos: Vec<RepoCredentials>,
     user_id: i32,
-) -> Result<(), Errors> {
-    let groups = group::db::find_all(conn);
+) -> Result<(), Error> {
+    let groups = group::db::find_all(conn)?;
     let group_accesses: Vec<NewGroupAccess> = repos.into_iter()
         .filter_map(|r| Some(NewGroupAccess {
             user: Option::from(user_id),
@@ -58,7 +58,7 @@ pub fn create_group_accesses_for_user(
 pub fn delete_group_accesses(
     conn: &Conn,
     group_accesses: Vec<DeleteGroupAccess>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     for group_access in group_accesses {
         let mut extractor = FieldValidator::validate(&group_access);
         let user = extractor.extract("user", group_access.user);
@@ -69,23 +69,24 @@ pub fn delete_group_accesses(
     Ok(json!({}))
 }
 
-pub fn find_by_user_and_group(conn: &Conn, user: i32, group: i32,) -> Option<GroupAccessJson> {
-    let access = group_access::db::find_by_user_and_group(conn, user, group);
-    match access {
-        Some(x) => Some(x.attach()),
-        None    => None,
-    }
+pub fn find_by_user_and_group(conn: &Conn, user: i32, group: i32,) -> Result<GroupAccessJson, Error> {
+   group_access::db::find_by_user_and_group(conn, user, group)
+        .map(|x| x.attach())
 }
 
 pub fn toggle_access(
     conn: &Conn,
     group_access: UserGroupAccess
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let mut extractor = FieldValidator::validate(&group_access);
     let user = extractor.extract("user", group_access.user);
     let group = extractor.extract("group", group_access.group);
     extractor.check()?;
-    let access = group_access::db::find_by_user_and_group(&conn, user, group).unwrap();
+    let access = group_access::db::find_by_user_and_group(&conn, user, group)?;
     group_access::db::update(&conn, access);
     Ok(json!({}))
+}
+
+pub fn get_group_access_count(conn: &PgConnection, user: i32, group: &str) -> Result<i64, Error>{
+    group_access::db::fetch_group_access_count(conn, user, group)
 }
