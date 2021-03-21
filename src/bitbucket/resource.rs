@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 use crate::common;
 use crate::common::git::RepoCredentials;
+use chrono::{DateTime, Utc};
 
 #[derive(Deserialize)]
 pub struct BitbucketUser {
@@ -22,14 +23,31 @@ pub struct BitbucketCloneLink {
 }
 
 #[derive(Deserialize)]
+pub struct BitbucketHtmlLink {
+    pub href: String,
+}
+
+#[derive(Deserialize)]
+pub struct BitbucketBranch {
+    pub name: String,
+}
+
+#[derive(Deserialize)]
 pub struct BitbucketLinks {
     pub clone: Vec<BitbucketCloneLink>,
+    pub html: BitbucketHtmlLink,
 }
 
 #[derive(Deserialize)]
 pub struct BitbucketRepo {
     pub scm: String,
-    pub links: BitbucketLinks
+    pub full_name: String,
+    pub links: BitbucketLinks,
+    pub mainbranch: BitbucketBranch,
+    pub description: String,
+    pub updated_on: DateTime<Utc>,
+    pub size: i32,
+    pub private: bool,
 }
 
 impl common::git::GitRepo for BitbucketRepo {
