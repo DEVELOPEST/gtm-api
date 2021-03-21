@@ -41,7 +41,7 @@ pub fn get_user_logins(
     conn: Conn,
 ) -> Result<JsonValue, ValidationErrors> {
 
-    let logins = security::db::find_all_logins_by_user(&conn, auth_user.user_id);
+    let logins = security::db::find_all_login_names_by_user(&conn, auth_user.user_id);
     Ok(json!(logins))
 }
 
