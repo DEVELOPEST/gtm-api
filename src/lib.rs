@@ -42,6 +42,7 @@ mod github;
 mod gitlab;
 mod microsoft;
 mod bitbucket;
+mod vcs;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
@@ -104,6 +105,7 @@ pub fn rocket() -> rocket::Rocket {
                 group_access::routes::post_group_accesses,
                 group_access::routes::delete_group_accesses,
                 group_access::routes::toggle_recursive_access,
+                vcs::routes::get_accessible_repositories,
             ],
         )
         .attach(db::Conn::fairing())

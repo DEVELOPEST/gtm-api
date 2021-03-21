@@ -86,13 +86,3 @@ pub fn put_repository(
 
     Ok(json!({ "repository": repository }))
 }
-
-#[derive(Deserialize, Validate)]
-pub struct RepositoryData {
-    #[validate(length(min = 1))]
-    user: Option<String>,
-    #[validate(length(min = 1))]
-    provider: Option<String>,
-    #[validate(length(min = 1))]
-    repo: Option<String>,
-}
