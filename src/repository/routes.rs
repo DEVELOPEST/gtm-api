@@ -4,7 +4,7 @@ use validator::Validate;
 
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
+use crate::errors::{FieldValidator, Error};
 use crate::repository;
 use crate::security::api_key::ApiKey;
 
@@ -32,7 +32,7 @@ pub fn post_repository(
     conn: Conn,
     api_key: ApiKey,
     new_repository: Json<NewRepository>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
@@ -62,7 +62,7 @@ pub fn put_repository(
     api_key: ApiKey,
     new_repository: Json<NewRepository>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);

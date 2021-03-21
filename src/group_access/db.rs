@@ -1,9 +1,12 @@
+use diesel::{Insertable, sql_query, sql_types};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::{Insertable};
 
+use crate::common::sql::{GROUP_PARENTS_QUERY};
+use crate::errors::Error;
 use crate::group_access::model::GroupAccess;
-use crate::schema::group_accesses;
+use crate::schema::{group_accesses};
+use crate::group_access::dwh::GroupAccessCountDWH;
 
 #[derive(Insertable)]
 #[table_name = "group_accesses"]
@@ -53,12 +56,46 @@ pub fn find_by_user_and_group(
     conn: &PgConnection,
     user: i32,
     group: i32,
-) -> Option<GroupAccess> {
+) -> Result<GroupAccess, Error> {
     group_accesses::table
         .filter(group_accesses::user.eq(user)
             .and(group_accesses::group.eq(group)))
         .first::<GroupAccess>(conn)
-        .ok()
+        .map_err(Error::DatabaseError)
+}
+
+pub fn fetch_group_access_count(
+    conn: &PgConnection,
+    user: i32,
+    group_name: &str,
+) -> Result<i64, Error> {
+    let count = sql_query(format!("
+        {}
+        SELECT sum(count)::bigint FROM (
+            SELECT count(group_parents_query.parent) AS count
+            FROM group_parents_query
+            WHERE group_parents_query.parent IN (
+                SELECT group_accesses.group
+                FROM group_accesses
+                WHERE group_accesses.access_level_recursive IS TRUE
+                AND group_accesses.user = $2
+            )
+            UNION
+            (
+                SELECT 1 AS count
+                FROM groups
+                WHERE groups.name = $1
+                AND groups.id IN (
+                    SELECT group_accesses.group
+                    FROM group_accesses
+                    WHERE group_accesses.user = $2
+                )
+            )
+        ) AS accesses_union", GROUP_PARENTS_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::Int4, _>(user)
+        .get_result::<GroupAccessCountDWH>(conn)?;
+    Ok(count.sum)
 }
 
 pub fn update(

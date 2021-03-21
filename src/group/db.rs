@@ -7,6 +7,7 @@ use crate::common::sql::GROUP_CHILDREN_QUERY;
 use crate::group::dwh::{GroupUserStats, GroupFileStats};
 use crate::group::model::Group;
 use crate::schema::groups;
+use crate::errors::Error;
 
 #[derive(Insertable)]
 #[table_name = "groups"]
@@ -17,17 +18,16 @@ struct NewGroup<'a> {
 pub fn create(
     conn: &PgConnection,
     name: &str,
-) -> Group {
+) -> Result<Group, Error> {
     let new_group = &NewGroup {
         name,
     };
 
     let group = diesel::insert_into(groups::table)
         .values(new_group)
-        .get_result::<Group>(conn)
-        .expect("Error creating  group");
+        .get_result::<Group>(conn)?;
 
-    group
+    Ok(group)
 }
 
 
@@ -38,23 +38,25 @@ pub fn exists(conn: &PgConnection, name: &str) -> bool {
     select(exists(groups::table
         .filter(groups::name.eq(name))))
         .get_result(conn)
-        .expect("Error finding  group")
+        .expect("Error finding group")
 }
 
-pub fn find(conn: &PgConnection, name: &str) -> Option<Group> {
-    groups::table
+pub fn find(conn: &PgConnection, name: &str) -> Result<Group, Error> {
+    Ok(groups::table
         .filter(groups::name.eq(name))
-        .first::<Group>(conn)
-        .ok()
+        .first::<Group>(conn)?)
 }
 
-pub fn find_all(conn: &PgConnection) -> Vec<Group> {
-    groups::table
-        .load::<Group>(conn)
-        .expect("Unable to load groups")
+pub fn find_all(conn: &PgConnection) -> Result<Vec<Group>, Error> {
+    Ok(groups::table.load::<Group>(conn)?)
 }
 
-pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupUserStats> {
+pub fn fetch_group_user_stats(
+    conn: &PgConnection,
+    group_name: &str,
+    start: i64,
+    end: i64
+) -> Result<Vec<GroupUserStats>, Error> {
     let stats: Vec<GroupUserStats> = sql_query(format!("
         {}
         SELECT coalesce(users.username, commits.email)    AS name,
@@ -83,13 +85,12 @@ pub fn fetch_group_user_stats(conn: &PgConnection, group_name: &str, start: i64,
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
-        .load(conn)
-        .unwrap_or(vec![]);
+        .load(conn)?;
 
-    stats
+    Ok(stats)
 }
 
-pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<GroupFileStats> {
+pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Result<Vec<GroupFileStats>, Error> {
     let stats: Vec<GroupFileStats> = sql_query(format!("
         {}
         SELECT files.path                                 AS path,
@@ -119,13 +120,12 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
-        .load(conn)
-        .unwrap();
+        .load(conn)?;
 
-    stats
+    Ok(stats)
 }
 
-pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Vec<Group> {
+pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Result<Vec<Group>, Error> {
     let groups: Vec<Group> = sql_query(format!("
     WITH RECURSIVE group_repos_query AS
                    (
@@ -147,9 +147,6 @@ pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Vec<Group> {
                     UNION
                     (SELECT $1) )"))
         .bind::<sql_types::Integer, _>(group_id)
-        .load(conn)
-        .unwrap_or(vec![]);
-
-    println!("{:?}", groups.get(0).unwrap());
-    groups
+        .load(conn)?;
+    Ok(groups)
 }

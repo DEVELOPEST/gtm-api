@@ -4,8 +4,8 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
-use crate::group;
+use crate::errors::{FieldValidator, Error};
+use crate::{group, security};
 use crate::group::model::{GroupJson, GroupWithAccessJson};
 use crate::group::service;
 use crate::group_access;
@@ -32,50 +32,55 @@ pub struct GroupStatsParams {
 }
 
 #[get("/groups")]
-pub fn get_groups(auth_user: AuthUser, conn: Conn) -> JsonValue {
-    let mut groups = vec![];
-    if auth_user.roles.contains(&ADMIN) {
-        groups = group::db::find_all(&conn).into_iter().map(|x| x.attach()).collect();
+pub fn get_groups(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
+    let groups: Vec<GroupJson> = if auth_user.roles.contains(&ADMIN) {
+        group::db::find_all(&conn)?.into_iter().map(|x| x.attach()).collect()
     } else {
-        groups = group::service::get_groups_with_access(&conn, auth_user.user_id)
-            .into_iter().map(|x| x.attach()).collect();
-    }
-    json!({"groups": groups})
+        group::service::get_groups_with_access(&conn, auth_user.user_id)?
+            .into_iter().map(|x| x.attach()).collect()
+    };
+    Ok(json!({"groups": groups}))
 }
 
 #[get("/groups/accessible/user/<user_id>")]
-pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
-    auth_user.has_role(&ADMIN)?;
-    let groups: Vec<GroupWithAccessJson> = group::service::get_groups_with_access(&conn, user_id)
+pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
+    auth_user.require_role(&ADMIN)?;
+    let groups: Vec<GroupWithAccessJson> = group::service::get_groups_with_access(&conn, user_id)?
         .into_iter()
         .map(|x| {
             let group_id = x.id.clone();
-            x.attach_with_access(group_access::service::find_by_user_and_group(&conn, user_id, group_id))
+            x.attach_with_access(
+                group_access::service::find_by_user_and_group(&conn, user_id, group_id).ok()
+            )
         })
         .collect();
     Ok(json!({"groups": groups}))
 }
 
 #[get("/groups/not-accessible/user/<user_id>")]
-pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Errors> {
-    auth_user.has_role(&ADMIN)?;
-    let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)
+pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
+    auth_user.require_role(&ADMIN)?;
+    let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)?
         .into_iter().map(|x| x.attach()).collect();
     Ok(json!({"groups": groups}))
 }
 
 #[get("/groups/<group_name>/stats?<params..>")]
 pub fn get_group_stats(
-    _auth_user: AuthUser,
+    auth_user: AuthUser,
     conn: Conn,
     group_name: String,
     params: Form<GroupStatsParams>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
     let period = params.into_inner();
     let start = period.start.unwrap_or(0);
     let end = period.end.unwrap_or(std::i64::MAX);
     let depth = period.depth.unwrap_or(1);
-    Ok(json!(service::get_group_stats(&conn, &group_name, start, end, depth)?))
+    let stats = service::get_group_stats(&conn, &group_name, start, end, depth)?;
+    Ok(json!(stats))
 }
 
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
@@ -84,13 +89,13 @@ pub fn post_group_parents(
     group_name: String,
     parents: Json<NewGroupParentsRelation>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let parents = parents.into_inner();
     let mut extractor = FieldValidator::validate(&parents);
     let parents_vec = extractor.extract("parents", parents.parents);
     extractor.check()?;
 
-    service::add_group_relations(&conn, parents_vec, vec![group_name]);
+    service::add_group_relations(&conn, parents_vec, vec![group_name])?;
     // TODO return something useful
     Ok(json!({}))
 }
@@ -101,13 +106,13 @@ pub fn post_group_children(
     group_name: String,
     children: Json<NewGroupChildrenRelation>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
     let children = children.into_inner();
     let mut extractor = FieldValidator::validate(&children);
     let children_vec = extractor.extract("children", children.children);
     extractor.check()?;
 
-    service::add_group_relations(&conn, vec![group_name], children_vec);
+    service::add_group_relations(&conn, vec![group_name], children_vec)?;
     // TODO return something useful
     Ok(json!({}))
 }

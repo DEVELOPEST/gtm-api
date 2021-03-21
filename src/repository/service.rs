@@ -1,12 +1,10 @@
-use rocket::http::Status;
-
 use crate::{group, repository};
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
-use crate::errors::Errors;
+use crate::errors::{Error};
 use crate::repository::model::RepositoryJson;
-use crate::security::api_key::ApiKey;
 use crate::security;
+use crate::security::api_key::ApiKey;
 
 pub fn update_repo(
     conn: &Conn,
@@ -17,18 +15,12 @@ pub fn update_repo(
     sync_url: &String,
     access_token: &String,
     commits: Vec<NewCommitData>,
-) -> Result<RepositoryJson, Errors> {
-    match repository::db::find(conn, user, provider, repo){
-        Some(_) => {
-            if api_key.key != *security::config::API_KEY.read().unwrap() {
-                return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
-                                       Option::from(Status::Unauthorized))
-                );
-            }
-        }
-        None => {
-            return Err(Errors::new(&[("invalid_repo", "No repository to update!")], None));
-        }
+) -> Result<RepositoryJson, Error> {
+    repository::db::find(conn, user, provider, repo)
+        .map_err(|_| Error::BadRequest("Repository not found!"))?;
+
+    if api_key.key != *security::config::API_KEY.read().unwrap() {
+        return Err(Error::AuthorizationError("Invalid API key!"));
     }
 
     let repository = repository::db::update(
@@ -41,7 +33,7 @@ pub fn update_repo(
         commits,
     );
 
-    Ok(repository)
+    repository
 }
 
 pub fn create_repo(
@@ -53,16 +45,14 @@ pub fn create_repo(
     sync_url: &String,
     access_token: &String,
     commits: Vec<NewCommitData>,
-) -> Result<RepositoryJson, Errors> {
+) -> Result<RepositoryJson, Error> {
     if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Errors::new(&[("unauthorized", "Invalid API-key!")],
-                               Option::from(Status::Unauthorized))
-        );
+        return Err(Error::AuthorizationError("Invalid API key!"));
     }
 
     let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
     if !group::db::exists(&conn, &group_name) {
-        group::db::create(&conn, &group_name);
+        group::db::create(&conn, &group_name)?;
     }
     let group = group::db::find(&conn, &group_name).unwrap();
 
@@ -75,7 +65,7 @@ pub fn create_repo(
         &sync_url,
         &access_token,
         commits,
-    );
+    )?;
 
     Ok(repository)
 }
