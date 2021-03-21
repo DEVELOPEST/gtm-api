@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 use crate::common;
 use crate::common::git::RepoCredentials;
+use chrono::{DateTime, Utc};
 
 #[derive(Deserialize)]
 pub struct GithubUser {
@@ -18,7 +19,14 @@ pub struct GithubEmail {
 
 #[derive(Deserialize)]
 pub struct GithubRepo {
-    pub ssh_url: String
+    pub full_name: String,
+    pub description: Option<String>,
+    pub private: bool,
+    pub html_url: String,
+    pub updated_at: DateTime<Utc>,
+    pub ssh_url: String,
+    pub size: i32,
+    pub stargazers_count: i32,
 }
 
 impl common::git::GitRepo for GithubRepo {
