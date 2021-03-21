@@ -1,0 +1,27 @@
+[ver:1,total:5820,branch:feature/API-54]
+src/vcs/service.rs:2019,1616338800:210,1616342400:1809,m
+.env:600,1616270400:600,r
+docker-compose.yml:420,1616270400:420,r
+src/security/db.rs:413,1616338800:245,1616342400:168,m
+src/repository/routes.rs:334,1616338800:310,1616342400:24,m
+Cargo.toml:240,1616342400:240,m
+src/security/constants.rs:207,1616338800:195,1616342400:12,m
+src/timeline/db.rs:180,1616338800:180,r
+migrations/2020-11-21-162021_create_main_tables/up.sql:165,1616270400:150,1616338800:15,r
+src/security/dwh.rs:160,1616342400:160,d
+.gtm/Cargo-> Build `Run gtm-api`.app:145,1616338800:60,1616342400:85,r
+src/user/db.rs:140,1616176800:140,r
+migrations/00000000000000_diesel_initial_setup/up.sql:120,1616270400:120,r
+src/vcs/routes.rs:108,1616338800:30,1616342400:78,m
+src/vcs/mod.rs:101,1616338800:45,1616342400:56,m
+src/vcs/resource.rs:92,1616342400:92,m
+src/gitlab/service.rs:80,1616338800:80,r
+src/security/model.rs:54,1616342400:54,r
+src/security/oauth.rs:54,1616338800:30,1616342400:24,m
+src/lib.rs:53,1616338800:25,1616342400:28,m
+src/security/mod.rs:35,1616338800:15,1616342400:20,m
+migrations/00000000000000_diesel_initial_setup/down.sql:30,1616270400:30,r
+src/role/db.rs:20,1616176800:20,r
+src/user/routes.rs:20,1616176800:20,r
+src/timeline/dwh.rs:18,1616342400:18,r
+src/security/routes.rs:12,1616342400:12,m
