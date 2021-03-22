@@ -43,6 +43,7 @@ mod gitlab;
 mod microsoft;
 mod bitbucket;
 mod vcs;
+mod sync;
 
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;

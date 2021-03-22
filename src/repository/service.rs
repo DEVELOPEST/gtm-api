@@ -2,9 +2,9 @@ use crate::{group, repository};
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
 use crate::errors::{Error};
-use crate::repository::model::RepositoryJson;
-use crate::security;
+use crate::repository::resource::RepositoryJson;
 use crate::security::api_key::ApiKey;
+use crate::sync;
 
 pub fn update_repo(
     conn: &Conn,
@@ -12,24 +12,20 @@ pub fn update_repo(
     user: &String,
     provider: &String,
     repo: &String,
-    sync_url: &String,
-    access_token: &String,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
+    let client = sync::db::find_by_api_key(conn, &api_key.key)
+        .map_err(|_| Error::AuthorizationError("Unauthorized repository update!"))?;
+
     repository::db::find(conn, user, provider, repo)
         .map_err(|_| Error::BadRequest("Repository not found!"))?;
-
-    if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!"));
-    }
 
     let repository = repository::db::update(
         &conn,
         &user,
         &provider,
         &repo,
-        &sync_url,
-        &access_token,
+        client.id,
         commits,
     );
 
@@ -42,13 +38,10 @@ pub fn create_repo(
     user: &String,
     provider: &String,
     repo: &String,
-    sync_url: &String,
-    access_token: &String,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
-    if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!"));
-    }
+    let client = sync::db::find_by_api_key(conn, &api_key.key)
+        .map_err(|_| Error::AuthorizationError("Unauthorized repository update!"))?;
 
     let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
     if !group::db::exists(&conn, &group_name) {
@@ -56,14 +49,14 @@ pub fn create_repo(
     }
     let group = group::db::find(&conn, &group_name).unwrap();
 
+
     let repository = repository::db::create(
         &conn,
         &group.id,
         &user,
         &provider,
         &repo,
-        &sync_url,
-        &access_token,
+        client.id,
         commits,
     )?;
 
