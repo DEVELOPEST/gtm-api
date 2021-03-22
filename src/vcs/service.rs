@@ -1,4 +1,6 @@
+use diesel::PgConnection;
 use futures::future;
+use rand::seq::SliceRandom;
 
 use crate::{github, security};
 use crate::bitbucket;
@@ -13,7 +15,10 @@ use crate::gitlab::service::{GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
 use crate::repository;
 use crate::security::constants::{BITBUCKET_LOGIN_TYPE, GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE};
 use crate::security::model::Login;
-use crate::vcs::resource::VcsRepository;
+use crate::sync;
+use crate::vcs::resource::{TrackedRepository, VcsRepository};
+use crate::group_access;
+use crate::common::git;
 
 pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<Vec<VcsRepository>, Error> {
     let logins = security::db::find_all_logins_by_user(conn, user_id)?;
@@ -62,6 +67,27 @@ async fn fetch_repositories_for_login(login: &Login) -> Result<Vec<VcsRepository
         }
         _ => { Ok(vec![]) }
     }
+}
+
+pub async fn start_tracking_repository(
+    conn: &PgConnection,
+    clone_url: &str,
+    user_id: i32,
+) -> Result<TrackedRepository, Error> {
+    let sync_clients = sync::db::find_all_sync_clients_by_type(conn, sync::TYPE_PUBLIC)?;
+    if let Some(chosen_client) = sync_clients.choose(&mut rand::thread_rng()) {
+        let sync_url = sync::service::track_repository(chosen_client, clone_url).await?;
+        if let Some(repo_credentials) = git::generate_credentials_from_clone_url(clone_url) {
+            group_access::service::create_group_accesses_for_user(
+                conn,
+                vec![repo_credentials],
+                user_id,
+            )?;
+            return Ok(TrackedRepository { sync_url })
+        }
+    };
+
+    Err(Error::Custom("Unable to find public sync client."))
 }
 
 impl From<GithubRepo> for VcsRepository {

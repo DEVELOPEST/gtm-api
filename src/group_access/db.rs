@@ -19,15 +19,14 @@ pub struct NewGroupAccess<> {
 pub fn create(
     conn: &PgConnection,
     new_group_accesses: Vec<NewGroupAccess>,
-) -> usize {
+) -> Result<usize, Error> {
     if new_group_accesses.len() > 0 {
-        return diesel::insert_into(group_accesses::table)
+        return Ok(diesel::insert_into(group_accesses::table)
             .values(new_group_accesses)
             .on_conflict_do_nothing()
-            .execute(conn)
-            .expect("Error creating group access");
+            .execute(conn)?);
     }
-    0
+    Ok(0)
 }
 
 pub fn delete(
