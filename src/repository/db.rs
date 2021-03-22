@@ -5,10 +5,11 @@ use diesel::prelude::*;
 
 use crate::commit;
 use crate::commit::routes::NewCommitData;
-use crate::repository;
-use crate::repository::model::{Repository, RepositoryJson};
-use crate::schema::repositories;
 use crate::errors::Error;
+use crate::repository;
+use crate::repository::model::{Repository};
+use crate::schema::repositories;
+use crate::repository::resource::RepositoryJson;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -17,8 +18,7 @@ struct NewRepository<'a> {
     user: &'a str,
     provider: &'a str,
     repo: &'a str,
-    sync_url: &'a str,
-    access_token: &'a str,
+    sync_client: i32,
 }
 
 pub fn update(
@@ -26,22 +26,26 @@ pub fn update(
     user: &str,
     provider: &str,
     repo: &str,
-    sync_url: &str,
-    access_token: &str,
+    sync_client: i32,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
     let repository = repository::db::find(&conn, &user, &provider, &repo)?;
+
+    if repository.sync_client.is_none() {
+        diesel::update(&repository).set(
+            repositories::sync_client.eq(sync_client)
+        ).execute(conn)?;
+    } else {
+        if repository.sync_client.unwrap() != sync_client {
+            return Err(Error::AuthorizationError("Illegal repository update!"));
+        }
+    }
 
     let commits_vec = commit::db::create_all(
         &conn,
         commits,
         repository.id,
     )?;
-
-    let _ = diesel::update(&repository).set((
-        repositories::sync_url.eq(sync_url),
-        repositories::access_token.eq(access_token)
-    )).execute(conn);
 
     Ok(repository.attach(commits_vec))
 }
@@ -52,8 +56,7 @@ pub fn create(
     user: &str,
     provider: &str,
     repo: &str,
-    sync_url: &str,
-    access_token: &str,
+    sync_client: i32,
     commits: Vec<NewCommitData>,
 ) -> Result<RepositoryJson, Error> {
     let new_repository = &NewRepository {
@@ -61,8 +64,7 @@ pub fn create(
         user,
         provider,
         repo,
-        sync_url,
-        access_token,
+        sync_client
     };
 
     if exists(conn, user, provider, repo) {
