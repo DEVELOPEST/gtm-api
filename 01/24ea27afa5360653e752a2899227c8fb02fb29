@@ -1,9 +1,0 @@
-[ver:1,total:1200,branch:feature/API-54]
-.gtm/Cargo-> Run gtm-api.app:733,1616356800:180,1616410800:276,1616414400:277,r
-src/vcs/service.rs:223,1616410800:122,1616414400:101,m
-src/bitbucket/resource.rs:93,1616410800:12,1616414400:81,m
-.gtm/Cargo-> Build `Run gtm-api`.app:69,1616410800:48,1616414400:21,r
-src/gitlab/resource.rs:40,1616410800:40,r
-src/gitlab/service.rs:20,1616410800:20,m
-src/security/routes.rs:12,1616410800:12,r
-src/security/service.rs:10,1616410800:10,r
