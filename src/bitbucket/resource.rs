@@ -47,14 +47,14 @@ pub struct BitbucketRepo {
     pub description: String,
     pub updated_on: DateTime<Utc>,
     pub size: i32,
-    pub private: bool,
+    pub is_private: bool,
 }
 
 impl common::git::GitRepo for BitbucketRepo {
     fn get_repo_credentials(&self) -> Option<RepoCredentials> {
         if self.scm != "git" { return None; }
         let clone_url = self.links.clone.iter()
-            .find(|&c| c.name == "ssh" || c.name == "https")?;
+            .find(|&c| c.name == "ssh")?;  //  || c.name == "https")?;
         common::git::generate_credentials_from_clone_url(&clone_url.href.clone())
     }
 }

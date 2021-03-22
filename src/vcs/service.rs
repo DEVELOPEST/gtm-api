@@ -10,9 +10,9 @@ use crate::github::resource::GithubRepo;
 use crate::gitlab;
 use crate::gitlab::resource::GitlabRepo;
 use crate::gitlab::service::{GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
+use crate::repository;
 use crate::security::constants::{BITBUCKET_LOGIN_TYPE, GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE};
 use crate::security::model::Login;
-use crate::repository;
 use crate::vcs::resource::VcsRepository;
 
 pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<Vec<VcsRepository>, Error> {
@@ -22,10 +22,11 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<
     let repositories = repo_futures.into_iter()
         .filter_map(|f| f.ok())
         .flatten()
-        .map(|mut r| {
-            let c = r.repo_credentials.clone().unwrap();
-            r.tracked = repository::db::exists(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
-            r
+        .filter_map(|mut r| {
+            if let Some(c) = r.repo_credentials.clone() {
+                r.tracked = repository::db::exists(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
+                Some(r)
+            } else { None }
         })
         .collect();
     Ok(repositories)
@@ -104,14 +105,14 @@ impl From<BitbucketRepo> for VcsRepository {
             description: repo.description.clone(),
             url: repo.links.html.href.clone(),
             ssh_clone_url: repo.links.clone.iter()
-                .find(|&c| c.name == "ssh" || c.name == "https")
+                .find(|&c| c.name == "ssh")  // || c.name == "https")
                 .unwrap().href.clone(),
             repo_credentials: repo.get_repo_credentials(),
             last_activity: repo.updated_on,
             size: repo.size,
             stars: 0,
             tracked: false,
-            private: repo.private
+            private: repo.is_private,
         }
     }
 }
