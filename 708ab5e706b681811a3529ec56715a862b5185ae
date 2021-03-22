@@ -1,0 +1,17 @@
+[ver:1,total:3660,branch:feature/API-54]
+src/vcs/service.rs:1288,1616439600:916,1616443200:372,m
+src/sync/service.rs:656,1616439600:620,1616443200:36,m
+src/vcs/routes.rs:429,1616443200:429,m
+src/group_access/service.rs:240,1616439600:60,1616443200:180,m
+src/sync/db.rs:192,1616439600:192,m
+src/repository/service.rs:150,1616439600:90,1616443200:60,m
+src/vcs/resource.rs:145,1616439600:60,1616443200:85,m
+src/common/git.rs:140,1616439600:120,1616443200:20,m
+src/group_access/db.rs:95,1616443200:95,m
+src/sync/resource.rs:92,1616439600:92,m
+src/sync/mod.rs:78,1616439600:68,1616443200:10,m
+src/group_access/routes.rs:54,1616443200:54,r
+src/repository/routes.rs:49,1616439600:20,1616443200:29,r
+src/sync/model.rs:20,1616439600:20,m
+.gtm/Cargo-> Build `Run gtm-api`.app:20,1616439600:10,1616443200:10,r
+src/gitlab/service.rs:12,1616439600:12,r
