@@ -1,0 +1,17 @@
+[ver:1,total:5340,branch:feature/API-54]
+migrations/2021-03-22-173037_gtm_sync_table/up.sql:1235,1616432400:624,1616436000:611,m
+src/repository/service.rs:867,1616436000:432,1616439600:435,m
+src/repository/db.rs:846,1616436000:624,1616439600:222,m
+src/sync/db.rs:612,1616436000:552,1616439600:60,m
+src/repository/model.rs:404,1616432400:40,1616436000:364,m
+.gtm/Cargo-> Build `Run gtm-api`.app:319,1616432400:20,1616436000:239,1616439600:60,r
+migrations/2021-03-22-173037_gtm_sync_table/down.sql:285,1616432400:36,1616436000:249,m
+src/sync/model.rs:267,1616436000:267,m
+src/bitbucket/resource.rs:180,1616432400:180,r
+src/repository/routes.rs:165,1616436000:102,1616439600:63,m
+src/sync/service.rs:50,1616432400:50,m
+src/lib.rs:40,1616432400:40,m
+src/sync/mod.rs:30,1616432400:30,m
+src/repository/resource.rs:18,1616436000:18,m
+src/repository/mod.rs:12,1616436000:12,m
+src/group/db.rs:10,1616436000:10,r
