@@ -3,7 +3,7 @@ use crate::schema::sync_clients;
 
 #[derive(Queryable, Insertable)]
 #[table_name = "sync_clients"]
-pub struct GtmSync {
+pub struct SyncClient {
     pub id: i32,
     pub base_url: String,
     pub api_key: String,

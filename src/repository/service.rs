@@ -1,5 +1,6 @@
 use crate::{group, repository};
 use crate::commit::routes::NewCommitData;
+use crate::common::git;
 use crate::db::Conn;
 use crate::errors::{Error};
 use crate::repository::resource::RepositoryJson;
@@ -43,7 +44,7 @@ pub fn create_repo(
     let client = sync::db::find_by_api_key(conn, &api_key.key)
         .map_err(|_| Error::AuthorizationError("Unauthorized repository update!"))?;
 
-    let group_name = format!("{}-{}-{}", provider, user.replace("/", "-"), repo);
+    let group_name = git::generate_group_name(provider, user, repo);
     if !group::db::exists(&conn, &group_name) {
         group::db::create(&conn, &group_name)?;
     }
