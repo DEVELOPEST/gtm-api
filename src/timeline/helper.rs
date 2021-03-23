@@ -4,12 +4,17 @@ use crate::timeline::resources::{Activity};
 
 pub trait DateTimeExt<Tz: TimeZone> {
     fn next_month(&self) -> DateTime<Tz>;
+    fn next_year(&self) -> DateTime<Tz>;
 }
 
 impl<Tz: TimeZone> DateTimeExt<Tz> for DateTime<Tz> {
     fn next_month(&self) -> DateTime<Tz> {
         self.with_month(self.month() + 1)
             .unwrap_or(self.with_year(self.year() + 1).unwrap().with_month(1).unwrap())
+    }
+
+    fn next_year(&self) -> DateTime<Tz> {
+        self.with_year(self.year() + 1).unwrap()
     }
 }
 
@@ -42,7 +47,10 @@ fn get_next_interval_start<Tz: TimeZone>(
     if interval == "hour" || interval == "day" || interval == "week" {
         return date_time_tz.clone() + get_interval_duration(interval);
     }
-    date_time_tz.next_month()
+    if interval == "month" {
+        return date_time_tz.next_month();
+    }
+    date_time_tz.next_year()
 }
 
 fn get_interval_duration(interval: &str) -> chrono::Duration {
@@ -86,7 +94,7 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
             for i in 0..31 {
                 res.push(Activity {
                     id: i,
-                    label: format!("{}", i),
+                    label: format!("{}", i + 1),
                     time: 0,
                     lines_added: 0,
                     lines_removed: 0,
@@ -94,6 +102,18 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
                 })
             }
         },
+        "year" => {
+            for i in 0..12 {
+                res.push(Activity {
+                    id: i,
+                    label: format!("{}", i + 1),
+                    time: 0,
+                    lines_added: 0,
+                    lines_removed: 0,
+                    users: vec![]
+                })
+            }
+        }
         _ => {}
     }
     res
