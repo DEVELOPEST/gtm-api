@@ -96,7 +96,7 @@ impl From<GithubRepo> for VcsRepository {
             full_name: repo.full_name.clone(),
             description: repo.description.clone().unwrap_or("".to_string()),
             url: repo.html_url.clone(),
-            ssh_clone_url: repo.ssh_url.clone(),
+            clone_url: repo.ssh_url.clone(),
             repo_credentials: repo.get_repo_credentials(),
             last_activity: repo.updated_at,
             size: repo.size,
@@ -113,7 +113,7 @@ impl From<GitlabRepo> for VcsRepository {
             full_name: repo.name_with_namespace.clone(),
             description: repo.description.clone().unwrap_or("".to_string()),
             url: repo.web_url.clone(),
-            ssh_clone_url: repo.ssh_url_to_repo.clone(),
+            clone_url: repo.ssh_url_to_repo.clone(),
             repo_credentials: repo.get_repo_credentials(),
             last_activity: repo.last_activity_at,
             size: repo.statistics.repository_size,
@@ -130,7 +130,7 @@ impl From<BitbucketRepo> for VcsRepository {
             full_name: repo.full_name.clone(),
             description: repo.description.clone(),
             url: repo.links.html.href.clone(),
-            ssh_clone_url: repo.links.clone.iter()
+            clone_url: repo.links.clone.iter()
                 .find(|&c| c.name == "ssh")  // || c.name == "https")
                 .unwrap().href.clone(),
             repo_credentials: repo.get_repo_credentials(),

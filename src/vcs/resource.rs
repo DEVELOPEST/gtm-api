@@ -7,7 +7,7 @@ pub struct VcsRepository {
     pub full_name: String,
     pub description: String,
     pub url: String,
-    pub ssh_clone_url: String,
+    pub clone_url: String,
     pub repo_credentials: Option<RepoCredentials>,
     pub last_activity: DateTime<Utc>,
     pub size: i32,

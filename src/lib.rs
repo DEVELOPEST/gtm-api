@@ -107,6 +107,7 @@ pub fn rocket() -> rocket::Rocket {
                 group_access::routes::delete_group_accesses,
                 group_access::routes::toggle_recursive_access,
                 vcs::routes::get_accessible_repositories,
+                vcs::routes::post_start_tracking_repository,
             ],
         )
         .attach(db::Conn::fairing())
