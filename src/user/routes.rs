@@ -10,13 +10,13 @@ use crate::role;
 #[get("/user")]
 pub fn get_user_id(user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
     user::db::find(&conn, user.user_id)
-        .map(|user| json!({ "user": user.id }))
+        .map(|user| json!({ "userId": user.id }))
 }
 
 #[get("/users")]
 pub fn get_users(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
     auth_user.require_role(&ADMIN)?;
-    Ok(json!({ "users": user::service::find_all(&conn)}))
+    Ok(json!(user::service::find_all(&conn)))
 }
 
 #[get("/users/<id>")]
@@ -28,5 +28,5 @@ pub fn get_user(auth_user: AuthUser, id: i32, conn: Conn) -> Result<JsonValue, E
             .into_iter()
             .map(|x| x.name)
             .collect());
-    Ok(json!({"user": user}))
+    Ok(json!(user))
 }

@@ -39,7 +39,7 @@ pub fn get_groups(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
         group::service::get_groups_with_access(&conn, auth_user.user_id)?
             .into_iter().map(|x| x.attach()).collect()
     };
-    Ok(json!({"groups": groups}))
+    Ok(json!(groups))
 }
 
 #[get("/groups/accessible/user/<user_id>")]
@@ -54,7 +54,7 @@ pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> 
             )
         })
         .collect();
-    Ok(json!({"groups": groups}))
+    Ok(json!(groups))
 }
 
 #[get("/groups/not-accessible/user/<user_id>")]
@@ -62,7 +62,7 @@ pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) 
     auth_user.require_role(&ADMIN)?;
     let groups: Vec<GroupJson> = group::service::get_groups_without_access(&conn, user_id)?
         .into_iter().map(|x| x.attach()).collect();
-    Ok(json!({"groups": groups}))
+    Ok(json!(groups))
 }
 
 #[get("/groups/<group_name>/stats?<params..>")]
