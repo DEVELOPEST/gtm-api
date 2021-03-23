@@ -164,7 +164,7 @@ impl FieldValidator {
         }
 
         let interval = &*interval.to_lowercase();
-        if !(interval == "hour" || interval == "day" || interval == "week" || interval == "month")  {
+        if !(interval == "hour" || interval == "day" || interval == "week" || interval == "month" || interval == "year")  {
             self.errors
                 .add("interval", ValidationError::new("Invalid interval!"));
         }
