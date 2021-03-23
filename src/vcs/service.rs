@@ -24,7 +24,7 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<
     let logins = security::db::find_all_logins_by_user(conn, user_id)?;
     let repo_futures = future::join_all(logins.iter()
         .map(|login| fetch_repositories_for_login(login))).await;
-    let repositories = repo_futures.into_iter()
+    let mut repositories: Vec<VcsRepository> = repo_futures.into_iter()
         .filter_map(|f| f.ok())
         .flatten()
         .filter_map(|mut r| {
@@ -34,6 +34,8 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<
             } else { None }
         })
         .collect();
+    repositories.sort_by_key(|a| (a.stars, a.size));
+    repositories.reverse();
     Ok(repositories)
 }
 
