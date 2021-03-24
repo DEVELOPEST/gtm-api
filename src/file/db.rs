@@ -1,12 +1,13 @@
 use diesel;
-use diesel::{Insertable, sql_query, sql_types, RunQueryDsl, PgConnection};
+use diesel::{Insertable, PgConnection, RunQueryDsl, sql_query, sql_types};
+
+use crate::common::sql;
+use crate::errors::{Error, FieldValidator};
+use crate::file::model::{File, FileJson};
 use crate::file::routes::NewFileData;
-use crate::file::model::{FileJson, File};
-use crate::errors::FieldValidator;
-use crate::timeline::dwh::{PathlessFileEditDWH, FileEditDWH};
 use crate::schema::files;
 use crate::timeline;
-use crate::common::sql;
+use crate::timeline::dwh::{FileEditDWH, PathlessFileEditDWH};
 
 #[derive(Insertable)]
 #[table_name = "files"]
@@ -22,8 +23,8 @@ struct NewFile<'a> {
 pub fn create_all(
     conn: &PgConnection,
     files: Vec<NewFileData>,
-    commit: i32
-) -> Vec<FileJson> {
+    commit: i32,
+) -> Result<Vec<FileJson>, Error> {
     let mut vec = Vec::new();
     for var in files {
         let mut extractor = FieldValidator::validate(&var);
@@ -44,21 +45,22 @@ pub fn create_all(
 
         let file = diesel::insert_into(files::table)
             .values(new_file)
-            .get_result::<File>(conn)
-            .expect("Error creating file");
+            .get_result::<File>(conn)?;
 
         let timeline_vec = timeline::db::create_all(
             &conn,
             var.timeline,
-            file.id
-        );
+            file.id,
+        )?.into_iter()
+            .map(|f| f.attach())
+            .collect();
 
         vec.push(file.attach(timeline_vec))
     }
-    vec
+    Ok(vec)
 }
 
-pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<PathlessFileEditDWH> {
+pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Result<Vec<PathlessFileEditDWH>, Error> {
     let edit_timeline: Vec<PathlessFileEditDWH> = sql_query(format!("
     {}
     SELECT coalesce(users.username, commits.email) AS user,
@@ -84,12 +86,12 @@ pub fn fetch_pathless_file_edits(conn: &PgConnection, group_name: &str, start: i
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
-        .load(conn)
-        .expect("Error loading timeline for group");
-    edit_timeline
+        .load(conn)?;
+
+    Ok(edit_timeline)
 }
 
-pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Vec<FileEditDWH> {
+pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Result<Vec<FileEditDWH>, Error> {
     let edit_timeline: Vec<FileEditDWH> = sql_query(format!("
     {}
     SELECT
@@ -118,7 +120,6 @@ pub fn fetch_file_edits(conn: &PgConnection, group_name: &str, start: i64, end: 
         .bind::<sql_types::Text, _>(group_name)
         .bind::<sql_types::BigInt, _>(start)
         .bind::<sql_types::BigInt, _>(end)
-        .load(conn)
-        .expect("Error loading timeline for group");
-    edit_timeline
+        .load(conn)?;
+    Ok(edit_timeline)
 }

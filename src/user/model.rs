@@ -1,8 +1,7 @@
 use diesel::Queryable;
-use rocket::http::Status;
 use serde::Serialize;
 
-use crate::errors::Errors;
+use crate::errors::{Error};
 
 #[derive(Queryable, Serialize)]
 pub struct User {
@@ -19,11 +18,9 @@ pub struct AuthUser {
 }
 
 impl AuthUser {
-    pub fn has_role(&self, role: &String) -> Result<(), Errors> {
+    pub fn require_role(&self, role: &String) -> Result<(), Error> {
         if !self.roles.contains(role) {
-            return Err(Errors::new(&[("Authorization", "Unauthorized!")],
-                                   Option::from(Status::Unauthorized))
-            );
+            return Err(Error::AuthorizationError("Unauthorized!"));
         }
         Ok(())
     }

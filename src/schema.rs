@@ -80,9 +80,8 @@ table! {
         user -> Text,
         provider -> Text,
         repo -> Text,
-        sync_url -> Text,
-        access_token -> Text,
         added_at -> Timestamptz,
+        sync_client -> Nullable<Int4>,
     }
 }
 
@@ -90,6 +89,22 @@ table! {
     roles (id) {
         id -> Int4,
         name -> Text,
+    }
+}
+
+table! {
+    sync_client_type (id) {
+        id -> Int4,
+        name -> Text,
+    }
+}
+
+table! {
+    sync_clients (id) {
+        id -> Int4,
+        base_url -> Text,
+        api_key -> Text,
+        sync_client_type -> Int4,
     }
 }
 
@@ -133,6 +148,8 @@ joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
 joinable!(logins -> login_types (login_type));
 joinable!(logins -> users (user));
+joinable!(repositories -> sync_clients (sync_client));
+joinable!(sync_clients -> sync_client_type (sync_client_type));
 joinable!(timeline -> files (file));
 joinable!(tokens -> users (user));
 joinable!(user_role_members -> roles (role));
@@ -149,6 +166,8 @@ allow_tables_to_appear_in_same_query!(
     logins,
     repositories,
     roles,
+    sync_client_type,
+    sync_clients,
     timeline,
     tokens,
     user_role_members,

@@ -15,7 +15,7 @@ pub async fn fetch_emails_from_gitlab(token: &str, domain: &str) -> Result<Vec<G
 }
 
 pub async fn fetch_repos_from_gitlab(token: &str, domain: &str) -> Result<Vec<GitlabRepo>, reqwest::Error> {
-    create_get_request(domain, "/projects?membership=true&min_access_level=30", token).send().await?
+    create_get_request(domain, "/projects?membership=true&min_access_level=30&statistics=true", token).send().await?
         .json::<Vec<GitlabRepo>>().await
 }
 

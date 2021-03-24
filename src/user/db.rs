@@ -1,15 +1,16 @@
 use std::fmt::{Display, Formatter};
+use std::fmt;
 
 use diesel::Insertable;
 use diesel::prelude::*;
-use diesel::result::{DatabaseErrorKind, Error};
+use diesel::result::DatabaseErrorKind;
 
+use crate::errors::Error;
 use crate::schema::roles;
 use crate::schema::user_role_members;
 use crate::schema::users;
 use crate::user::dwh::UserDWH;
 use crate::user::model::User;
-use std::fmt;
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -22,9 +23,9 @@ pub enum UserCreationError {
     DuplicatedUsername,
 }
 
-impl From<Error> for UserCreationError {
-    fn from(err: Error) -> UserCreationError {
-        if let Error::DatabaseError(DatabaseErrorKind::UniqueViolation, info) = &err {
+impl From<diesel::result::Error> for UserCreationError {
+    fn from(err: diesel::result::Error) -> UserCreationError {
+        if let diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, info) = &err {
             match info.constraint_name() {
                 Some("users_username_key") => return UserCreationError::DuplicatedUsername,
                 _ => {}
@@ -71,12 +72,11 @@ pub fn update_password(
         .ok()
 }
 
-pub fn find(conn: &PgConnection, id: i32) -> Option<User> {
+pub fn find(conn: &PgConnection, id: i32) -> Result<User, Error> {
     users::table
         .find(id)
         .get_result(conn)
-        .map_err(|err| println!("find_user: {}", err))
-        .ok()
+        .map_err(Error::DatabaseError)
 }
 
 pub fn find_by_username(conn: &PgConnection, username: &str) -> Option<User> {
