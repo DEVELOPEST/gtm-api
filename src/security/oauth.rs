@@ -10,7 +10,8 @@ use crate::gitlab::resource::GitlabUser;
 use crate::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab, GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
 use crate::microsoft::resource::MicrosoftUser;
 use crate::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
-use crate::bitbucket::services::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
+use crate::bitbucket::service::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
+use crate::security::constants::{GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE, MICROSOFT_LOGIN_TYPE, BITBUCKET_LOGIN_TYPE};
 
 #[async_trait]
 pub trait LoginType {
@@ -32,7 +33,7 @@ pub struct Bitbucket;
 #[async_trait]
 impl LoginType for TokenResponse<GitHub> {
     fn get_login_type(&self) -> i32 {
-        return 1;
+        return GITHUB_LOGIN_TYPE;
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
@@ -65,7 +66,7 @@ impl LoginType for TokenResponse<GitHub> {
 #[async_trait]
 impl LoginType for TokenResponse<GitLab> {
     fn get_login_type(&self) -> i32 {
-        return 2;
+        return GITLAB_LOGIN_TYPE;
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
@@ -95,7 +96,7 @@ impl LoginType for TokenResponse<GitLab> {
 #[async_trait]
 impl LoginType for TokenResponse<GitLabTalTech> {
     fn get_login_type(&self) -> i32 {
-        return 4;
+        return TALTECH_LOGIN_TYPE;
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
@@ -125,7 +126,7 @@ impl LoginType for TokenResponse<GitLabTalTech> {
 #[async_trait]
 impl LoginType for TokenResponse<Microsoft> {
     fn get_login_type(&self) -> i32 {
-        return 3;
+        return MICROSOFT_LOGIN_TYPE;
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {
@@ -152,7 +153,7 @@ impl LoginType for TokenResponse<Microsoft> {
 #[async_trait]
 impl LoginType for TokenResponse<Bitbucket> {
     fn get_login_type(&self) -> i32 {
-        return 5;
+        return BITBUCKET_LOGIN_TYPE;
     }
 
     async fn fetch_identity_hash(&self) -> Result<String, reqwest::Error> {

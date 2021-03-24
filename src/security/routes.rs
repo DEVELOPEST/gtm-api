@@ -6,13 +6,14 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::db::Conn;
-use crate::errors::{Errors, FieldValidator};
+use crate::errors::{ValidationErrors, FieldValidator, Error};
 use crate::security;
 use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech, Bitbucket};
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
 use crate::user::model::AuthUser;
+use crate::errors::Error::Custom;
 
 #[derive(Deserialize, Validate)]
 pub struct LoginDto {
@@ -23,7 +24,7 @@ pub struct LoginDto {
 }
 
 #[post("/auth/login", format = "json", data = "<login_data>")]
-pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors> {
+pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Error> {
     let login_data = login_data.into_inner();
     let mut extractor = FieldValidator::validate(&login_data);
     let username = extractor.extract("username", login_data.username);
@@ -38,9 +39,9 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Errors
 pub fn get_user_logins(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
 
-    let logins = security::db::find_all_logins_by_user(&conn, auth_user.user_id);
+    let logins = security::db::find_all_login_names_by_user(&conn, auth_user.user_id);
     Ok(json!(logins))
 }
 
@@ -49,7 +50,7 @@ pub fn delete_user_login(
     auth_user: AuthUser,
     conn: Conn,
     login_type: Json<Type>,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
 
     let login_type = login_type.into_inner();
 
@@ -66,7 +67,7 @@ pub fn delete_user_login(
 pub fn delete_account(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
     security::db::delete_account(&conn, auth_user.user_id)
         .map_err(|err| error!("Error deleting account: {}", err))
         .unwrap();
@@ -77,15 +78,9 @@ pub fn delete_account(
 pub fn has_password(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
     let has_password = security::db::exists_password(&conn, auth_user.user_id);
-    println!("{}", has_password);
     Ok(json!(has_password))
-}
-
-#[derive(Deserialize)]
-pub struct NewUser {
-    user: NewUserData,
 }
 
 #[derive(Deserialize, Validate)]
@@ -94,7 +89,7 @@ pub struct Type {
 }
 
 #[derive(Deserialize, Validate)]
-struct NewUserData {
+pub struct NewUserData {
     #[validate(length(min = 1))]
     username: Option<String>,
     #[validate(length(min = 8))]
@@ -103,12 +98,11 @@ struct NewUserData {
 
 #[post("/auth/register", format = "json", data = "<new_user>")]
 pub fn register(
-    new_user: Json<NewUser>,
+    new_user: Json<NewUserData>,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, Error> {
 
-    let new_user = new_user.into_inner().user;
-
+    let new_user = new_user.0;
     let mut extractor = FieldValidator::validate(&new_user);
     let username = extractor.extract("username", new_user.username);
     let password = extractor.extract("password", new_user.password);
@@ -120,20 +114,23 @@ pub fn register(
             let field = match error {
                 UserCreationError::DuplicatedUsername => "username",
             };
-            Errors::new(&[(field, "has already been taken")], Option::from(Status::Conflict))
-        });
+            Error::ValidationError(
+                ValidationErrors::new(&[(field, "has already been taken")],
+                                      Option::from(Status::Conflict))
+            )
+        })?;
 
-    Ok(json!(security::jwt::generate_token_for_user(&conn, created_user?)))
+    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, created_user)}))
 }
 
 #[get("/auth/token", format = "json")]
 pub fn renew_token(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, Errors> {
+) -> Result<JsonValue, ValidationErrors> {
 
     let user = user::db::find(&conn, auth_user.user_id).unwrap();
-    Ok(json!(security::jwt::generate_token_for_user(&conn, user)))
+    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
 }
 
 #[derive(Deserialize, Validate)]
@@ -149,7 +146,7 @@ pub fn change_password(
     auth_user: AuthUser,
     change_password: Json<PasswordChange>,
     conn: Conn,
-) -> Result<(), Errors> {
+) -> Result<(), Error> {
     let change_password = change_password.into_inner();
     let mut extractor = FieldValidator::validate(&change_password);
     let old_password = extractor.extract("old_password", change_password.old_password);
@@ -170,7 +167,7 @@ pub fn create_password(
     auth_user: AuthUser,
     create_password: Json<PasswordCreate>,
     conn: Conn,
-) -> Result<(), Errors> {
+) -> Result<(), Error> {
     let create_password = create_password.into_inner();
     let mut extractor = FieldValidator::validate(&create_password);
     let new_password = extractor.extract("new_password", create_password.new_password);
@@ -244,8 +241,11 @@ fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) 
 
     let jwt = rt.block_on(security::service::oauth_login(&conn, &token));
     let jwt_token = match jwt {
-        None => rt.block_on(security::service::login_and_register(&conn, token)),
-        Some(token) => token
+        Err(err) => match err {
+            Custom(_) => { rt.block_on(security::service::login_and_register(&conn, token)).unwrap() }
+            _ => { Err(Error::Custom("Something went wrong!")).unwrap() }
+        }
+        Ok(token) => token
     };
     Redirect::to( format!("{}?token={}", security::config::LOGIN_REDIRECT.read().unwrap().clone(), jwt_token))
 }
