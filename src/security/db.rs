@@ -1,11 +1,11 @@
-use diesel::{BoolExpressionMethods, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, JoinOnDsl};
-
-use crate::schema::{logins, users, login_types};
-use crate::security::model::Login;
-use crate::user::model::User;
+use diesel::{BoolExpressionMethods, ExpressionMethods, JoinOnDsl, PgConnection, QueryDsl, RunQueryDsl};
 use diesel::result::Error;
+
+use crate::schema::{login_types, logins, users};
+use crate::security::model::Login;
 use crate::security::model::LoginType;
 use crate::user;
+use crate::user::model::User;
 
 pub fn exists_oauth_login(conn: &PgConnection, user_id: i32, login_type: i32) -> bool {
     use diesel::dsl::exists;
@@ -87,7 +87,7 @@ pub fn find_user_for_oath_login(
         .ok()
 }
 
-pub fn find_all_logins_by_user(
+pub fn find_all_login_names_by_user(
     conn: &PgConnection,
     user_id: i32,
 ) -> Vec<String> {
@@ -100,12 +100,22 @@ pub fn find_all_logins_by_user(
         .expect("Cannot load logins")
 }
 
+pub fn find_all_logins_by_user(
+    conn: &PgConnection,
+    user_id: i32,
+) -> Result<Vec<Login>, Error> {
+    Ok(logins::table
+        .inner_join(users::table.on(logins::user.eq(users::id)))
+        .filter(users::id.eq(user_id))
+        .select(logins::all_columns)
+        .load::<Login>(conn)?)
+}
+
 pub fn delete_login_by_user_and_type(
     conn: &PgConnection,
     user_id: i32,
     login_type_string: &str,
 ) -> Result<usize, Error> {
-
     let login_type: Option<LoginType> = login_types::table
         .filter(login_types::name.eq(login_type_string))
         .select((login_types::id, login_types::name))

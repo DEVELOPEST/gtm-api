@@ -41,7 +41,7 @@ pub fn get_user_logins(
     conn: Conn,
 ) -> Result<JsonValue, ValidationErrors> {
 
-    let logins = security::db::find_all_logins_by_user(&conn, auth_user.user_id);
+    let logins = security::db::find_all_login_names_by_user(&conn, auth_user.user_id);
     Ok(json!(logins))
 }
 
@@ -80,13 +80,7 @@ pub fn has_password(
     conn: Conn,
 ) -> Result<JsonValue, ValidationErrors> {
     let has_password = security::db::exists_password(&conn, auth_user.user_id);
-    println!("{}", has_password);
     Ok(json!(has_password))
-}
-
-#[derive(Deserialize)]
-pub struct NewUser {
-    user: NewUserData,
 }
 
 #[derive(Deserialize, Validate)]
@@ -95,7 +89,7 @@ pub struct Type {
 }
 
 #[derive(Deserialize, Validate)]
-struct NewUserData {
+pub struct NewUserData {
     #[validate(length(min = 1))]
     username: Option<String>,
     #[validate(length(min = 8))]
@@ -104,12 +98,11 @@ struct NewUserData {
 
 #[post("/auth/register", format = "json", data = "<new_user>")]
 pub fn register(
-    new_user: Json<NewUser>,
+    new_user: Json<NewUserData>,
     conn: Conn,
 ) -> Result<JsonValue, Error> {
 
-    let new_user = new_user.into_inner().user;
-
+    let new_user = new_user.0;
     let mut extractor = FieldValidator::validate(&new_user);
     let username = extractor.extract("username", new_user.username);
     let password = extractor.extract("password", new_user.password);
@@ -127,7 +120,7 @@ pub fn register(
             )
         })?;
 
-    Ok(json!(security::jwt::generate_token_for_user(&conn, created_user)))
+    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, created_user)}))
 }
 
 #[get("/auth/token", format = "json")]
@@ -137,7 +130,7 @@ pub fn renew_token(
 ) -> Result<JsonValue, ValidationErrors> {
 
     let user = user::db::find(&conn, auth_user.user_id).unwrap();
-    Ok(json!(security::jwt::generate_token_for_user(&conn, user)))
+    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
 }
 
 #[derive(Deserialize, Validate)]

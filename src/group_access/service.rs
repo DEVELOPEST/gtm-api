@@ -1,6 +1,7 @@
 use rocket_contrib::json::JsonValue;
 
 use crate::common::git::RepoCredentials;
+use crate::common::git;
 use crate::db::Conn;
 use crate::errors::{FieldValidator, Error};
 use crate::group;
@@ -32,7 +33,7 @@ pub fn add_group_accesses(
                 access_level_recursive,
             })
         }).collect();
-    group_access::db::create(&conn, new_group_accesses);
+    group_access::db::create(&conn, new_group_accesses)?;
     extractor.check()?;
     Ok(json!({}))
 }
@@ -47,7 +48,7 @@ pub fn create_group_accesses_for_user(
         .filter_map(|r| Some(NewGroupAccess {
             user: Option::from(user_id),
             group: Option::from(groups.iter()
-                .find(|&g| g.name == format!("{}-{}-{}", r.provider, r.user, r.repo))?.id),
+                .find(|&g| g.name == git::generate_group_name(&r.provider, &r.user, &r.repo))?.id),
             access_level_recursive: Option::from(false),
         }))
         .collect();
