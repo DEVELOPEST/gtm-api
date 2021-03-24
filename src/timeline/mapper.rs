@@ -56,7 +56,8 @@ pub fn map_activity(
             a.id == match interval {
                 "day" => time_point.hour() as i32,
                 "week" => time_point.weekday().number_from_monday() as i32,
-                "month" => time_point.month0() as i32,
+                "month" => time_point.day0() as i32,
+                "year" => time_point.month0() as i32,
                 _ => 0,
             }
         }).unwrap();
