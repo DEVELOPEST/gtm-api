@@ -52,7 +52,7 @@ pub fn get_timeline(
     validator.check()?;
 
     let timeline = timeline::service::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
-    Ok(json!({ "timeline": timeline }))
+    Ok(json!(timeline))
 }
 
 #[get("/<group_name>/activity?<params..>")]
@@ -75,7 +75,7 @@ pub fn get_activity_timeline(
     validator.check()?;
 
     let timeline = timeline::service::get_activity_timeline(&conn, &group_name, start, end, &timezone, &interval)?;
-    Ok(json!({ "activityTimeline": timeline }))
+    Ok(json!(timeline))
 }
 
 #[get("/<group_name>/subdirs-timeline?<params..>")]

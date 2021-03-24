@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 use crate::common;
 use crate::common::git::RepoCredentials;
+use chrono::{DateTime, Utc};
 
 #[derive(Deserialize)]
 pub struct GitlabUser {
@@ -15,8 +16,21 @@ pub struct GitlabEmail {
 }
 
 #[derive(Deserialize)]
+pub struct GitlabStatistics {
+    pub commit_count: i32,
+    pub repository_size: i32,
+}
+
+#[derive(Deserialize)]
 pub struct GitlabRepo {
-    pub ssh_url_to_repo: String
+    pub name_with_namespace: String,
+    pub description: Option<String>,
+    pub web_url: String,
+    pub ssh_url_to_repo: String,
+    pub last_activity_at: DateTime<Utc>,
+    pub star_count: i32,
+    pub visibility: String,
+    pub statistics: GitlabStatistics,
 }
 
 impl common::git::GitRepo for GitlabRepo {
