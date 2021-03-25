@@ -1,0 +1,5 @@
+[ver:1,total:420,branch:master]
+.gtm/Cargo-> Run gtm-api.app:182,1616677200:182,r
+src/gitlab/service.rs:180,1616677200:180,m
+src/security/routes.rs:39,1616677200:39,m
+.gtm/Cargo-> Build `Run gtm-api`.app:19,1616677200:19,r
