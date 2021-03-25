@@ -1,5 +1,0 @@
-[ver:1,total:780,branch:master]
-src/group/service.rs:310,1616680800:310,m
-.gtm/Cargo-> Build `Run gtm-api`.app:200,1616680800:200,r
-src/group/routes.rs:180,1616680800:180,r
-src/group/db.rs:90,1616680800:90,r
