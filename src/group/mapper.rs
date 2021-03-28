@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-use crate::group::resource::{GroupFileStatsJson, GroupUserStatsJson};
-use crate::group::dwh::{GroupFileStats, GroupFileStatsWrapper, GroupUserStats};
+use crate::group::resource::{GroupFileStatsJson, GroupUserStatsJson, GroupExportDataJson};
+use crate::group::dwh::{GroupFileStats, GroupFileStatsWrapper, GroupUserStats, GroupExportData};
 use crate::timeline::mapper::cut_path;
 
 pub fn map_group_file_stats(data: &Vec<GroupFileStats>, depth: i32) -> Vec<GroupFileStatsJson> {
@@ -74,4 +74,37 @@ pub fn map_group_user_stats(data: &Vec<GroupUserStats>) -> Vec<GroupUserStatsJso
             }
         })
         .collect()
+}
+
+pub fn map_group_export_data(data: &Vec<GroupExportData>, depth: i32) -> Vec<GroupExportDataJson> {
+    let mut result: HashMap<String, GroupExportDataJson> = Default::default();
+    for file in data {
+        let path = cut_path(&file.path, depth);
+        let entry = result.get_mut(&format!("{}-{}-{}-{}-{}",
+                                            &path, file.user, file.provider, file.repository, file.timestamp));
+        if entry.is_some() {
+            let entry = entry.unwrap();
+            entry.total_time += file.total_time;
+            entry.lines_added += file.lines_added;
+            entry.lines_removed += file.lines_removed;
+            entry.files_count += 1;
+        } else {
+            result.insert(
+                format!("{}-{}-{}-{}-{}", &path, file.user, file.provider, file.repository, file.timestamp),
+                GroupExportDataJson {
+                    user: file.user.clone(),
+                    provider: file.provider.clone(),
+                    repository: file.repository.clone(),
+                    path,
+                    is_app: file.path.ends_with(".app"),
+                    files_count: 1,
+                    timestamp: file.timestamp,
+                    message: file.message.clone(),
+                    total_time: file.total_time,
+                    lines_added: file.lines_added,
+                    lines_removed: file.lines_removed
+                });
+        }
+    }
+    result.into_iter().map(|(_, v)| v).collect()
 }
