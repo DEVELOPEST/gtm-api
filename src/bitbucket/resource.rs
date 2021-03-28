@@ -46,7 +46,7 @@ pub struct BitbucketRepo {
     pub mainbranch: BitbucketBranch,
     pub description: String,
     pub updated_on: DateTime<Utc>,
-    pub size: i32,
+    pub size: i64,
     pub is_private: bool,
 }
 

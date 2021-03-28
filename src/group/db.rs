@@ -63,7 +63,7 @@ pub fn fetch_group_user_stats(
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
-            coalesce(count(commits.id)::bigint, 0)        AS commits
+            coalesce(count(commits.hash)::bigint, 0)      AS commits
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -71,7 +71,7 @@ pub fn fetch_group_user_stats(
             LEFT JOIN emails ON commits.email = emails.email
             LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
-            SELECT group_repos_query.child
+            SELECT DISTINCT group_repos_query.child
             FROM group_repos_query
             UNION
             (
@@ -97,7 +97,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
             coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
-            coalesce(count(commits.id)::bigint, 0)        AS commits,
+            coalesce(count(commits.hash)::bigint, 0)      AS commits,
             coalesce(users.username, commits.email)       AS user
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
@@ -106,7 +106,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             LEFT JOIN emails ON commits.email = emails.email
             LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
-            SELECT group_repos_query.child
+            SELECT DISTINCT group_repos_query.child
             FROM group_repos_query
             UNION
             (
@@ -142,7 +142,7 @@ pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Result<Vec<Gr
                                            ON      m.parent = group_repos_query.child
                        WHERE   group_repos_query.depth < 100)
     SELECT * FROM groups
-    WHERE groups.id in (SELECT group_repos_query.child
+    WHERE groups.id in (SELECT DISTINCT group_repos_query.child
                     FROM group_repos_query
                     UNION
                     (SELECT $1) )"))
