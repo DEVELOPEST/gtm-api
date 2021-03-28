@@ -83,6 +83,24 @@ pub fn get_group_stats(
     Ok(json!(stats))
 }
 
+#[get("/groups/<group_name>/export?<params..>")]
+pub fn get_group_export(
+    auth_user: AuthUser,
+    conn: Conn,
+    group_name: String,
+    params: Form<GroupStatsParams>,
+) -> Result<JsonValue, Error> {
+    if auth_user.require_role(&ADMIN).is_err() {
+        security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+    }
+    let period = params.into_inner();
+    let start = period.start.unwrap_or(0);
+    let end = period.end.unwrap_or(std::i64::MAX);
+    let depth = period.depth.unwrap_or(1);
+    let data = service::export_group_data(&conn, &group_name, start, end, depth)?;
+    Ok(json!(data))
+}
+
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
 pub fn post_group_parents(
     //auth: Auth,

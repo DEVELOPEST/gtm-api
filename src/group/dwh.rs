@@ -31,6 +31,30 @@ pub struct GroupFileStats {
     pub user: String,
 }
 
+#[derive(QueryableByName, Debug)]
+pub struct GroupExportData {
+    #[sql_type = "Text"]
+    pub user_name: String,
+    #[sql_type = "Text"]
+    pub user: String,
+    #[sql_type = "Text"]
+    pub provider: String,
+    #[sql_type = "Text"]
+    pub repository: String,
+    #[sql_type = "Text"]
+    pub path: String,
+    #[sql_type = "BigInt"]
+    pub timestamp: i64,
+    #[sql_type = "Text"]
+    pub message: String,
+    #[sql_type = "BigInt"]
+    pub total_time: i64,
+    #[sql_type = "BigInt"]
+    pub lines_added: i64,
+    #[sql_type = "BigInt"]
+    pub lines_removed: i64,
+}
+
 #[derive(Debug, Clone)]
 pub struct GroupFileStatsWrapper {
     pub path: String,

@@ -10,7 +10,7 @@ pub struct VcsRepository {
     pub clone_url: String,
     pub repo_credentials: Option<RepoCredentials>,
     pub last_activity: DateTime<Utc>,
-    pub size: i32,
+    pub size: i64,
     pub stars: i32,
     pub tracked: bool,
     pub private: bool,

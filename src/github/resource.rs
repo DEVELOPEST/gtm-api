@@ -25,7 +25,7 @@ pub struct GithubRepo {
     pub html_url: String,
     pub updated_at: DateTime<Utc>,
     pub ssh_url: String,
-    pub size: i32,
+    pub size: i64,
     pub stargazers_count: i32,
 }
 
