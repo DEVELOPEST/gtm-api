@@ -1,7 +1,7 @@
 use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
 use crate::errors::{Error};
-use crate::group::resource::GroupStatsJson;
+use crate::group::resource::{GroupStatsJson, GroupExportDataJson};
 use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
 use crate::group_access::model::GroupAccess;
@@ -39,6 +39,11 @@ pub fn get_group_stats(
         users: map_group_user_stats(&user_stats),
         files: map_group_file_stats(&file_stats, depth),
     })
+}
+
+pub fn export_group_data(conn: &Conn, group_name: &str, start: i64, end: i64, depth: i32) -> Result<Vec<GroupExportDataJson>, Error> {
+    let data = group::db::fetch_group_export_data(conn, group_name, start, end)?;
+    Ok(group::mapper::map_group_export_data(data, depth))
 }
 
 pub fn get_groups_without_access(conn: &Conn, user_id: i32) -> Result<Vec<Group>, Error> {

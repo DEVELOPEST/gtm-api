@@ -76,7 +76,7 @@ pub fn map_group_user_stats(data: &Vec<GroupUserStats>) -> Vec<GroupUserStatsJso
         .collect()
 }
 
-pub fn map_group_export_data(data: &Vec<GroupExportData>, depth: i32) -> Vec<GroupExportDataJson> {
+pub fn map_group_export_data(data: Vec<GroupExportData>, depth: i32) -> Vec<GroupExportDataJson> {
     let mut result: HashMap<String, GroupExportDataJson> = Default::default();
     for file in data {
         let path = cut_path(&file.path, depth);
@@ -92,14 +92,15 @@ pub fn map_group_export_data(data: &Vec<GroupExportData>, depth: i32) -> Vec<Gro
             result.insert(
                 format!("{}-{}-{}-{}-{}", &path, file.user, file.provider, file.repository, file.timestamp),
                 GroupExportDataJson {
-                    user: file.user.clone(),
-                    provider: file.provider.clone(),
-                    repository: file.repository.clone(),
-                    path,
+                    user_name: file.user_name.replace("\n", ""),
+                    user: file.user.replace("\n", ""),
+                    provider: file.provider.replace("\n", ""),
+                    repository: file.repository.replace("\n", ""),
+                    path: path.replace("\n", ""),
                     is_app: file.path.ends_with(".app"),
                     files_count: 1,
                     timestamp: file.timestamp,
-                    message: file.message.clone(),
+                    message: file.message.replace("\n", ""),
                     total_time: file.total_time,
                     lines_added: file.lines_added,
                     lines_removed: file.lines_removed

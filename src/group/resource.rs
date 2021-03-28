@@ -28,6 +28,7 @@ pub struct GroupFileStatsJson {
 
 #[derive(Debug, Serialize)]
 pub struct GroupExportDataJson {
+    pub user_name: String,
     pub user: String,
     pub provider: String,
     pub repository: String,

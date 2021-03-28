@@ -129,15 +129,16 @@ pub fn fetch_group_export_data(conn: &PgConnection, group_name: &str, start: i64
     let stats: Vec<GroupExportData> = sql_query(format!("
         {}
         SELECT
-            coalesce(users.username, commits.email)       AS user
-            repositories.provider                         AS provider
-            repositories.repo                             AS repository
+            coalesce(users.username, commits.email)       AS user_name,
+            repositories.user                             AS user,
+            repositories.provider                         AS provider,
+            repositories.repo                             AS repository,
             files.path                                    AS path,
-            commits.timestamp                             AS timestamp
-            commits.message                               AS message
+            commits.timestamp                             AS timestamp,
+            commits.message                               AS message,
             coalesce(sum(files.time)::bigint, 0)          AS total_time,
             coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
-            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
+            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -160,6 +161,7 @@ pub fn fetch_group_export_data(conn: &PgConnection, group_name: &str, start: i64
             coalesce(users.username, commits.email),
             repositories.provider,
             repositories.repo,
+            repositories.user,
             commits.timestamp,
             commits.message;", GROUP_CHILDREN_QUERY))
         .bind::<sql_types::Text, _>(group_name)

@@ -34,6 +34,8 @@ pub struct GroupFileStats {
 #[derive(QueryableByName, Debug)]
 pub struct GroupExportData {
     #[sql_type = "Text"]
+    pub user_name: String,
+    #[sql_type = "Text"]
     pub user: String,
     #[sql_type = "Text"]
     pub provider: String,
