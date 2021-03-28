@@ -1,0 +1,8 @@
+[ver:1,total:3480,branch:feature/API-61]
+src/group/db.rs:976,1616936400:296,1616940000:680,m
+src/group/mapper.rs:920,1616936400:18,1616940000:842,1616943600:60,m
+src/group/resource.rs:763,1616940000:763,m
+src/group/dwh.rs:349,1616936400:24,1616940000:325,m
+.gtm/Cargo-> Run gtm-api.app:307,1616936400:307,r
+src/timeline/mapper.rs:120,1616936400:120,r
+.gtm/Cargo-> Build `Run gtm-api`.app:45,1616936400:15,1616940000:30,r
