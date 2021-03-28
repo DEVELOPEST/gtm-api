@@ -1,0 +1,11 @@
+[ver:1,total:2820,branch:feature/API-61]
+.gtm/Cargo-> Run gtm-api.app:2109,1616950800:1298,1616954400:811,r
+src/group/service.rs:204,1616950800:204,m
+src/group/mapper.rs:196,1616950800:12,1616954400:184,m
+src/group/db.rs:122,1616950800:36,1616954400:86,m
+src/group/routes.rs:64,1616950800:64,m
+.gtm/Cargo-> Build `Run gtm-api`.app:54,1616950800:12,1616954400:42,r
+src/lib.rs:37,1616950800:37,m
+src/group/resource.rs:17,1616950800:10,1616954400:7,m
+src/group/dwh.rs:10,1616954400:10,m
+src/common/sql.rs:7,1616950800:7,r
