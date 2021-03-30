@@ -1,0 +1,14 @@
+
+[ver:1,total:600,branch:master]
+src/group/service.rs:327,1617087600:327,m
+src/timeline/service.rs:150,1617087600:150,m
+.gtm/Cargo-> Build `Run gtm-api`.app:53,1617087600:53,r
+src/group/db.rs:40,1617087600:40,m
+Cargo.toml:30,1617087600:30,m
+
+[ver:1,total:1260,branch:master]
+.gtm/Cargo-> Run gtm-api.app:655,1617087600:455,1617091200:180,1617094800:20,r
+src/group/db.rs:320,1617091200:280,1617094800:40,m
+src/group/mapper.rs:180,1617091200:180,m
+src/group/service.rs:68,1617087600:68,m
+.gtm/Cargo-> Build `Run gtm-api`.app:37,1617087600:17,1617091200:20,r
