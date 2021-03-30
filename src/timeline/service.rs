@@ -1,9 +1,10 @@
-use crate::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper};
+use crate::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper, SubdirLevelTimelineJsonEntry};
 use crate::timeline::mapper::{map_timeline, map_activity, map_subdir_level_timeline, cut_path};
 use crate::timeline::db::{fetch_timeline};
 use crate::file::db::{fetch_pathless_file_edits, fetch_file_edits};
 use diesel::PgConnection;
 use crate::errors::Error;
+use std::collections::HashMap;
 
 pub fn get_timeline(
     conn: &PgConnection,
@@ -37,13 +38,27 @@ pub fn get_subdir_level_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
+    time_threshold: f32,
+    lines_threshold: i32,
 ) -> Result<SubdirLevelTimelineJsonWrapper, Error> {
     let file_edits_data = fetch_file_edits(conn, group_name, start, end)?;
     let mut paths = file_edits_data.iter()
         .map(|e| cut_path(&e.path, depth))
         .filter(|p| !p.ends_with(".app"))
         .collect::<Vec<String>>();
-    let data = map_subdir_level_timeline(file_edits_data, depth, start, end, timezone, interval);
+    let data =
+        map_subdir_level_timeline(file_edits_data, depth, start, end, timezone, interval)
+            .into_iter()
+            .map(|mut entry| {
+                entry.directories = entry.directories.into_iter()
+                    .filter(|(_, data)| {
+                        data.time > time_threshold as f64
+                            && data.lines_added + data.lines_removed > lines_threshold as i64
+                    })
+                    .collect::<HashMap<String, SubdirLevelTimelineJsonEntry>>();
+                entry
+            })
+            .collect();
     paths.sort();
     paths.dedup();
 

@@ -1,6 +1,6 @@
 [package]
 name = "gtm-api"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["mjurge", "taannu"]
 edition = "2018"
 

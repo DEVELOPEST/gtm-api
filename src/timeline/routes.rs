@@ -30,6 +30,8 @@ pub struct SubdirTimelineParams {
     interval: Option<String>,
     timezone: Option<String>,
     depth: Option<i32>,
+    time_threshold: Option<f32>,
+    lines_threshold: Option<i32>,
 }
 
 #[get("/<group_name>/timeline?<params..>")]
@@ -96,6 +98,8 @@ pub fn get_subdir_level_timeline(
     let interval = validator.extract("interval", timeline_params.interval);
     let timezone = validator.extract("timezone", timeline_params.timezone);
     let depth = validator.extract("depth", timeline_params.depth);
+    let time_threshold = timeline_params.time_threshold.unwrap_or(0.2);
+    let line_threshold = timeline_params.lines_threshold.unwrap_or(10);
     //TODO: validate depth
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
@@ -108,6 +112,8 @@ pub fn get_subdir_level_timeline(
         end,
         &timezone,
         &interval,
+        time_threshold,
+        line_threshold,
     )?;
 
     Ok(json!(timeline))
