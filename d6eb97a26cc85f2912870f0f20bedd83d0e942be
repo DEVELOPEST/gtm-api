@@ -1,0 +1,7 @@
+[ver:1,total:1680,branch:release/v0.2.2]
+src/timeline/service.rs:591,1617084000:84,1617087600:507,m
+src/timeline/routes.rs:506,1617084000:396,1617087600:110,m
+.gtm/Cargo-> Run gtm-api.app:330,1616958000:292,1617084000:30,1617087600:8,r
+src/group/resource.rs:195,1617084000:195,r
+.gtm/Cargo-> Build `Run gtm-api`.app:38,1616958000:8,1617084000:15,1617087600:15,r
+Cargo.toml:20,1617087600:20,m
