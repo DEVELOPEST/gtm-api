@@ -96,6 +96,7 @@ pub fn rocket() -> rocket::Rocket {
                 group::routes::post_group_children,
                 group::routes::get_groups,
                 group::routes::get_group_stats,
+                group::routes::get_group_export,
                 group::routes::get_groups_with_access,
                 group::routes::get_groups_without_access,
                 timeline::routes::get_timeline,

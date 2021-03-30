@@ -131,6 +131,6 @@ pub fn cut_path(path: &str, depth: i32) -> String {
         .into_iter()
         .take(depth as usize)
         .fold(String::new(), |a, b| a + b + "/");
-    new_path = new_path.trim_end_matches("/").to_string();
+    new_path = format!("/{}", new_path.trim_end_matches("/").to_string());
     new_path
 }

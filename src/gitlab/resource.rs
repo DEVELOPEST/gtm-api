@@ -18,7 +18,7 @@ pub struct GitlabEmail {
 #[derive(Deserialize)]
 pub struct GitlabStatistics {
     pub commit_count: i32,
-    pub repository_size: i32,
+    pub repository_size: i64,
 }
 
 #[derive(Deserialize)]

@@ -1,7 +1,7 @@
 use crate::{group, group_access, group_group_member};
 use crate::db::Conn;
 use crate::errors::{Error};
-use crate::group::resource::GroupStatsJson;
+use crate::group::resource::{GroupStatsJson, GroupExportDataJson};
 use crate::group::mapper::{map_group_file_stats, map_group_user_stats};
 use crate::group::model::Group;
 use crate::group_access::model::GroupAccess;
@@ -41,6 +41,11 @@ pub fn get_group_stats(
     })
 }
 
+pub fn export_group_data(conn: &Conn, group_name: &str, start: i64, end: i64, depth: i32) -> Result<Vec<GroupExportDataJson>, Error> {
+    let data = group::db::fetch_group_export_data(conn, group_name, start, end)?;
+    Ok(group::mapper::map_group_export_data(data, depth))
+}
+
 pub fn get_groups_without_access(conn: &Conn, user_id: i32) -> Result<Vec<Group>, Error> {
     let groups: Vec<Group> = group::db::find_all(conn)?;
     let groups_with_access: Vec<Group> = get_groups_with_access(conn, user_id)?;
@@ -57,7 +62,7 @@ pub fn get_groups_with_access(conn: &Conn, user_id: i32) -> Result<Vec<Group>, E
     let groups: Vec<Group> = group::db::find_all(conn)?;
     let group_accesses: Vec<GroupAccess> = group_access::db::find_by_user(conn, user_id);
     let group_relations: Vec<GroupRelation> = group_group_member::db::find_all(conn);
-    let mut res: Vec<Group> = Vec::new();
+    let mut res: Vec<Group> = vec![];
     for group_access in &group_accesses {
         if group_access.access_level_recursive {
             let group = groups.iter().find(|x| x.id == group_access.group).unwrap().clone();
@@ -68,6 +73,8 @@ pub fn get_groups_with_access(conn: &Conn, user_id: i32) -> Result<Vec<Group>, E
             res.push(groups.iter().find(|x| x.id == group_access.group).unwrap().clone())
         }
     }
+    res.sort_by_key(|e| e.id);
+    res.dedup_by_key(|e| e.id);
     Ok(res)
 }
 

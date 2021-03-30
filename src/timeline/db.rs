@@ -56,7 +56,7 @@ pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i6
         LEFT JOIN emails ON commits.email = emails.email
         LEFT JOIN users ON emails.user = users.id
     WHERE repositories.group IN (
-        SELECT  group_repos_query.child
+        SELECT DISTINCT group_repos_query.child
         FROM    group_repos_query
         UNION (
             SELECT g.id

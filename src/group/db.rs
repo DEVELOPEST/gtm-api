@@ -4,7 +4,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 
 use crate::common::sql::GROUP_CHILDREN_QUERY;
-use crate::group::dwh::{GroupUserStats, GroupFileStats};
+use crate::group::dwh::{GroupUserStats, GroupFileStats, GroupExportData};
 use crate::group::model::Group;
 use crate::schema::groups;
 use crate::errors::Error;
@@ -59,11 +59,11 @@ pub fn fetch_group_user_stats(
 ) -> Result<Vec<GroupUserStats>, Error> {
     let stats: Vec<GroupUserStats> = sql_query(format!("
         {}
-        SELECT coalesce(users.username, commits.email)    AS name,
-            coalesce(sum(files.time)::bigint, 0)          AS total_time,
-            coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
-            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
-            coalesce(count(commits.id)::bigint, 0)        AS commits
+        SELECT coalesce(users.username, commits.email)        AS name,
+            coalesce(sum(files.time)::bigint, 0)              AS total_time,
+            coalesce(sum(files.lines_added)::bigint, 0)       AS lines_added,
+            coalesce(sum(files.lines_deleted)::bigint, 0)     AS lines_removed,
+            coalesce(count(DISTINCT commits.hash)::bigint, 0) AS commits
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -71,7 +71,7 @@ pub fn fetch_group_user_stats(
             LEFT JOIN emails ON commits.email = emails.email
             LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
-            SELECT group_repos_query.child
+            SELECT DISTINCT group_repos_query.child
             FROM group_repos_query
             UNION
             (
@@ -93,12 +93,12 @@ pub fn fetch_group_user_stats(
 pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Result<Vec<GroupFileStats>, Error> {
     let stats: Vec<GroupFileStats> = sql_query(format!("
         {}
-        SELECT files.path                                 AS path,
-            coalesce(sum(files.time)::bigint, 0)          AS total_time,
-            coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
-            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed,
-            coalesce(count(commits.id)::bigint, 0)        AS commits,
-            coalesce(users.username, commits.email)       AS user
+        SELECT files.path                                     AS path,
+            coalesce(sum(files.time)::bigint, 0)              AS total_time,
+            coalesce(sum(files.lines_added)::bigint, 0)       AS lines_added,
+            coalesce(sum(files.lines_deleted)::bigint, 0)     AS lines_removed,
+            coalesce(count(DISTINCT commits.hash)::bigint, 0) AS commits,
+            coalesce(users.username, commits.email)           AS user
         FROM groups gr
             LEFT JOIN repositories on gr.id = repositories.group
             LEFT JOIN commits ON commits.repository_id = repositories.id
@@ -106,7 +106,7 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
             LEFT JOIN emails ON commits.email = emails.email
             LEFT JOIN users ON emails.user = users.id
         WHERE repositories.group IN (
-            SELECT group_repos_query.child
+            SELECT DISTINCT group_repos_query.child
             FROM group_repos_query
             UNION
             (
@@ -125,6 +125,54 @@ pub fn fetch_group_file_stats(conn: &PgConnection, group_name: &str, start: i64,
     Ok(stats)
 }
 
+pub fn fetch_group_export_data(conn: &PgConnection, group_name: &str, start: i64, end: i64) -> Result<Vec<GroupExportData>, Error> {
+    let stats: Vec<GroupExportData> = sql_query(format!("
+        {}
+        SELECT
+            coalesce(users.username, commits.email)       AS user_name,
+            repositories.user                             AS user,
+            repositories.provider                         AS provider,
+            repositories.repo                             AS repository,
+            files.path                                    AS path,
+            commits.timestamp                             AS timestamp,
+            commits.message                               AS message,
+            coalesce(sum(files.time)::bigint, 0)          AS total_time,
+            coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
+            coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed
+        FROM groups gr
+            LEFT JOIN repositories on gr.id = repositories.group
+            LEFT JOIN commits ON commits.repository_id = repositories.id
+            LEFT JOIN files ON files.commit = commits.id
+            LEFT JOIN emails ON commits.email = emails.email
+            LEFT JOIN users ON emails.user = users.id
+        WHERE repositories.group IN (
+            SELECT DISTINCT group_repos_query.child
+            FROM group_repos_query
+            UNION
+            (
+                SELECT g.id
+                FROM groups g
+                WHERE g.name = $1))
+            AND commits.timestamp >= $2
+            AND commits.timestamp < $3
+            AND files.path IS NOT NULL
+        GROUP BY
+            files.path,
+            coalesce(users.username, commits.email),
+            repositories.provider,
+            repositories.repo,
+            repositories.user,
+            commits.timestamp,
+            commits.message;", GROUP_CHILDREN_QUERY))
+        .bind::<sql_types::Text, _>(group_name)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)?;
+
+    Ok(stats)
+}
+
+
 pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Result<Vec<Group>, Error> {
     let groups: Vec<Group> = sql_query(format!("
     WITH RECURSIVE group_repos_query AS
@@ -142,7 +190,7 @@ pub fn fetch_group_children(conn: &PgConnection, group_id: i32) -> Result<Vec<Gr
                                            ON      m.parent = group_repos_query.child
                        WHERE   group_repos_query.depth < 100)
     SELECT * FROM groups
-    WHERE groups.id in (SELECT group_repos_query.child
+    WHERE groups.id in (SELECT DISTINCT group_repos_query.child
                     FROM group_repos_query
                     UNION
                     (SELECT $1) )"))
