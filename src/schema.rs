@@ -148,6 +148,7 @@ joinable!(group_accesses -> groups (group));
 joinable!(group_accesses -> users (user));
 joinable!(logins -> login_types (login_type));
 joinable!(logins -> users (user));
+joinable!(repositories -> groups (group));
 joinable!(repositories -> sync_clients (sync_client));
 joinable!(sync_clients -> sync_client_type (sync_client_type));
 joinable!(timeline -> files (file));
