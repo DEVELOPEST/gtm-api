@@ -1,0 +1,12 @@
+[ver:1,total:4980,branch:feature/API-64]
+src/github/service.rs:1502,1618124400:804,1618128000:698,m
+src/bitbucket/service.rs:748,1618124400:493,1618128000:255,m
+src/vcs/routes.rs:590,1618124400:430,1618128000:100,1618131600:60,m
+src/vcs/service.rs:556,1618124400:238,1618128000:318,m
+.gtm/Cargo-> Run gtm-api.app:420,1618128000:420,r
+migrations/2021-04-07-100539_fix_foreign_keys/up.sql:330,1617789600:150,1618124400:180,r
+src/security/oauth.rs:294,1618128000:294,m
+src/gitlab/service.rs:292,1618124400:125,1618128000:167,m
+.gtm/Cargo-> Build `Run gtm-api`.app:148,1618128000:148,r
+src/timeline/routes.rs:70,1618124400:70,r
+migrations/2021-04-07-100539_fix_foreign_keys/down.sql:30,1617789600:30,r
