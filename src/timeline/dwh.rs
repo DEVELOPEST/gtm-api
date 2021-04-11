@@ -8,6 +8,10 @@ pub struct TimelineDWH {
     pub time: i64,
     #[sql_type = "BigInt"]
     pub timestamp: i64,
+    #[sql_type = "BigInt"]
+    pub lines_added: i64,
+    #[sql_type = "BigInt"]
+    pub lines_removed: i64,
 }
 
 #[derive(QueryableByName, Debug)]

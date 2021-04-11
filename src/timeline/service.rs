@@ -6,7 +6,7 @@ use crate::errors::Error;
 use crate::file::db::{fetch_file_edits, fetch_pathless_file_edits};
 use crate::repository;
 use crate::timeline::db::{fetch_timeline, fetch_timeline_comparison};
-use crate::timeline::mapper::{cut_path, map_activity, map_subdir_level_timeline, map_timeline};
+use crate::timeline::mapper::{cut_path, map_activity, map_subdir_level_timeline, map_timeline, map_timeline_comparison};
 use crate::timeline::resources::{ActivityJson, ComparisonJsonWrapper, IntervalJson, SubdirLevelTimelineJsonEntry, SubdirLevelTimelineJsonWrapper};
 
 pub fn get_timeline(
@@ -92,6 +92,15 @@ pub fn get_timeline_comparison(
     repositories.dedup();
 
     let raw_data = fetch_timeline_comparison(&conn, repos, start, end);
-
+    let data = map_timeline_comparison(
+        raw_data,
+        start,
+        end,
+        timezone,
+        interval,
+        repos,
+        branches,
+        users
+    );
     todo!()
 }

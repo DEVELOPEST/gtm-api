@@ -3,9 +3,9 @@ use std::time::{Duration, UNIX_EPOCH};
 use chrono::{Datelike, DateTime, Timelike, Utc};
 use chrono_tz::Tz;
 
-use crate::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH};
+use crate::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH, ComparisonDWH};
 use crate::timeline::helper::{generate_activity_interval, generate_intervals};
-use crate::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry};
+use crate::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry, ComparisonInterval};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
@@ -121,6 +121,46 @@ pub fn map_subdir_level_timeline(
 
     intervals.into_iter().map(|x| x.attach()).collect()
 }
+
+pub fn map_timeline_comparison(
+    data: Vec<ComparisonDWH>,
+    start: i64,
+    end: i64,
+    timezone: &str,
+    interval: &str,
+    repos: &Vec<i32>,
+    branches: &Vec<String>,
+    users: &Vec<i32>,
+) -> Vec<IntervalJson> {
+    let tz: Tz = timezone.parse().unwrap();
+    let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
+    let end_tz = get_datetime_tz_from_seconds(end, &tz);
+    let mut intervals = generate_intervals(
+        start_tz, end_tz, interval, |s, e| ComparisonInterval {
+            start: s,
+            end: e,
+            time: 0,
+            lines_added: 0,
+            lines_removed: 0,
+            users: vec![],
+        });
+    for item in data {
+        for i in 0..intervals.len() {
+            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
+                intervals[i].time += item.time;
+                intervals[i].lines_added += item.lines_added;
+                intervals[i].lines_removed += item.lines_removed;
+                if !intervals[i].users.contains(&item.user) {
+                    intervals[i].users.push(item.user.to_string());
+                }
+                break;
+            }
+        }
+    }
+
+    todo!()
+}
+
 
 pub fn get_datetime_tz_from_seconds(seconds: i64, timezone: &Tz) -> DateTime<Tz> {
     DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(seconds as u64)).with_timezone(timezone)

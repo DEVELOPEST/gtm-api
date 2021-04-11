@@ -21,6 +21,16 @@ pub struct Interval<Tz: TimeZone> {
 }
 
 #[derive(Debug)]
+pub struct ComparisonInterval<Tz: TimeZone> {
+    pub start: DateTime<Tz>,
+    pub end: DateTime<Tz>,
+    pub time: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub users: Vec<String>,
+}
+
+#[derive(Debug)]
 pub struct Activity {
     pub id: i32,
     pub label: String,

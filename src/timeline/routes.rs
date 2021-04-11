@@ -2,7 +2,7 @@ use rocket::request::Form;
 use rocket_contrib::json::Json;
 use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
-use validator::{Validate, HasLen};
+use validator::{Validate};
 
 use crate::{security, timeline};
 use crate::db::Conn;
