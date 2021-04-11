@@ -1,6 +1,7 @@
 use rocket_contrib::json::{Json, JsonValue};
 use serde::Deserialize;
 use validator::Validate;
+use schemars::JsonSchema;
 
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
@@ -8,12 +9,12 @@ use crate::errors::{FieldValidator, Error};
 use crate::repository;
 use crate::security::api_key::ApiKey;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct NewRepository {
     repository: NewRepositoryData,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewRepositoryData {
     #[validate(length(min = 1))]
     user: Option<String>,
@@ -25,6 +26,7 @@ pub struct NewRepositoryData {
     commits: Vec<NewCommitData>,
 }
 
+#[openapi]
 #[post("/repositories", format = "json", data = "<new_repository>")]
 pub fn post_repository(
     conn: Conn,
@@ -51,6 +53,7 @@ pub fn post_repository(
     Ok(json!({ "repository": repository }))
 }
 
+#[openapi]
 #[put("/repositories", format = "json", data = "<new_repository>")]
 pub fn put_repository(
     api_key: ApiKey,

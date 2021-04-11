@@ -1,8 +1,8 @@
-
+use schemars::JsonSchema;
 use serde::Serialize;
 use crate::repository::model::Repository;
 use crate::config::DATE_FORMAT;
-use crate::commit::model::CommitJson;
+use crate::commit::resource::CommitJson;
 
 
 impl Repository {
@@ -19,7 +19,7 @@ impl Repository {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RepositoryJson {
     pub id: i32,

@@ -1,36 +1,38 @@
 use rocket::request::Form;
 use rocket_contrib::json::{Json, JsonValue};
+use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::db::Conn;
-use crate::errors::{FieldValidator, Error};
 use crate::{group, security};
+use crate::db::Conn;
+use crate::errors::{Error, FieldValidator};
 use crate::group::model::{GroupJson, GroupWithAccessJson};
 use crate::group::service;
 use crate::group_access;
 use crate::role::model::ADMIN;
 use crate::user::model::AuthUser;
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewGroupParentsRelation {
     #[validate(length(min = 1))]
     parents: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewGroupChildrenRelation {
     #[validate(length(min = 1))]
     children: Option<Vec<String>>,
 }
 
-#[derive(FromForm, Default, Validate, Deserialize)]
+#[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
 pub struct GroupStatsParams {
     start: Option<i64>,
     end: Option<i64>,
     depth: Option<i32>,
 }
 
+#[openapi]
 #[get("/groups")]
 pub fn get_groups(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
     let groups: Vec<GroupJson> = if auth_user.roles.contains(&ADMIN) {
@@ -42,6 +44,7 @@ pub fn get_groups(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
     Ok(json!(groups))
 }
 
+#[openapi]
 #[get("/groups/accessible/user/<user_id>")]
 pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
     auth_user.require_role(&ADMIN)?;
@@ -57,6 +60,7 @@ pub fn get_groups_with_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> 
     Ok(json!(groups))
 }
 
+#[openapi]
 #[get("/groups/not-accessible/user/<user_id>")]
 pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) -> Result<JsonValue, Error> {
     auth_user.require_role(&ADMIN)?;
@@ -65,6 +69,7 @@ pub fn get_groups_without_access(auth_user: AuthUser, conn: Conn, user_id: i32) 
     Ok(json!(groups))
 }
 
+#[openapi]
 #[get("/groups/<group_name>/stats?<params..>")]
 pub fn get_group_stats(
     auth_user: AuthUser,
@@ -83,6 +88,7 @@ pub fn get_group_stats(
     Ok(json!(stats))
 }
 
+#[openapi]
 #[get("/groups/<group_name>/export?<params..>")]
 pub fn get_group_export(
     auth_user: AuthUser,
@@ -101,6 +107,7 @@ pub fn get_group_export(
     Ok(json!(data))
 }
 
+#[openapi]
 #[post("/groups/<group_name>/parents", format = "json", data = "<parents>")]
 pub fn post_group_parents(
     //auth: Auth,
@@ -118,6 +125,7 @@ pub fn post_group_parents(
     Ok(json!({}))
 }
 
+#[openapi]
 #[post("/groups/<group_name>/children", format = "json", data = "<children>")]
 pub fn post_group_children(
     //auth: Auth,

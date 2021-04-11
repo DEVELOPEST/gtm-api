@@ -1,4 +1,4 @@
-use serde::Serialize;
+use crate::timeline::resources::TimelineJson;
 
 #[derive(Queryable)]
 pub struct Timeline {
@@ -16,12 +16,4 @@ impl Timeline {
             time: self.time,
         }
     }
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TimelineJson {
-    pub id: i32,
-    pub timestamp: i64,
-    pub time: i64,
 }

@@ -1,12 +1,14 @@
+use rocket_contrib::json::{Json, JsonValue};
+use schemars::JsonSchema;
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::user::model::AuthUser;
 use crate::db::Conn;
-use rocket_contrib::json::{Json, JsonValue};
 use crate::errors::{Error, FieldValidator};
+use crate::user::model::AuthUser;
 use crate::vcs::service::{fetch_accessible_repositories, start_tracking_repository};
 
+#[openapi]
 #[get("/vcs/repositories")]
 pub fn get_accessible_repositories(
     auth_user: AuthUser,
@@ -17,12 +19,13 @@ pub fn get_accessible_repositories(
     Ok(json!(repos))
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewTrackedRepository {
     #[validate(length(min = 1))]
     pub clone_url: Option<String>,
 }
 
+#[openapi]
 #[post("/vcs/repositories", format = "json", data = "<repo>")]
 pub fn post_start_tracking_repository(
     auth_user: AuthUser,

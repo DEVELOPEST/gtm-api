@@ -3,6 +3,10 @@
 
 #[macro_use]
 extern crate rocket;
+
+#[macro_use]
+extern crate rocket_okapi;
+
 #[macro_use]
 extern crate rocket_contrib;
 use rocket_cors;
@@ -48,6 +52,8 @@ mod sync;
 use rocket_contrib::json::JsonValue;
 use rocket_cors::Cors;
 use rocket_oauth2::OAuth2;
+use rocket_okapi::{routes_with_openapi};
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 #[catch(404)]
 fn not_found() -> JsonValue {
@@ -61,12 +67,19 @@ fn cors_fairing() -> Cors {
     Cors::from_options(&Default::default()).expect("Cors fairing cannot be created")
 }
 
+fn get_docs() -> SwaggerUIConfig {
+    SwaggerUIConfig {
+        url: "../openapi.json".to_owned(),
+        ..Default::default()
+    }
+}
+
 pub fn rocket() -> rocket::Rocket {
     dotenv().ok();
     rocket::ignite()
         .mount(
             "/services/gtm/api/",
-            routes![
+            routes_with_openapi![
                 security::routes::login,
                 security::routes::register,
                 security::routes::renew_token,
@@ -111,6 +124,7 @@ pub fn rocket() -> rocket::Rocket {
                 vcs::routes::post_start_tracking_repository,
             ],
         )
+        .mount("/services/gtm/api/swagger", make_swagger_ui(&get_docs()))
         .attach(db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())

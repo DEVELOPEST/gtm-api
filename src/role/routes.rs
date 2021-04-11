@@ -1,4 +1,5 @@
 use rocket_contrib::json::{Json, JsonValue};
+use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
@@ -10,7 +11,7 @@ use crate::user;
 use crate::user::model::AuthUser;
 use crate::user_role_member;
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct UserRoleMemberDto {
     #[validate(range(min = 1))]
     pub user: Option<i32>,
@@ -18,6 +19,7 @@ pub struct UserRoleMemberDto {
     pub role: Option<i32>,
 }
 
+#[openapi]
 #[post("/roles", format = "json", data = "<user_role_data>")]
 pub fn add_role_to_user(
     auth_user: AuthUser,
@@ -44,6 +46,7 @@ pub fn add_role_to_user(
     Ok(json!({}))
 }
 
+#[openapi]
 #[delete("/roles", format = "json", data = "<user_role_data>")]
 pub fn delete_role_from_user(
     auth_user: AuthUser,
