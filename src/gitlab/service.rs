@@ -1,5 +1,6 @@
-use crate::gitlab::resource::{GitlabUser, GitlabEmail, GitlabRepo};
 use reqwest::RequestBuilder;
+
+use crate::gitlab::resource::{GitlabEmail, GitlabRepo, GitlabUser};
 
 pub const GITLAB_COM_DOMAIN: &str = "gitlab.com";
 pub const GITLAB_TALTECH_DOMAIN: &str = "gitlab.cs.ttu.ee";
@@ -14,8 +15,13 @@ pub async fn fetch_emails_from_gitlab(token: &str, domain: &str) -> Result<Vec<G
         .json::<Vec<GitlabEmail>>().await
 }
 
-pub async fn fetch_repos_from_gitlab(token: &str, domain: &str) -> Result<Vec<GitlabRepo>, reqwest::Error> {
-    create_get_request(domain, "/projects?membership=true&min_access_level=30&statistics=true", token).send().await?
+pub async fn fetch_repos_from_gitlab(token: &str, domain: &str, repo_name: Option<&str>) -> Result<Vec<GitlabRepo>, reqwest::Error> {
+    let name_query =  repo_name.map(|n| format!("&search={}", n));
+    create_get_request(
+        domain,
+        &format!("/projects?membership=true&min_access_level=30&statistics=true{}", name_query.unwrap_or("".to_string())),
+        token,
+    ).send().await?
         .json::<Vec<GitlabRepo>>().await
 }
 
