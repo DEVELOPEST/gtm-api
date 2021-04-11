@@ -1,0 +1,33 @@
+[ver:1,total:3420,branch:feature/API-7]
+src/security/routes.rs:557,1618142400:467,1618146000:90,m
+.gtm/Cargo-> Run gtm-api.app:428,1618142400:288,1618146000:140,r
+src/group/routes.rs:276,1618142400:243,1618146000:33,m
+src/group_access/routes.rs:202,1618142400:158,1618146000:44,m
+src/security/service.rs:190,1618142400:52,1618146000:138,m
+src/vcs/resource.rs:188,1618146000:188,m
+src/role/routes.rs:160,1618142400:160,m
+src/group_access/service.rs:140,1618142400:94,1618146000:46,m
+src/group_access/db.rs:135,1618142400:135,m
+src/timeline/routes.rs:135,1618142400:135,m
+src/user/routes.rs:125,1618142400:125,m
+src/role/resource.rs:107,1618142400:107,m
+src/group/resource.rs:84,1618146000:84,m
+src/user_role_member/db.rs:76,1618142400:76,m
+src/repository/routes.rs:75,1618142400:75,m
+src/group/model.rs:66,1618146000:66,m
+src/security/resource.rs:60,1618142400:60,m
+src/vcs/routes.rs:53,1618142400:45,1618146000:8,m
+src/user/resource.rs:52,1618142400:52,m
+Cargo.toml:45,1618146000:45,m
+.gtm/Cargo-> Build `Run gtm-api`.app:45,1618142400:8,1618146000:37,r
+src/user/db.rs:42,1618142400:42,m
+src/group_access/model.rs:33,1618146000:33,m
+src/group_access/resource.rs:30,1618146000:30,m
+src/common/git.rs:28,1618146000:28,m
+src/user/model.rs:25,1618142400:25,m
+src/security/mod.rs:15,1618142400:15,m
+src/commit/routes.rs:12,1618142400:12,r
+src/group_access/mod.rs:10,1618146000:10,m
+src/user/mod.rs:10,1618142400:10,m
+src/role/mod.rs:8,1618142400:8,m
+src/user_role_member/model.rs:8,1618142400:8,r
