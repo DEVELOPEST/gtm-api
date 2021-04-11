@@ -1,5 +1,5 @@
-use serde::Serialize;
-use crate::timeline::model::TimelineJson;
+use crate::timeline::resources::TimelineJson;
+use crate::file::resource::FileJson;
 
 #[derive(Queryable)]
 pub struct File {
@@ -24,16 +24,4 @@ impl File {
             timeline
         }
     }
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FileJson {
-    pub id: i32,
-    pub path: String,
-    pub status: String,
-    pub time: i64,
-    pub lines_added: i64,
-    pub lines_deleted: i64,
-    pub timeline: Vec<TimelineJson>
 }

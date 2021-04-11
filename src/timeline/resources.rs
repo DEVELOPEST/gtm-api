@@ -2,6 +2,15 @@ use chrono::{DateTime, TimeZone, Offset};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
+use schemars::JsonSchema;
+
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TimelineJson {
+    pub id: i32,
+    pub timestamp: i64,
+    pub time: i64,
+}
 
 #[derive(Debug)]
 pub struct Interval<Tz: TimeZone> {
@@ -85,7 +94,7 @@ impl SubdirLevelTimelineEntry {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct IntervalJson {
     pub start: String,
@@ -94,7 +103,7 @@ pub struct IntervalJson {
     pub users: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ActivityJson {
     pub label: String,
@@ -105,7 +114,7 @@ pub struct ActivityJson {
     pub users: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJson {
     pub start: String,
@@ -113,7 +122,7 @@ pub struct SubdirLevelTimelineJson {
     pub directories: HashMap<String, SubdirLevelTimelineJsonEntry>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJsonEntry {
     pub path: String,
@@ -124,7 +133,7 @@ pub struct SubdirLevelTimelineJsonEntry {
     pub users: i64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJsonWrapper {
     pub paths: Vec<String>,

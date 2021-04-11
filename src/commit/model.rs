@@ -1,5 +1,5 @@
-use serde::Serialize;
-use crate::file::model::FileJson;
+use crate::commit::resource::CommitJson;
+use crate::file::resource::FileJson;
 
 #[derive(Queryable)]
 pub struct Commit {
@@ -26,17 +26,4 @@ impl Commit {
             files
         }
     }
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CommitJson {
-    pub id: i32,
-    pub email: String,
-    pub git_user_name: String,
-    pub branch: String,
-    pub message: String,
-    pub hash: String,
-    pub time: i64,
-    pub files: Vec<FileJson>
 }
