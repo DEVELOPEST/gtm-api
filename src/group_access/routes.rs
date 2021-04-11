@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use validator::Validate;
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::{Json};
 use rocket_okapi::{JsonSchema, openapi};
 
 use crate::group_access;
@@ -8,6 +8,7 @@ use crate::errors::{Error};
 use crate::db::Conn;
 use crate::user::model::AuthUser;
 use crate::role::model::ADMIN;
+use crate::group_access::resource::GroupAccessJson;
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewGroupAccess {
@@ -34,10 +35,11 @@ pub fn post_group_accesses(
     auth_user: AuthUser,
     group_accesses: Json<Vec<NewGroupAccess>>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<bool>, Error> {
     auth_user.require_role(&ADMIN)?;
     group_access::service::add_group_accesses(&conn, group_accesses.into_inner())?;
-    Ok(json!({}))
+    // TODO: Return something useful?
+    Ok(Json(true))
 }
 
 #[openapi]
@@ -46,10 +48,10 @@ pub fn delete_group_accesses(
     auth_user: AuthUser,
     group_accesses: Json<Vec<DeleteGroupAccess>>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<usize>, Error> {
     auth_user.require_role(&ADMIN)?;
-    group_access::service::delete_group_accesses(&conn, group_accesses.into_inner())?;
-    Ok(json!({}))
+    let res = group_access::service::delete_group_accesses(&conn, group_accesses.into_inner())?;
+    Ok(Json(res))
 }
 
 #[openapi]
@@ -58,8 +60,8 @@ pub fn toggle_recursive_access(
     auth_user: AuthUser,
     group_access: Json<UserGroupAccess>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<GroupAccessJson>, Error> {
     auth_user.require_role(&ADMIN)?;
-    group_access::service::toggle_access(&conn, group_access.into_inner())?;
-    Ok(json!({}))
+    let access = group_access::service::toggle_access(&conn, group_access.into_inner())?;
+    Ok(Json(access.attach()))
 }

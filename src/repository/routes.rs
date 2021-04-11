@@ -1,4 +1,4 @@
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::{Json};
 use serde::Deserialize;
 use validator::Validate;
 use schemars::JsonSchema;
@@ -8,6 +8,7 @@ use crate::db::Conn;
 use crate::errors::{FieldValidator, Error};
 use crate::repository;
 use crate::security::api_key::ApiKey;
+use crate::repository::resource::RepositoryJson;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct NewRepository {
@@ -32,7 +33,7 @@ pub fn post_repository(
     conn: Conn,
     api_key: ApiKey,
     new_repository: Json<NewRepository>,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<RepositoryJson>, Error> {
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
@@ -50,7 +51,7 @@ pub fn post_repository(
         new_repository.commits,
     )?;
 
-    Ok(json!({ "repository": repository }))
+    Ok(Json(repository))
 }
 
 #[openapi]
@@ -59,7 +60,7 @@ pub fn put_repository(
     api_key: ApiKey,
     new_repository: Json<NewRepository>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<RepositoryJson>, Error> {
     let new_repository = new_repository.into_inner().repository;
 
     let mut extractor = FieldValidator::validate(&new_repository);
@@ -77,5 +78,5 @@ pub fn put_repository(
         new_repository.commits,
     )?;
 
-    Ok(json!({ "repository": repository }))
+    Ok(Json(repository))
 }

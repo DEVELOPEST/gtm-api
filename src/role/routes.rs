@@ -1,4 +1,4 @@
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::Json;
 use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
@@ -7,6 +7,7 @@ use crate::db::Conn;
 use crate::errors::{Error, FieldValidator,};
 use crate::role;
 use crate::role::model::ADMIN;
+use crate::role::resource::UserRoleMemberJson;
 use crate::user;
 use crate::user::model::AuthUser;
 use crate::user_role_member;
@@ -25,7 +26,7 @@ pub fn add_role_to_user(
     auth_user: AuthUser,
     conn: Conn,
     user_role_data: Json<UserRoleMemberDto>,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<UserRoleMemberJson>, Error> {
     auth_user.require_role(&ADMIN)?;
     let user_role_data = user_role_data.into_inner();
     let mut extractor = FieldValidator::validate(&user_role_data);
@@ -41,9 +42,9 @@ pub fn add_role_to_user(
         return Err(Error::Custom("Role does not exist!"));
     }
 
-    user_role_member::db::create(&conn, user, role);
+    let res = user_role_member::db::create(&conn, user, role)?;
 
-    Ok(json!({}))
+    Ok(Json(UserRoleMemberJson::from(res)))
 }
 
 #[openapi]
@@ -51,8 +52,8 @@ pub fn add_role_to_user(
 pub fn delete_role_from_user(
     auth_user: AuthUser,
     conn: Conn,
-    user_role_data: Json<UserRoleMemberDto>
-) -> Result<JsonValue, Error> {
+    user_role_data: Json<UserRoleMemberDto>,
+) -> Result<Json<bool>, Error> {
     auth_user.require_role(&ADMIN)?;
     let user_role_data = user_role_data.into_inner();
     let mut extractor = FieldValidator::validate(&user_role_data);
@@ -70,5 +71,6 @@ pub fn delete_role_from_user(
 
     user_role_member::db::delete(&conn, user, role);
 
-    Ok(json!({}))
+    // TODO: Return something useful
+    Ok(Json(true))
 }

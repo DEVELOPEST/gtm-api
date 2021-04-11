@@ -1,20 +1,21 @@
 use rocket::http::{Cookies, Status};
 use rocket::response::Redirect;
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::Json;
 use rocket_oauth2::{OAuth2, TokenResponse};
+use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
-use rocket_okapi::{openapi, JsonSchema};
 
 use crate::db::Conn;
-use crate::errors::{ValidationErrors, FieldValidator, Error};
+use crate::errors::{Error, FieldValidator, ValidationErrors};
+use crate::errors::Error::Custom;
 use crate::security;
-use crate::security::oauth::{GitHub, GitLab, LoginType, Microsoft, GitLabTalTech, Bitbucket};
+use crate::security::oauth::{Bitbucket, GitHub, GitLab, GitLabTalTech, LoginType, Microsoft};
+use crate::security::resource::JwtResponse;
 use crate::security::service;
 use crate::user;
 use crate::user::db::UserCreationError;
-use crate::user::model::AuthUser;
-use crate::errors::Error::Custom;
+use crate::user::model::{AuthUser};
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct LoginDto {
@@ -26,7 +27,7 @@ pub struct LoginDto {
 
 #[openapi]
 #[post("/auth/login", format = "json", data = "<login_data>")]
-pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Error> {
+pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<Json<JwtResponse>, Error> {
     let login_data = login_data.into_inner();
     let mut extractor = FieldValidator::validate(&login_data);
     let username = extractor.extract("username", login_data.username);
@@ -34,7 +35,9 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Error>
     extractor.check()?;
 
     let token = service::password_login(&conn, username, password)?;
-    Ok(json!({"jwt": token}))
+    Ok(Json(JwtResponse {
+        jwt: token,
+    }))
 }
 
 #[openapi]
@@ -42,10 +45,9 @@ pub fn login(conn: Conn, login_data: Json<LoginDto>) -> Result<JsonValue, Error>
 pub fn get_user_logins(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, ValidationErrors> {
-
+) -> Result<Json<Vec<String>>, ValidationErrors> {
     let logins = security::db::find_all_login_names_by_user(&conn, auth_user.user_id);
-    Ok(json!(logins))
+    Ok(Json(logins))
 }
 
 #[openapi]
@@ -54,8 +56,7 @@ pub fn delete_user_login(
     auth_user: AuthUser,
     conn: Conn,
     login_type: Json<Type>,
-) -> Result<JsonValue, ValidationErrors> {
-
+) -> Result<Json<bool>, ValidationErrors> {
     let login_type = login_type.into_inner();
 
     let mut extractor = FieldValidator::validate(&login_type);
@@ -64,7 +65,7 @@ pub fn delete_user_login(
     security::db::delete_login_by_user_and_type(&conn, auth_user.user_id, &login_type_string)
         .map_err(|err| error!("Error deleting login: {}", err))
         .unwrap();
-    Ok(json!({}))
+    Ok(Json(true))
 }
 
 #[openapi]
@@ -72,11 +73,11 @@ pub fn delete_user_login(
 pub fn delete_account(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, ValidationErrors> {
+) -> Result<Json<bool>, ValidationErrors> {
     security::db::delete_account(&conn, auth_user.user_id)
         .map_err(|err| error!("Error deleting account: {}", err))
         .unwrap();
-    Ok(json!({}))
+    Ok(Json(true))
 }
 
 #[openapi]
@@ -84,9 +85,9 @@ pub fn delete_account(
 pub fn has_password(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, ValidationErrors> {
+) -> Result<Json<bool>, ValidationErrors> {
     let has_password = security::db::exists_password(&conn, auth_user.user_id);
-    Ok(json!(has_password))
+    Ok(Json(has_password))
 }
 
 #[derive(Deserialize, Validate, JsonSchema)]
@@ -107,8 +108,7 @@ pub struct NewUserData {
 pub fn register(
     new_user: Json<NewUserData>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
-
+) -> Result<Json<JwtResponse>, Error> {
     let new_user = new_user.0;
     let mut extractor = FieldValidator::validate(&new_user);
     let username = extractor.extract("username", new_user.username);
@@ -127,7 +127,9 @@ pub fn register(
             )
         })?;
 
-    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, created_user)}))
+    Ok(Json(JwtResponse {
+        jwt: security::jwt::generate_token_for_user(&conn, created_user).unwrap_or("".to_string())
+    }))
 }
 
 #[openapi]
@@ -135,10 +137,12 @@ pub fn register(
 pub fn renew_token(
     auth_user: AuthUser,
     conn: Conn,
-) -> Result<JsonValue, ValidationErrors> {
+) -> Result<Json<JwtResponse>, ValidationErrors> {
 
     let user = user::db::find(&conn, auth_user.user_id).unwrap();
-    Ok(json!({"jwt": security::jwt::generate_token_for_user(&conn, user)}))
+    Ok(Json(JwtResponse{
+        jwt: security::jwt::generate_token_for_user(&conn, user).unwrap_or("".to_string())
+    }))
 }
 
 #[derive(Deserialize, Validate, JsonSchema)]
@@ -155,14 +159,15 @@ pub fn change_password(
     auth_user: AuthUser,
     change_password: Json<PasswordChange>,
     conn: Conn,
-) -> Result<(), Error> {
+) -> Result<Json<bool>, Error> {
     let change_password = change_password.into_inner();
     let mut extractor = FieldValidator::validate(&change_password);
     let old_password = extractor.extract("old_password", change_password.old_password);
     let new_password = extractor.extract("new_password", change_password.new_password);
     extractor.check()?;
 
-    security::service::change_password(&conn, auth_user.user_id, old_password, new_password)
+    security::service::change_password(&conn, auth_user.user_id, old_password, new_password)?;
+    Ok(Json(true))
 }
 
 #[derive(Deserialize, Validate, JsonSchema)]

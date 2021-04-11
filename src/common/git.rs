@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use serde::Serialize;
+use schemars::JsonSchema;
 use regex::Regex;
 
 lazy_static! {
@@ -7,7 +8,7 @@ lazy_static! {
         Regex::new(r#"(git@|https://)([a-zA-Z0-9.]+)[:/]([a-zA-Z0-9-_/.]+)/([a-zA-Z0-9-._]+)\.git"#).unwrap();
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, JsonSchema)]
 pub struct RepoCredentials {
     pub provider: String,
     pub user: String,

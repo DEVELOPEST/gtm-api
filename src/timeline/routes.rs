@@ -1,5 +1,5 @@
 use rocket::request::Form;
-use rocket_contrib::json::JsonValue;
+use rocket_contrib::json::Json;
 use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
@@ -8,6 +8,7 @@ use crate::{security, timeline};
 use crate::db::Conn;
 use crate::errors::{Error, FieldValidator};
 use crate::role::model::ADMIN;
+use crate::timeline::resources::{ActivityJson, IntervalJson, SubdirLevelTimelineJsonWrapper};
 use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate, JsonSchema)]
@@ -42,7 +43,7 @@ pub fn get_timeline(
     group_name: String,
     params: Form<Period>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<Vec<IntervalJson>>, Error> {
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
@@ -56,7 +57,7 @@ pub fn get_timeline(
     validator.check()?;
 
     let timeline = timeline::service::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
-    Ok(json!(timeline))
+    Ok(Json(timeline))
 }
 
 #[openapi]
@@ -66,7 +67,7 @@ pub fn get_activity_timeline(
     group_name: String,
     params: Form<Period>,
     conn: Conn,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<Vec<ActivityJson>>, Error> {
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
@@ -79,8 +80,15 @@ pub fn get_activity_timeline(
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
 
-    let timeline = timeline::service::get_activity_timeline(&conn, &group_name, start, end, &timezone, &interval)?;
-    Ok(json!(timeline))
+    let timeline = timeline::service::get_activity_timeline(
+        &conn,
+        &group_name,
+        start,
+        end,
+        &timezone,
+        &interval,
+    )?;
+    Ok(Json(timeline))
 }
 
 #[openapi]
@@ -90,7 +98,7 @@ pub fn get_subdir_level_timeline(
     conn: Conn,
     group_name: String,
     params: Form<SubdirTimelineParams>,
-) -> Result<JsonValue, Error> {
+) -> Result<Json<SubdirLevelTimelineJsonWrapper>, Error> {
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
@@ -120,5 +128,5 @@ pub fn get_subdir_level_timeline(
         line_threshold,
     )?;
 
-    Ok(json!(timeline))
+    Ok(Json(timeline))
 }

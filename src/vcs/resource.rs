@@ -1,8 +1,9 @@
 use serde::{Serialize};
+use schemars::JsonSchema;
 use crate::common::git::RepoCredentials;
 use chrono::{DateTime, Utc};
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 pub struct VcsRepository {
     pub full_name: String,
     pub description: String,
@@ -16,7 +17,7 @@ pub struct VcsRepository {
     pub private: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 pub struct TrackedRepository {
     pub sync_url: String,
 }
