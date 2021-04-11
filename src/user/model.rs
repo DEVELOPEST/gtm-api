@@ -1,5 +1,6 @@
 use diesel::Queryable;
 use serde::Serialize;
+use schemars::JsonSchema;
 
 use crate::errors::{Error};
 
@@ -26,7 +27,7 @@ impl AuthUser {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserJson {
     pub id: i32,

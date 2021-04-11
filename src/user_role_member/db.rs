@@ -1,6 +1,7 @@
 use crate::schema::user_role_members;
 use diesel::{PgConnection, RunQueryDsl, QueryDsl, ExpressionMethods, BoolExpressionMethods};
 use crate::user_role_member::model::UserRoleMember;
+use crate::errors::Error;
 
 
 #[derive(Insertable)]
@@ -14,16 +15,16 @@ pub fn create(
     conn: &PgConnection,
     user: i32,
     role: i32,
-) -> UserRoleMember {
+) -> Result<UserRoleMember, Error> {
     let new_group_relation = NewUserRoleMember {
         user,
         role,
     };
 
-    diesel::insert_into(user_role_members::table)
+    let res = diesel::insert_into(user_role_members::table)
         .values(&new_group_relation)
-        .get_result::<UserRoleMember>(conn)
-        .expect("Error creating UserRoleMember!")
+        .get_result::<UserRoleMember>(conn)?;
+    Ok(res)
 }
 
 pub fn delete(

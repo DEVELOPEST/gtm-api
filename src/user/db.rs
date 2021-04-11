@@ -63,13 +63,13 @@ pub fn create(
 pub fn update_password(
     conn: &PgConnection,
     user_id: i32,
-    password: &str,) -> Option<User> {
-    diesel::update(
+    password: &str, ) -> Result<User, Error> {
+    let user = diesel::update(
         users::table
             .filter(users::id.eq(user_id)))
         .set(users::password.eq(password))
-        .get_result::<User>(conn)
-        .ok()
+        .get_result::<User>(conn)?;
+    Ok(user)
 }
 
 pub fn find(conn: &PgConnection, id: i32) -> Result<User, Error> {

@@ -1,6 +1,8 @@
 use serde::Serialize;
+use schemars::JsonSchema;
+use crate::group_access::resource::GroupAccessJson;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 pub struct GroupUserStatsJson {
     pub name: String,
     pub total_time: f64,
@@ -12,7 +14,7 @@ pub struct GroupUserStatsJson {
     pub lines_per_commit: f64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 pub struct GroupFileStatsJson {
     pub path: String,
     pub total_time: f64,
@@ -26,7 +28,7 @@ pub struct GroupFileStatsJson {
     pub lines_per_hour: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 pub struct GroupExportDataJson {
     pub user_name: String,
     pub user: String,
@@ -42,8 +44,25 @@ pub struct GroupExportDataJson {
     pub lines_removed: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 pub struct GroupStatsJson {
     pub users: Vec<GroupUserStatsJson>,
     pub files: Vec<GroupFileStatsJson>,
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupJson {
+    pub id: i32,
+    pub name: String,
+    pub added_at: String,
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupWithAccessJson {
+    pub id: i32,
+    pub name: String,
+    pub added_at: String,
+    pub group_access: Option<GroupAccessJson>
 }

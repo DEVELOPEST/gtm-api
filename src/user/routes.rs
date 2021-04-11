@@ -1,26 +1,30 @@
-use rocket_contrib::json::JsonValue;
+use rocket_contrib::json::Json;
 
-use crate::user::model::AuthUser;
 use crate::db::Conn;
-use crate::user;
-use crate::role::model::ADMIN;
-use crate::errors::{Error};
+use crate::errors::Error;
 use crate::role;
+use crate::role::model::ADMIN;
+use crate::user;
+use crate::user::model::{AuthUser, UserJson};
+use crate::user::resource::UserIdResponse;
 
+#[openapi]
 #[get("/user")]
-pub fn get_user_id(user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
+pub fn get_user_id(user: AuthUser, conn: Conn) -> Result<Json<UserIdResponse>, Error> {
     user::db::find(&conn, user.user_id)
-        .map(|user| json!({ "userId": user.id }))
+        .map(|user| Json(UserIdResponse { user_id: user.id }))
 }
 
+#[openapi]
 #[get("/users")]
-pub fn get_users(auth_user: AuthUser, conn: Conn) -> Result<JsonValue, Error> {
+pub fn get_users(auth_user: AuthUser, conn: Conn) -> Result<Json<Vec<UserJson>>, Error> {
     auth_user.require_role(&ADMIN)?;
-    Ok(json!(user::service::find_all(&conn)))
+    Ok(Json(user::service::find_all(&conn)))
 }
 
+#[openapi]
 #[get("/users/<id>")]
-pub fn get_user(auth_user: AuthUser, id: i32, conn: Conn) -> Result<JsonValue, Error> {
+pub fn get_user(auth_user: AuthUser, id: i32, conn: Conn) -> Result<Json<UserJson>, Error> {
     auth_user.require_role(&ADMIN)?;
     let user = user::db::find(&conn, id)
         .unwrap()
@@ -28,5 +32,5 @@ pub fn get_user(auth_user: AuthUser, id: i32, conn: Conn) -> Result<JsonValue, E
             .into_iter()
             .map(|x| x.name)
             .collect());
-    Ok(json!(user))
+    Ok(Json(user))
 }

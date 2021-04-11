@@ -9,6 +9,7 @@ pub mod config;
 pub mod model;
 pub mod oauth;
 pub mod constants;
+pub mod resource;
 
 #[derive(Debug, Serialize)]
 pub struct AuthError {

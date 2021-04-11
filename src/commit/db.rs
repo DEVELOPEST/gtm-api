@@ -5,11 +5,12 @@ use diesel::prelude::*;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::commit::model::{Commit, CommitJson};
+use crate::commit::model::{Commit};
 use crate::commit::routes::NewCommitData;
 use crate::file;
 use crate::schema::commits;
 use crate::errors::Error;
+use crate::commit::resource::CommitJson;
 
 lazy_static! {
     static ref GIT_USER_NAME_EMAIL_REGEX: Regex = Regex::new("^(.*)\\s+<(.*)>$").unwrap();

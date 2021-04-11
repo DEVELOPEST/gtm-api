@@ -1,17 +1,9 @@
-use serde::Serialize;
-
 use crate::{commit, repository};
 use crate::db::Conn;
 use crate::errors::{Error};
 use crate::security::api_key::ApiKey;
 use crate::security;
-
-#[derive(Serialize)]
-pub struct LastCommitHash {
-    pub hash: String,
-    pub timestamp: i64,
-    pub tracked_commit_hashes: Vec<String>,
-}
+use crate::commit::resource::LastCommitHash;
 
 pub fn find_last_commit_hash(
     conn: &Conn,
