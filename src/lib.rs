@@ -115,6 +115,7 @@ pub fn rocket() -> rocket::Rocket {
                 timeline::routes::get_timeline,
                 timeline::routes::get_activity_timeline,
                 timeline::routes::get_subdir_level_timeline,
+                timeline::routes::get_timeline_comparison,
                 role::routes::add_role_to_user,
                 role::routes::delete_role_from_user,
                 group_access::routes::post_group_accesses,

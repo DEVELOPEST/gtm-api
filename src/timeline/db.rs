@@ -3,10 +3,10 @@ use diesel::{Insertable, sql_query, sql_types};
 use diesel::prelude::*;
 
 use crate::common::sql::GROUP_CHILDREN_QUERY;
-use crate::errors::{FieldValidator, Error};
+use crate::errors::{Error, FieldValidator};
 use crate::schema::timeline;
-use crate::timeline::dwh::TimelineDWH;
-use crate::timeline::model::{Timeline};
+use crate::timeline::dwh::{TimelineDWH, ComparisonDWH};
+use crate::timeline::model::Timeline;
 use crate::timeline::routes::NewTimelineData;
 
 #[derive(Insertable)]
@@ -70,4 +70,38 @@ pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i6
         .load(conn)
         .expect("Error loading timeline for group");
     day_timeline
+}
+
+pub fn fetch_timeline_comparison(conn: &PgConnection, repos: &Vec<i32>, start: i64, end: i64) -> Vec<ComparisonDWH> {
+    let data: Vec<ComparisonDWH> = sql_query("
+        SELECT coalesce(users.username, commits.email)        AS user,
+                repositories.id                               AS repo,
+                repositories.repo                             AS repo_name,
+                commits.branch                                AS branch,
+                timeline.timestamp                            AS timestamp,
+                coalesce(sum(timeline.time )::bigint, 0)      AS time,
+                coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
+                coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed
+        FROM groups gr
+                LEFT JOIN repositories on gr.id = repositories.group
+                LEFT JOIN commits ON commits.repository_id = repositories.id
+                LEFT JOIN files ON files.commit = commits.id
+                LEFT JOIN timeline ON timeline.file = files.id
+                LEFT JOIN emails ON commits.email = emails.email
+                LEFT JOIN users ON emails.user = users.id
+        WHERE repositories.id = ANY ($1)
+        AND commits.timestamp >= $2
+        AND commits.timestamp < $3
+        GROUP BY files.path,
+                coalesce(users.username, commits.email),
+                repositories.id,
+                repositories.repo,
+                commits.branch,
+                timeline.timestamp;")
+        .bind::<sql_types::Array<sql_types::Integer>, _>(repos)
+        .bind::<sql_types::BigInt, _>(start)
+        .bind::<sql_types::BigInt, _>(end)
+        .load(conn)
+        .expect("Error loading timeline for group");
+    data
 }

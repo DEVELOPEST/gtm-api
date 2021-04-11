@@ -139,3 +139,9 @@ pub struct SubdirLevelTimelineJsonWrapper {
     pub paths: Vec<String>,
     pub data: Vec<SubdirLevelTimelineJson>,
 }
+
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ComparisonJsonWrapper {
+
+}

@@ -1,10 +1,13 @@
-use crate::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper, SubdirLevelTimelineJsonEntry};
-use crate::timeline::mapper::{map_timeline, map_activity, map_subdir_level_timeline, cut_path};
-use crate::timeline::db::{fetch_timeline};
-use crate::file::db::{fetch_pathless_file_edits, fetch_file_edits};
-use diesel::PgConnection;
-use crate::errors::Error;
 use std::collections::HashMap;
+
+use diesel::PgConnection;
+
+use crate::errors::Error;
+use crate::file::db::{fetch_file_edits, fetch_pathless_file_edits};
+use crate::repository;
+use crate::timeline::db::{fetch_timeline, fetch_timeline_comparison};
+use crate::timeline::mapper::{cut_path, map_activity, map_subdir_level_timeline, map_timeline};
+use crate::timeline::resources::{ActivityJson, ComparisonJsonWrapper, IntervalJson, SubdirLevelTimelineJsonEntry, SubdirLevelTimelineJsonWrapper};
 
 pub fn get_timeline(
     conn: &PgConnection,
@@ -66,4 +69,29 @@ pub fn get_subdir_level_timeline(
         paths,
         data,
     })
+}
+
+pub fn get_timeline_comparison(
+    conn: &PgConnection,
+    group_names: &Vec<String>,
+    repos: &Vec<i32>,
+    branches: &Vec<String>,
+    users: &Vec<i32>,
+    start: i64,
+    end: i64,
+    timezone: &str,
+    interval: &str,
+) -> Result<ComparisonJsonWrapper, Error> {
+    let mut repositories: Vec<i32> = group_names.iter()
+        .flat_map(|g| repository::db::find_all_repository_ids_in_group(&conn, g)
+            .unwrap_or(vec![]))
+        .map(|r| r.id)
+        .collect();
+
+    repositories.sort();
+    repositories.dedup();
+
+    let raw_data = fetch_timeline_comparison(&conn, repos, start, end);
+
+    todo!()
 }

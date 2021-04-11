@@ -10,6 +10,7 @@ use crate::repository;
 use crate::repository::model::{Repository};
 use crate::schema::repositories;
 use crate::repository::resource::RepositoryJson;
+use crate::repository::dwh::RepositoryId;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -113,7 +114,7 @@ pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) 
     Ok(count)
 }
 
-pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result<Vec<Repository>, Error> {
+pub fn find_all_repository_ids_in_group(conn: &PgConnection, name: &str) -> Result<Vec<RepositoryId>, Error> {
     let res = sql_query("
     WITH RECURSIVE q AS
         (
@@ -130,7 +131,7 @@ pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result
         ON      m.parent = q.child
         WHERE   q.depth < 100
         )
-    SELECT * FROM repositories
+    SELECT repositories.id FROM repositories
     WHERE repositories.group IN (
         SELECT  q.child
         FROM    q
