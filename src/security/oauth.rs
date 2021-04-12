@@ -56,7 +56,7 @@ impl LoginType for TokenResponse<GitHub> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_github(&self.access_token()).await?;
+        let repos = fetch_repos_from_github(&self.access_token(), None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -86,7 +86,7 @@ impl LoginType for TokenResponse<GitLab> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN).await?;
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN, None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -111,12 +111,11 @@ impl LoginType for TokenResponse<GitLabTalTech> {
 
     async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
         let emails_res = fetch_emails_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
-        let emails = emails_res.iter().map(|email| email.email.clone()).collect();
-        Ok(emails)
+        Ok(emails_res.iter().map(|email| email.email.clone()).collect())
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN, None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -175,7 +174,7 @@ impl LoginType for TokenResponse<Bitbucket> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_bitbucket(&self.access_token()).await?;
+        let repos = fetch_repos_from_bitbucket(&self.access_token(), None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())

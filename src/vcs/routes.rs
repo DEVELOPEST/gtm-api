@@ -1,4 +1,5 @@
-use rocket_contrib::json::{Json};
+use rocket::request::Form;
+use rocket_contrib::json::Json;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use validator::Validate;
@@ -6,17 +7,31 @@ use validator::Validate;
 use crate::db::Conn;
 use crate::errors::{Error, FieldValidator};
 use crate::user::model::AuthUser;
+use crate::vcs::resource::{TrackedRepository, VcsRepository};
 use crate::vcs::service::{fetch_accessible_repositories, start_tracking_repository};
-use crate::vcs::resource::{VcsRepository, TrackedRepository};
+
+#[derive(FromForm, Default, Deserialize, JsonSchema)]
+pub struct VcsReposParams {
+    name: Option<String>,
+}
 
 #[openapi]
-#[get("/vcs/repositories")]
+#[get("/vcs/repositories?<params..>")]
 pub fn get_accessible_repositories(
     auth_user: AuthUser,
-    conn: Conn
+    conn: Conn,
+    params: Form<VcsReposParams>,
 ) -> Result<Json<Vec<VcsRepository>>, Error> {
+    let params = params.into_inner();
+    let repo_name = params.name.as_ref().map(|s| &**s);
     let mut rt = tokio::runtime::Runtime::new().unwrap();
-    let repos = rt.block_on(fetch_accessible_repositories(&conn, auth_user.user_id))?;
+    let repos = rt.block_on(
+        fetch_accessible_repositories(
+            &conn,
+            auth_user.user_id,
+            repo_name,
+        )
+    )?;
     Ok(Json(repos))
 }
 

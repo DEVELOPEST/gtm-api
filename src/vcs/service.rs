@@ -20,10 +20,10 @@ use crate::vcs::resource::{TrackedRepository, VcsRepository};
 use crate::group_access;
 use crate::common::git;
 
-pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<Vec<VcsRepository>, Error> {
+pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32, name: Option<&str>) -> Result<Vec<VcsRepository>, Error> {
     let logins = security::db::find_all_logins_by_user(conn, user_id)?;
     let repo_futures = future::join_all(logins.iter()
-        .map(|login| fetch_repositories_for_login(login))).await;
+        .map(|login| fetch_repositories_for_login(login, name))).await;
     let mut repositories: Vec<VcsRepository> = repo_futures.into_iter()
         .filter_map(|f| f.ok())
         .flatten()
@@ -39,11 +39,12 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32) -> Result<
     Ok(repositories)
 }
 
-async fn fetch_repositories_for_login(login: &Login) -> Result<Vec<VcsRepository>, Error> {
+async fn fetch_repositories_for_login(login: &Login, repo_name: Option<&str>) -> Result<Vec<VcsRepository>, Error> {
     match login.login_type {
         GITHUB_LOGIN_TYPE => {
             let repos = github::service::fetch_repos_from_github(
                 &login.token,
+                repo_name,
             ).await?;
             Ok(repos.into_iter().map(VcsRepository::from).collect())
         }
@@ -51,6 +52,7 @@ async fn fetch_repositories_for_login(login: &Login) -> Result<Vec<VcsRepository
             let repos = gitlab::service::fetch_repos_from_gitlab(
                 &login.token,
                 GITLAB_COM_DOMAIN,
+                repo_name,
             ).await?;
             Ok(repos.into_iter().map(VcsRepository::from).collect())
         }
@@ -58,12 +60,14 @@ async fn fetch_repositories_for_login(login: &Login) -> Result<Vec<VcsRepository
             let repos = gitlab::service::fetch_repos_from_gitlab(
                 &login.token,
                 GITLAB_TALTECH_DOMAIN,
+                repo_name,
             ).await?;
             Ok(repos.into_iter().map(VcsRepository::from).collect())
         }
         BITBUCKET_LOGIN_TYPE => {
             let repos = bitbucket::service::fetch_repos_from_bitbucket(
-                &login.token
+                &login.token,
+                repo_name,
             ).await?;
             Ok(repos.into_iter().map(VcsRepository::from).collect())
         }
