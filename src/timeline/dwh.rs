@@ -46,7 +46,7 @@ pub struct FileEditDWH {
     pub commit_hash: String,
 }
 
-#[derive(QueryableByName, Debug)]
+#[derive(QueryableByName, Debug, Clone)]
 pub struct ComparisonDWH {
     #[sql_type = "Text"]
     pub user: String,

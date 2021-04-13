@@ -150,8 +150,26 @@ pub struct ComparisonJsonWrapper {
     pub branches: Vec<String>,
     pub users: Vec<String>,
     pub repos: Vec<String>,
+    pub time: ComparisonStatJson,
+    pub commits: ComparisonStatJson,
+    pub lines_added: ComparisonStatJson,
+    pub lines_removed: ComparisonStatJson,
     pub timeline: Vec<TimelineComparisonJsonEntry>,
-    pub filtered_timeline: Vec<TimelineComparisonJsonEntry>
+    pub filtered_timeline: Vec<TimelineComparisonJsonEntry>,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct ComparisonStatJson {
+    pub total: f64,
+    pub highlighted: f64,
+    pub rank: i32,
+    pub data: Vec<ComparisonStatJsonEntry>,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct ComparisonStatJsonEntry {
+    pub rank: i32,
+    pub value: f64,
 }
 
 #[derive(Serialize, JsonSchema)]

@@ -7,7 +7,8 @@ use chrono_tz::Tz;
 
 use crate::timeline::dwh::{ComparisonDWH, FileEditDWH, PathlessFileEditDWH, TimelineDWH};
 use crate::timeline::helper::{generate_activity_interval, generate_intervals};
-use crate::timeline::resources::{ActivityJson, ComparisonJsonWrapper, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineEntry, SubdirLevelTimelineJson, TimelineComparisonEntry, TimelineComparisonJsonEntry};
+use crate::timeline::resources::{ActivityJson, ComparisonJsonWrapper, ComparisonStatJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineEntry, SubdirLevelTimelineJson, TimelineComparisonEntry, TimelineComparisonJsonEntry, ComparisonStatJsonEntry};
+use itertools::Itertools;
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -155,16 +156,18 @@ pub fn map_timeline_comparison(
             commits: Default::default(),
             users: Default::default(),
         });
+    let mut filtered_data: Vec<ComparisonDWH> = vec![];
     let mut repo_names: HashSet<String> = HashSet::default();
     let mut user_names: HashSet<String> = HashSet::default();
     let mut branch_names: HashSet<String> = HashSet::default();
-    for item in data {
+    for item in &data {
         repo_names.insert(item.repo_name.clone());
         user_names.insert(item.user.clone());
         branch_names.insert(item.branch.clone());
         accumulate_data(&mut general_intervals, &item);
         if repos.contains(&item.repo) && branches.contains(&item.branch) && users.contains(&item.user) {
-            accumulate_data(&mut filtered_intervals, &item)
+            accumulate_data(&mut filtered_intervals, &item);
+            filtered_data.push(item.clone());
         }
     }
 
@@ -172,8 +175,53 @@ pub fn map_timeline_comparison(
         branches: branch_names.into_iter().filter(|b| b.len() > 0).collect(),
         users: user_names.into_iter().filter(|u| u.len() > 0).collect(),
         repos: repo_names.into_iter().filter(|r| r.len() > 0).collect(),
+        time: get_comparison_stats(|e| e.time as f64 / 60.0 / 60.0, &data, &filtered_data),
+        commits: get_comparison_stats(|e| 1.0, &data, &filtered_data), // TODO:  validate group by
+        lines_added: get_comparison_stats(|e| e.lines_added as f64, &data, &filtered_data),
+        lines_removed: get_comparison_stats(|e| e.lines_removed as f64, &data, &filtered_data),
         timeline: general_intervals.into_iter().map(TimelineComparisonJsonEntry::from).collect(),
         filtered_timeline: filtered_intervals.into_iter().map(TimelineComparisonJsonEntry::from).collect(),
+    }
+}
+
+fn get_comparison_stats<F>(
+    mut key_data: F,
+    general_data: &Vec<ComparisonDWH>,
+    filtered_data: &Vec<ComparisonDWH>,
+) -> ComparisonStatJson where
+    F: FnMut(&ComparisonDWH) -> f64,
+    Tz: TimeZone,
+{
+    let mut data: Vec<(String, f64)> = general_data.iter()
+        .map(|e| (e.user.clone(), key_data(&e)))
+        .collect();
+    data.sort_by_key(|(u, _)| u.clone());
+    let mut data: Vec<(String, f64)> = data.into_iter()
+        .group_by(|e| e.0.clone())
+        .into_iter()
+        .map(|(id, vals)| (id, vals.map(|i| i.1).sum::<f64>()))
+        .collect();
+
+    for (n, v) in &data {
+        println!("{} - {}", n, v);
+    }
+
+    data.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+    data.reverse();
+
+    let filtered: Vec<f64> = filtered_data.iter()
+        .map(|e| key_data(&e))
+        .collect();
+
+    let highlighted_total = filtered.iter().sum();
+    ComparisonStatJson {
+        total: data.iter().map(|e| e.1).sum(),
+        highlighted: highlighted_total,
+        rank: data.iter().filter(|(_, v)| highlighted_total < *v).count() as i32,
+        data: data.into_iter().enumerate().map(|(i, (_, v))| ComparisonStatJsonEntry {
+            rank: i as i32,
+            value: v
+        }).collect(),
     }
 }
 
