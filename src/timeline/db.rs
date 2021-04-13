@@ -77,16 +77,16 @@ pub fn fetch_timeline_comparison(conn: &PgConnection, repos: &Vec<i32>, start: i
         SELECT coalesce(users.username, commits.email)        AS user,
                 repositories.id                               AS repo,
                 repositories.repo                             AS repo_name,
+                commits.hash                                  AS commit_hash,
                 commits.branch                                AS branch,
                 timeline.timestamp                            AS timestamp,
                 coalesce(sum(timeline.time )::bigint, 0)      AS time,
                 coalesce(sum(files.lines_added)::bigint, 0)   AS lines_added,
                 coalesce(sum(files.lines_deleted)::bigint, 0) AS lines_removed
-        FROM groups gr
-                LEFT JOIN repositories on gr.id = repositories.group
-                LEFT JOIN commits ON commits.repository_id = repositories.id
-                LEFT JOIN files ON files.commit = commits.id
-                LEFT JOIN timeline ON timeline.file = files.id
+        FROM repositories
+                RIGHT JOIN commits ON commits.repository_id = repositories.id
+                RIGHT JOIN files ON files.commit = commits.id
+                RIGHT JOIN timeline ON timeline.file = files.id
                 LEFT JOIN emails ON commits.email = emails.email
                 LEFT JOIN users ON emails.user = users.id
         WHERE repositories.id = ANY ($1)
@@ -96,6 +96,7 @@ pub fn fetch_timeline_comparison(conn: &PgConnection, repos: &Vec<i32>, start: i
                 coalesce(users.username, commits.email),
                 repositories.id,
                 repositories.repo,
+                commits.hash,
                 commits.branch,
                 timeline.timestamp;")
         .bind::<sql_types::Array<sql_types::Integer>, _>(repos)

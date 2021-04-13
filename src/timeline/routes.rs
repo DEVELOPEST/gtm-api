@@ -131,7 +131,7 @@ pub fn get_subdir_level_timeline(
     Ok(Json(timeline))
 }
 
-// TODO: Switch to vec in rocket 5.0
+// TODO: Switch to vec in rocket 0.5.0
 #[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
 pub struct ComparisonParams {
     groups: Option<String>,
@@ -160,7 +160,7 @@ pub fn get_timeline_comparison(
     let branches = params.branch.unwrap_or("".to_string())
         .split(",").filter(|s| s.len() > 0).map(|s| s.to_string()).collect();
     let users = params.user.unwrap_or("".to_string())
-        .split(",").map(|u| u.parse::<i32>().unwrap_or(-1)).collect();
+        .split(",").map(|u| u.to_string()).collect();
     let start = validator.extract("start", params.start);
     let end = validator.extract("end", params.end);
     let interval = validator.extract("interval", params.interval);

@@ -55,6 +55,8 @@ pub struct ComparisonDWH {
     #[sql_type = "Text"]
     pub repo_name: String,
     #[sql_type = "Text"]
+    pub commit_hash: String,
+    #[sql_type = "Text"]
     pub branch: String,
     #[sql_type = "BigInt"]
     pub timestamp: i64,

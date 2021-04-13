@@ -1,13 +1,13 @@
-use std::time::{Duration, UNIX_EPOCH};
-
-use chrono::{Datelike, DateTime, Timelike, Utc};
-use chrono_tz::Tz;
-
-use crate::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH, ComparisonDWH};
-use crate::timeline::helper::{generate_activity_interval, generate_intervals};
-use crate::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry, ComparisonInterval};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
+use std::time::{Duration, UNIX_EPOCH};
+
+use chrono::{Datelike, DateTime, Timelike, TimeZone, Utc};
+use chrono_tz::Tz;
+
+use crate::timeline::dwh::{ComparisonDWH, FileEditDWH, PathlessFileEditDWH, TimelineDWH};
+use crate::timeline::helper::{generate_activity_interval, generate_intervals};
+use crate::timeline::resources::{ActivityJson, ComparisonJsonWrapper, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineEntry, SubdirLevelTimelineJson, TimelineComparisonEntry, TimelineComparisonJsonEntry};
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -130,35 +130,64 @@ pub fn map_timeline_comparison(
     interval: &str,
     repos: &Vec<i32>,
     branches: &Vec<String>,
-    users: &Vec<i32>,
-) -> Vec<IntervalJson> {
+    users: &Vec<String>,
+) -> ComparisonJsonWrapper {
     let tz: Tz = timezone.parse().unwrap();
     let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
     let end_tz = get_datetime_tz_from_seconds(end, &tz);
-    let mut intervals = generate_intervals(
-        start_tz, end_tz, interval, |s, e| ComparisonInterval {
+    let mut general_intervals = generate_intervals(
+        start_tz.clone(), end_tz.clone(), interval, |s, e| TimelineComparisonEntry {
             start: s,
             end: e,
             time: 0,
             lines_added: 0,
             lines_removed: 0,
-            users: vec![],
+            commits: Default::default(),
+            users: Default::default(),
         });
+    let mut filtered_intervals = generate_intervals(
+        start_tz, end_tz, interval, |s, e| TimelineComparisonEntry {
+            start: s,
+            end: e,
+            time: 0,
+            lines_added: 0,
+            lines_removed: 0,
+            commits: Default::default(),
+            users: Default::default(),
+        });
+    let mut repo_names: HashSet<String> = HashSet::default();
+    let mut user_names: HashSet<String> = HashSet::default();
+    let mut branch_names: HashSet<String> = HashSet::default();
     for item in data {
-        for i in 0..intervals.len() {
-            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
-                intervals[i].time += item.time;
-                intervals[i].lines_added += item.lines_added;
-                intervals[i].lines_removed += item.lines_removed;
-                if !intervals[i].users.contains(&item.user) {
-                    intervals[i].users.push(item.user.to_string());
-                }
-                break;
-            }
+        repo_names.insert(item.repo_name.clone());
+        user_names.insert(item.user.clone());
+        branch_names.insert(item.branch.clone());
+        accumulate_data(&mut general_intervals, &item);
+        if repos.contains(&item.repo) && branches.contains(&item.branch) && users.contains(&item.user) {
+            accumulate_data(&mut filtered_intervals, &item)
         }
     }
 
-    todo!()
+    ComparisonJsonWrapper {
+        branches: branch_names.into_iter().filter(|b| b.len() > 0).collect(),
+        users: user_names.into_iter().filter(|u| u.len() > 0).collect(),
+        repos: repo_names.into_iter().filter(|r| r.len() > 0).collect(),
+        timeline: general_intervals.into_iter().map(TimelineComparisonJsonEntry::from).collect(),
+        filtered_timeline: filtered_intervals.into_iter().map(TimelineComparisonJsonEntry::from).collect(),
+    }
+}
+
+fn accumulate_data<Tz: TimeZone>(filtered_intervals: &mut Vec<TimelineComparisonEntry<Tz>>, item: &ComparisonDWH) {
+    for i in 0..filtered_intervals.len() {
+        if filtered_intervals[i].start.timestamp() <= item.timestamp && item.timestamp < filtered_intervals[i].end.timestamp() {
+            filtered_intervals[i].time += item.time;
+            filtered_intervals[i].lines_added += item.lines_added;
+            filtered_intervals[i].lines_removed += item.lines_removed;
+            filtered_intervals[i].commits.insert(item.commit_hash.clone());
+            filtered_intervals[i].users.insert(item.user.clone());
+            break;
+        }
+    }
 }
 
 

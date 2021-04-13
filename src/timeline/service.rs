@@ -76,7 +76,7 @@ pub fn get_timeline_comparison(
     group_names: &Vec<String>,
     repos: &Vec<i32>,
     branches: &Vec<String>,
-    users: &Vec<i32>,
+    users: &Vec<String>,
     start: i64,
     end: i64,
     timezone: &str,
@@ -91,7 +91,7 @@ pub fn get_timeline_comparison(
     repositories.sort();
     repositories.dedup();
 
-    let raw_data = fetch_timeline_comparison(&conn, repos, start, end);
+    let raw_data = fetch_timeline_comparison(&conn, &repositories, start, end);
     let data = map_timeline_comparison(
         raw_data,
         start,
@@ -102,5 +102,5 @@ pub fn get_timeline_comparison(
         branches,
         users
     );
-    todo!()
+    Ok(data)
 }
