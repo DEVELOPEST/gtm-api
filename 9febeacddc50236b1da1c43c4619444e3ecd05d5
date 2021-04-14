@@ -1,0 +1,6 @@
+[ver:1,total:2100,branch:release/v0.2.3]
+.gtm/Cargo-> Run gtm-api.app:944,1618380000:944,r
+src/timeline/mapper.rs:850,1618380000:70,1618383600:600,1618387200:180,r
+.gtm/Cargo-> Build `Run gtm-api`.app:156,1618380000:156,r
+src/timeline/resources.rs:90,1618380000:30,1618390800:60,r
+Cargo.toml:60,1618390800:60,m
