@@ -1,14 +1,16 @@
-use rocket_contrib::json::JsonValue;
+use rocket_contrib::json::{Json};
+use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::commit;
 use crate::db::Conn;
-use crate::file::routes::NewFileData;
-use crate::errors::{Error};
+use crate::errors::Error;
+use crate::file::resource::NewFileData;
 use crate::security::api_key::ApiKey;
+use crate::commit::resource::LastCommitHash;
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewCommitData {
     #[validate(length(min = 1))]
     pub author: Option<String>,
@@ -23,6 +25,7 @@ pub struct NewCommitData {
     pub files: Vec<NewFileData>,
 }
 
+#[openapi]
 #[get("/commits/<provider>/<user>/<repo>/hash")]
 pub fn get_commit_hash(
     conn: Conn,
@@ -30,7 +33,7 @@ pub fn get_commit_hash(
     provider: String,
     user: String,
     repo: String,
-) -> Result<JsonValue, Error> {
-    Ok(json!(commit::service::find_last_commit_hash(&conn, &api_key, &user, &provider, &repo)?))
+) -> Result<Json<LastCommitHash>, Error> {
+    Ok(Json(commit::service::find_last_commit_hash(&conn, &api_key, &user, &provider, &repo)?))
 }
 

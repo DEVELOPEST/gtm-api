@@ -1,6 +1,6 @@
-use serde::{Serialize};
+use crate::group_access::resource::GroupAccessJson;
 
-#[derive(Queryable, Serialize, Debug, Clone)]
+#[derive(Queryable, Debug, Clone)]
 pub struct GroupAccess {
     pub user: i32,
     pub group: i32,
@@ -15,12 +15,4 @@ impl GroupAccess {
             access_level_recursive: self.access_level_recursive
         }
     }
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GroupAccessJson {
-    pub user: i32,
-    pub group: i32,
-    pub access_level_recursive: bool,
 }

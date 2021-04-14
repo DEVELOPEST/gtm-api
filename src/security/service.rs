@@ -18,7 +18,7 @@ pub fn new_user(
 ) -> Result<User, UserCreationError> {
     let hash = password.map(|pass| crypt_password(&pass));
     let user_result = user::db::create(&conn, &username, hash)?;
-    user_role_member::db::create(conn, user_result.id.clone(), 1);
+    user_role_member::db::create(conn, user_result.id.clone(), 1).unwrap();
     Ok(user_result)
 }
 
@@ -55,7 +55,7 @@ pub fn change_password(
     user_id: i32,
     old_password: String,
     new_password: String
-) -> Result<(), Error> {
+) -> Result<User, Error> {
     let user = user::db::find(&conn, user_id).unwrap();
 
     if user.password.is_some() {
@@ -64,8 +64,12 @@ pub fn change_password(
         }
     }
 
-    user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
-    Ok(())
+    let res = user::db::update_password(
+        &conn,
+        user.id,
+        &crypt_password(&new_password).to_string()
+    )?;
+    Ok(res)
 }
 
 pub fn create_password(
@@ -75,7 +79,7 @@ pub fn create_password(
 ) -> Result<(), Error> {
     let user = user::db::find(&conn, user_id).unwrap();
 
-    user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string());
+    user::db::update_password(&conn, user.id, &crypt_password(&new_password).to_string())?;
     Ok(())
 }
 

@@ -3,6 +3,10 @@ use rocket::http::Status;
 use rocket::response::{Responder, status};
 use rocket_contrib::json::Json;
 use validator::{Validate, ValidationError};
+use rocket_okapi::response::OpenApiResponder;
+use rocket_okapi::gen::OpenApiGenerator;
+use okapi::openapi3::Responses;
+use rocket_okapi::OpenApiError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -64,6 +68,13 @@ impl<'a> Responder<'a> for Error {
                 ).respond_to(req)
             }
         }
+    }
+}
+
+impl<'a> OpenApiResponder<'a> for Error {
+    fn responses(_gen: &mut OpenApiGenerator) -> Result<Responses, OpenApiError> {
+        let responses = Responses::default();
+        Ok(responses)
     }
 }
 

@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
 use diesel::sql_types::{Integer, Text, Timestamptz};
+
 use crate::config::DATE_FORMAT;
-use crate::group_access::model::GroupAccessJson;
+use crate::group::resource::{GroupJson, GroupWithAccessJson};
+use crate::group_access::resource::GroupAccessJson;
 
-
-#[derive(QueryableByName, Queryable, Serialize, Debug, Clone)]
+#[derive(QueryableByName, Queryable, Debug, Clone)]
 pub struct Group {
     #[sql_type = "Integer"]
     pub id: i32,
@@ -34,23 +34,6 @@ impl Group {
             group_access
         }
     }
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GroupJson {
-    pub id: i32,
-    pub name: String,
-    pub added_at: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GroupWithAccessJson {
-    pub id: i32,
-    pub name: String,
-    pub added_at: String,
-    pub group_access: Option<GroupAccessJson>
 }
 
 impl PartialEq for Group {

@@ -3,8 +3,8 @@ use diesel::{Insertable, PgConnection, RunQueryDsl, sql_query, sql_types};
 
 use crate::common::sql;
 use crate::errors::{Error, FieldValidator};
-use crate::file::model::{File, FileJson};
-use crate::file::routes::NewFileData;
+use crate::file::model::{File};
+use crate::file::resource::{NewFileData, FileJson};
 use crate::schema::files;
 use crate::timeline;
 use crate::timeline::dwh::{FileEditDWH, PathlessFileEditDWH};

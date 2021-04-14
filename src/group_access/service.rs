@@ -7,9 +7,10 @@ use crate::errors::{FieldValidator, Error};
 use crate::group;
 use crate::group_access;
 use crate::group_access::db;
-use crate::group_access::model::GroupAccessJson;
+use crate::group_access::model::{GroupAccess};
 use crate::group_access::routes::{DeleteGroupAccess, NewGroupAccess, UserGroupAccess};
 use diesel::{PgConnection};
+use crate::group_access::resource::GroupAccessJson;
 
 pub fn add_group_accesses(
     conn: &PgConnection,
@@ -59,15 +60,16 @@ pub fn create_group_accesses_for_user(
 pub fn delete_group_accesses(
     conn: &Conn,
     group_accesses: Vec<DeleteGroupAccess>,
-) -> Result<JsonValue, Error> {
+) -> Result<usize, Error> {
+    let mut count = 0;
     for group_access in group_accesses {
         let mut extractor = FieldValidator::validate(&group_access);
         let user = extractor.extract("user", group_access.user);
         let group = extractor.extract("group", group_access.group);
         extractor.check()?;
-        group_access::db::delete(&conn, user, group);
+        count += group_access::db::delete(&conn, user, group).unwrap_or(0);
     }
-    Ok(json!({}))
+    Ok(count)
 }
 
 pub fn find_by_user_and_group(conn: &Conn, user: i32, group: i32,) -> Result<GroupAccessJson, Error> {
@@ -78,14 +80,13 @@ pub fn find_by_user_and_group(conn: &Conn, user: i32, group: i32,) -> Result<Gro
 pub fn toggle_access(
     conn: &Conn,
     group_access: UserGroupAccess
-) -> Result<JsonValue, Error> {
+) -> Result<GroupAccess, Error> {
     let mut extractor = FieldValidator::validate(&group_access);
     let user = extractor.extract("user", group_access.user);
     let group = extractor.extract("group", group_access.group);
     extractor.check()?;
     let access = group_access::db::find_by_user_and_group(&conn, user, group)?;
-    group_access::db::update(&conn, access);
-    Ok(json!({}))
+    group_access::db::update(&conn, access)
 }
 
 pub fn get_group_access_count(conn: &PgConnection, user: i32, group: &str) -> Result<i64, Error>{
