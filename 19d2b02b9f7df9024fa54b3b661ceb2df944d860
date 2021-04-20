@@ -1,0 +1,12 @@
+[ver:1,total:2940,branch:feature/API-74]
+src/test/user.rs:1434,1618927200:1434,m
+src/main.rs:450,1618923600:431,1618927200:19,m
+.gtm/Cargo-> Build `Test main->->test`.app:284,1618923600:72,1618927200:212,r
+.gtm/Cargo-> Test main->->test.app:241,1618923600:97,1618927200:144,r
+src/timeline/resources.rs:180,1618390800:180,r
+Cargo.toml:180,1618923600:180,r
+src/test/mod.rs:67,1618927200:67,m
+.gtm/Cargo-> Test test->->user->->test_authorization_register.app:32,1618927200:32,r
+.gtm/Cargo-> Build `Test test->->user->->test_authorization_register`.app:29,1618927200:29,r
+src/test/swagger.rs:28,1618927200:28,m
+src/security/routes.rs:15,1618927200:15,r
