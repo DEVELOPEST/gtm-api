@@ -1,5 +1,0 @@
-[ver:1,total:540,branch:feature/API-74]
-src/tests/common.rs:252,1618938000:132,1618941600:60,1618984800:60,m
-.gtm/Cargo-> Build `Test main->->test`.app:216,1618938000:216,r
-.git/COMMIT_EDITMSG:60,1618984800:60,r
-.gtm/Cargo-> Test main->->test.app:12,1618938000:12,r
