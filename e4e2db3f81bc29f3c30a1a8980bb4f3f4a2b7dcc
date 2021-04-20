@@ -1,0 +1,19 @@
+[ver:1,total:3600,branch:feature/API-74]
+src/test/user.rs:944,1618934400:45,1618938000:899,d
+src/tests/user.rs:928,1618938000:928,m
+.gtm/Cargo-> Test test->->user->->test_authorization_register.app:349,1618927200:12,1618938000:337,r
+.gtm/Cargo-> Build `Test test->->user->->test_authorization_register`.app:336,1618927200:148,1618938000:188,r
+src/tests/common.rs:286,1618938000:286,m
+src/main.rs:190,1618927200:190,m
+.gtm/Cargo-> Install grcov.app:130,1618927200:130,r
+src/security/jwt.rs:96,1618938000:96,r
+src/security/routes.rs:90,1618934400:15,1618938000:75,r
+src/test/mod.rs:85,1618938000:85,d
+src/tests/mod.rs:45,1618938000:45,m
+.gtm/Cargo-> Test tests->->user->->test_login.app:23,1618938000:23,r
+.gtm/Cargo-> Build `Test tests->->user->->test_login`.app:23,1618938000:23,r
+.gtm/Cargo-> Test tests->->user->->test_authorization_register.app:22,1618938000:22,r
+.gtm/Cargo-> Build `Test tests->->user->->test_authorization_register`.app:20,1618938000:20,r
+src/tests/swagger.rs:12,1618938000:12,m
+src/user/routes.rs:12,1618938000:12,r
+src/common/random.rs:9,1618938000:9,r
