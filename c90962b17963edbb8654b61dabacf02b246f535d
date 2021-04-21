@@ -1,0 +1,6 @@
+[ver:1,total:1260,branch:feature/API-75]
+src/vcs/service.rs:528,1618988400:120,1618992000:408,m
+.gtm/Cargo-> Run gtm-api.app:472,1618988400:300,1618992000:172,r
+src/repository/service.rs:180,1618988400:180,r
+src/vcs/routes.rs:60,1618988400:60,r
+.gtm/Cargo-> Build `Run gtm-api`.app:20,1618992000:20,r
