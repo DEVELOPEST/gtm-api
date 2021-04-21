@@ -1,0 +1,14 @@
+[ver:1,total:2460,branch:feature/API-76]
+.gtm/Cargo-> Run gtm-api.app:648,1618988400:648,r
+src/repository/service.rs:498,1618984800:476,1618988400:22,m
+src/repository/routes.rs:494,1618984800:457,1618988400:37,m
+src/vcs/service.rs:208,1618984800:200,1618988400:8,m
+src/group/routes.rs:141,1618984800:132,1618988400:9,r
+src/repository/db.rs:140,1618984800:140,m
+.gtm/Cargo-> Build `Test main->->test`.app:115,1618984800:100,1618988400:15,r
+src/lib.rs:105,1618988400:105,m
+src/vcs/resource.rs:52,1618984800:20,1618988400:32,m
+src/main.rs:20,1618984800:20,r
+.gtm/Cargo-> Build `Run gtm-api`.app:16,1618988400:16,r
+src/errors.rs:15,1618984800:15,r
+.gtm/Cargo-> Test main->->test.app:8,1618988400:8,r
