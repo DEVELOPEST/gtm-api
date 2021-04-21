@@ -1,0 +1,5 @@
+[ver:1,total:480,branch:release/v0.2.4]
+.gtm/Cargo-> Run gtm-api.app:300,1618992000:300,r
+src/vcs/service.rs:120,1619020800:120,r
+Cargo.toml:40,1619020800:40,m
+src/repository/service.rs:20,1619020800:20,r
