@@ -15,6 +15,7 @@ pub struct VcsRepository {
     pub stars: i32,
     pub tracked: bool,
     pub private: bool,
+    pub id: Option<i32>,
 }
 
 #[derive(Serialize, JsonSchema)]

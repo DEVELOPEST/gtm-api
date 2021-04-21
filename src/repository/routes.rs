@@ -6,9 +6,10 @@ use schemars::JsonSchema;
 use crate::commit::routes::NewCommitData;
 use crate::db::Conn;
 use crate::errors::{FieldValidator, Error};
-use crate::repository;
+use crate::{repository};
 use crate::security::api_key::ApiKey;
 use crate::repository::resource::RepositoryJson;
+use crate::user::model::AuthUser;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct NewRepository {
@@ -80,3 +81,15 @@ pub fn put_repository(
 
     Ok(Json(repository))
 }
+
+#[openapi]
+#[delete("/repositories/<repository_id>")]
+pub fn delete_repository(
+    auth_user: AuthUser,
+    conn: Conn,
+    repository_id: i32,
+) -> Result<(), Error> {
+    repository::service::delete_repo(&conn, &auth_user, repository_id)?;
+    Ok(())
+}
+

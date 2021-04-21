@@ -5,22 +5,21 @@ use rand::seq::SliceRandom;
 use crate::{github, security};
 use crate::bitbucket;
 use crate::bitbucket::resource::BitbucketRepo;
+use crate::common::git;
 use crate::common::git::GitRepo;
-use crate::db::Conn;
 use crate::errors::Error;
 use crate::github::resource::GithubRepo;
 use crate::gitlab;
 use crate::gitlab::resource::GitlabRepo;
 use crate::gitlab::service::{GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
+use crate::group_access;
 use crate::repository;
 use crate::security::constants::{BITBUCKET_LOGIN_TYPE, GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE};
 use crate::security::model::Login;
 use crate::sync;
 use crate::vcs::resource::{TrackedRepository, VcsRepository};
-use crate::group_access;
-use crate::common::git;
 
-pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32, name: Option<&str>) -> Result<Vec<VcsRepository>, Error> {
+pub async fn fetch_accessible_repositories(conn: &PgConnection, user_id: i32, name: Option<&str>) -> Result<Vec<VcsRepository>, Error> {
     let logins = security::db::find_all_logins_by_user(conn, user_id)?;
     let repo_futures = future::join_all(logins.iter()
         .map(|login| fetch_repositories_for_login(login, name))).await;
@@ -29,7 +28,9 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32, name: Opti
         .flatten()
         .filter_map(|mut r| {
             if let Some(c) = r.repo_credentials.clone() {
-                r.tracked = repository::db::exists(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
+                let repo = repository::db::find(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
+                r.tracked = repo.is_ok();
+                r.id = repo.ok().map(|x| x.id);
                 Some(r)
             } else { None }
         })
@@ -80,18 +81,27 @@ pub async fn start_tracking_repository(
     clone_url: &str,
     user_id: i32,
 ) -> Result<TrackedRepository, Error> {
-    let sync_clients = sync::db::find_all_sync_clients_by_type(conn, sync::TYPE_PUBLIC)?;
-    if let Some(chosen_client) = sync_clients.choose(&mut rand::thread_rng()) {
-        let sync_url = sync::service::track_repository(chosen_client, clone_url).await?;
-        if let Some(repo_credentials) = git::generate_credentials_from_clone_url(clone_url) {
+    if let Some(repo_credentials) = git::generate_credentials_from_clone_url(clone_url) {
+
+        let access_ok: bool = fetch_accessible_repositories(conn, user_id, Some(&repo_credentials.repo)).await?
+            .iter()
+            .any(|r| r.clone_url == clone_url);
+
+        if !access_ok {
+            return Err(Error::AuthorizationError("No repository access! Try linking OAuth"));
+        }
+
+        let sync_clients = sync::db::find_all_sync_clients_by_type(conn, sync::TYPE_PUBLIC)?;
+        if let Some(chosen_client) = sync_clients.choose(&mut rand::thread_rng()) {
+            let sync_url = sync::service::track_repository(chosen_client, clone_url).await?;
             group_access::service::create_group_accesses_for_user(
                 conn,
                 vec![repo_credentials],
                 user_id,
             )?;
             return Ok(TrackedRepository { sync_url })
-        }
-    };
+        };
+    }
 
     Err(Error::Custom("Unable to find public sync client."))
 }
@@ -108,7 +118,8 @@ impl From<GithubRepo> for VcsRepository {
             size: repo.size,
             stars: repo.stargazers_count,
             tracked: false,
-            private: repo.private
+            private: repo.private,
+            id: None
         }
     }
 }
@@ -125,7 +136,8 @@ impl From<GitlabRepo> for VcsRepository {
             size: repo.statistics.repository_size,
             stars: repo.star_count,
             tracked: false,
-            private: &repo.visibility == "private"
+            private: &repo.visibility == "private",
+            id: None
         }
     }
 }
@@ -145,6 +157,7 @@ impl From<BitbucketRepo> for VcsRepository {
             stars: 0,
             tracked: false,
             private: repo.is_private,
+            id: None
         }
     }
 }
