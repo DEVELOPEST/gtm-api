@@ -105,6 +105,7 @@ pub fn rocket() -> rocket::Rocket {
                 commit::routes::get_commit_hash,
                 repository::routes::post_repository,
                 repository::routes::put_repository,
+                repository::routes::delete_repository,
                 group::routes::post_group_parents,
                 group::routes::post_group_children,
                 group::routes::get_groups,
