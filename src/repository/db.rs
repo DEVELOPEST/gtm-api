@@ -7,9 +7,9 @@ use crate::commit;
 use crate::commit::routes::NewCommitData;
 use crate::errors::Error;
 use crate::repository;
-use crate::repository::model::{Repository};
-use crate::schema::repositories;
+use crate::repository::model::Repository;
 use crate::repository::resource::RepositoryJson;
+use crate::schema::repositories;
 
 #[derive(Insertable)]
 #[table_name = "repositories"]
@@ -105,13 +105,22 @@ pub fn find(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Resu
         .map_err(Error::DatabaseError)
 }
 
-pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Result<usize, Error>{
+pub fn remove_repo(conn: &PgConnection, user: &str, provider: &str, repo: &str) -> Result<usize, Error> {
     let count = diesel::delete(repositories::table.filter(repositories::user.eq(user)
         .and(repositories::provider.eq(provider)
             .and(repositories::repo.eq(repo)))))
         .execute(conn)?;
     Ok(count)
 }
+
+
+pub fn delete_repo(conn: &PgConnection, repo_id: i32) -> Result<usize, Error> {
+    let count = diesel::delete(
+        repositories::table.filter(repositories::id.eq(repo_id)))
+        .execute(conn)?;
+    Ok(count)
+}
+
 
 pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result<Vec<Repository>, Error> {
     let res = sql_query("

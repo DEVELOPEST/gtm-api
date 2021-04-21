@@ -194,7 +194,7 @@ pub fn create_password(
 #[openapi(skip)]
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["user:email"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["user:email read:org"]).unwrap()
 }
 
 #[openapi(skip)]
