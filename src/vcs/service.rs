@@ -29,7 +29,9 @@ pub async fn fetch_accessible_repositories(conn: &Conn, user_id: i32, name: Opti
         .flatten()
         .filter_map(|mut r| {
             if let Some(c) = r.repo_credentials.clone() {
-                r.tracked = repository::db::exists(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
+                let repo = repository::db::find(conn, &c.user, &c.provider, &c.repo);  // TODO: Optimize somehow
+                r.tracked = repo.is_ok();
+                r.id = repo.ok().map(|x| x.id);
                 Some(r)
             } else { None }
         })
@@ -108,7 +110,8 @@ impl From<GithubRepo> for VcsRepository {
             size: repo.size,
             stars: repo.stargazers_count,
             tracked: false,
-            private: repo.private
+            private: repo.private,
+            id: None
         }
     }
 }
@@ -125,7 +128,8 @@ impl From<GitlabRepo> for VcsRepository {
             size: repo.statistics.repository_size,
             stars: repo.star_count,
             tracked: false,
-            private: &repo.visibility == "private"
+            private: &repo.visibility == "private",
+            id: None
         }
     }
 }
@@ -145,6 +149,7 @@ impl From<BitbucketRepo> for VcsRepository {
             stars: 0,
             tracked: false,
             private: repo.is_private,
+            id: None
         }
     }
 }
