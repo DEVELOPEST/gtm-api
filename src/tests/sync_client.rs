@@ -1,6 +1,6 @@
 use rocket::http::{ContentType, Status};
 use rocket::local::Client;
-use serde_json::{json, Value};
+use serde_json::{json};
 use validator::HasLen;
 
 use crate::tests::common::{bearer_header, create_sync_client_api_key, setup, teardown, teardown_api_key};
@@ -30,7 +30,7 @@ fn test_create_public_sync_client() {
 fn test_create_illegal_sync_client() {
     let jwt = setup();
     let client = Client::new(gtm_api::rocket()).unwrap();
-    let mut response = client.post("/services/gtm/api/sync/client")
+    let response = client.post("/services/gtm/api/sync/client")
         .header(bearer_header(&jwt))
         .header(ContentType::JSON)
         .body(json!({
