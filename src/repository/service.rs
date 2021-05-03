@@ -2,10 +2,13 @@ use crate::{group, repository};
 use crate::commit::routes::NewCommitData;
 use crate::common::git;
 use crate::db::Conn;
-use crate::errors::{Error};
+use crate::errors::Error;
+use crate::errors::Error::AuthorizationError;
 use crate::repository::resource::RepositoryJson;
+use crate::role::model::ADMIN;
 use crate::security::api_key::ApiKey;
 use crate::sync;
+use crate::user::model::AuthUser;
 
 pub fn update_repo(
     conn: &Conn,
@@ -62,4 +65,21 @@ pub fn create_repo(
     )?;
 
     Ok(repository)
+}
+
+pub fn delete_repo(conn: &Conn, auth_user: &AuthUser, repository_id: i32) -> Result<(), Error> {
+    let has_access: bool = if auth_user.roles.contains(&ADMIN) {
+        group::db::find_all(&conn)?.iter()
+            .any(|g| g.id == repository_id)
+    } else {
+        group::service::get_groups_with_access(&conn, auth_user.user_id)?.iter()
+            .any(|g| g.id == repository_id)
+    };
+
+    if !has_access {
+        return Err(AuthorizationError("No group access!"));
+    }
+
+    repository::db::delete_repo(conn, repository_id);
+    Ok(())
 }
