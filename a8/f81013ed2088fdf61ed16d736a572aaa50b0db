@@ -1,0 +1,24 @@
+[ver:1,total:4920,branch:feature/API-74]
+src/tests/common.rs:1115,1620021600:84,1620025200:1031,m
+src/sync/service.rs:729,1620025200:729,m
+src/tests/sync_client.rs:619,1620025200:507,1620028800:112,m
+src/sync/routes.rs:612,1620025200:612,m
+src/sync/db.rs:529,1620021600:356,1620025200:173,m
+src/repository/db.rs:210,1619946000:150,1620021600:60,r
+src/vcs/routes.rs:180,1619974800:180,r
+src/tests/repository.rs:174,1620021600:54,1620028800:120,m
+src/lib.rs:124,1620025200:124,m
+src/tests/mod.rs:108,1620021600:96,1620025200:12,m
+src/security/jwt.rs:96,1620025200:96,m
+src/repository/model.rs:90,1619946000:90,r
+src/sync/resource.rs:57,1620025200:57,m
+src/security/routes.rs:54,1620025200:54,r
+src/sync/model.rs:47,1620021600:41,1620025200:6,m
+src/tests/user.rs:45,1620021600:12,1620025200:33,m
+.gtm/Cargo-> Build `Run gtm-api`.app:36,1620025200:36,r
+src/security/api_key.rs:24,1620025200:24,r
+src/sync/mod.rs:20,1620025200:20,m
+.gtm/Cargo-> Test tests->->sync_client->->test_create_illegal_sync_client.app:18,1620025200:10,1620028800:8,r
+src/repository/service.rs:17,1620021600:17,r
+src/repository/routes.rs:8,1620025200:8,r
+.gtm/Cargo-> Test tests->->sync_client->->test_create_sync_client.app:8,1620025200:8,r
