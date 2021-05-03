@@ -1,13 +1,10 @@
-use std::thread::sleep;
-use std::time::Duration;
-
 use rocket;
 use rocket::http::{ContentType, Status};
+use rocket::local::Client;
 use serde::Serialize;
 use serde_json::{json, Value};
 
 use crate::tests::common::{bearer_header, setup, teardown};
-use rocket::local::Client;
 
 #[test]
 fn test_authorization_required_user() {

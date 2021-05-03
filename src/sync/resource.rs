@@ -10,3 +10,9 @@ pub struct AddRepoResponseDto {
 pub struct AddRepositoryDto {
     pub url: String,
 }
+
+#[derive(Serialize, Deserialize, JsonSchema)]
+pub struct SyncClientDto {
+    pub api_key: String,
+    pub sync_client_type: i32,
+}
