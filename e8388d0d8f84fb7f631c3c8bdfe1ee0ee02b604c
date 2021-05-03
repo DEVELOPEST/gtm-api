@@ -1,0 +1,14 @@
+[ver:1,total:1980,branch:feature/API-74]
+src/tests/repository.rs:978,1620028800:978,m
+.gtm/Cargo-> Build `Test tests->->repository->->test_create_repository`.app:337,1620028800:337,r
+.gtm/Cargo-> Test tests->->repository->->test_create_repository.app:157,1620028800:157,r
+.gtm/Cargo-> Build `Test main->->test`.app:137,1620028800:137,r
+.gtm/Cargo-> Test main->->test.app:128,1620028800:128,r
+src/tests/sync_client.rs:70,1620028800:70,m
+src/repository/service.rs:65,1620028800:65,m
+src/repository/routes.rs:41,1620028800:41,r
+src/commit/db.rs:26,1620028800:26,r
+src/lib.rs:15,1620028800:15,r
+src/file/resource.rs:14,1620028800:14,r
+src/file/db.rs:6,1620028800:6,r
+src/commit/routes.rs:6,1620028800:6,r
