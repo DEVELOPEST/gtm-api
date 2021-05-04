@@ -8,7 +8,7 @@ on:
       - master
       - develop
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,6 +18,14 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
+      - name: Install cargo dependencies
+        run: |
+          cargo install diesel_cli --no-default-features --features "postgres"
+      - name: Start test db
+        run: |
+          docker-compose up -d
+          sleep 3
+          diesel migration run
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
