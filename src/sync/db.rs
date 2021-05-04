@@ -3,7 +3,7 @@ use diesel::{ExpressionMethods, PgConnection, QueryDsl};
 use crate::diesel::RunQueryDsl;
 use crate::errors::Error;
 use crate::schema;
-use crate::sync::model::SyncClient;
+use crate::sync::model::{SyncClient, NewSyncClient};
 
 pub fn find_all_sync_clients_by_type(
     conn: &PgConnection,
@@ -23,4 +23,14 @@ pub fn find_by_api_key(
         .first::<SyncClient>(conn)?)
 }
 
-// TODO: Add sync clients
+pub fn create_sync_client(conn: &PgConnection, client: &NewSyncClient) -> Result<usize, Error> {
+    Ok(diesel::insert_into(schema::sync_clients::table)
+        .values(client)
+        .execute(conn)?)
+}
+
+pub fn delete_sync_client(conn: &PgConnection, api_key: &str) -> Result<usize, Error> {
+    Ok(diesel::delete(schema::sync_clients::table
+        .filter(schema::sync_clients::api_key.eq(api_key)))
+        .execute(conn)?)
+}

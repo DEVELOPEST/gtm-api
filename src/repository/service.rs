@@ -53,7 +53,6 @@ pub fn create_repo(
     }
     let group = group::db::find(&conn, &group_name).unwrap();
 
-
     let repository = repository::db::create(
         &conn,
         &group.id,
@@ -80,6 +79,6 @@ pub fn delete_repo(conn: &Conn, auth_user: &AuthUser, repository_id: i32) -> Res
         return Err(AuthorizationError("No group access!"));
     }
 
-    repository::db::delete_repo(conn, repository_id);
+    repository::db::delete_repo(conn, repository_id)?;
     Ok(())
 }

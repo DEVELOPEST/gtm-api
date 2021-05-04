@@ -2,27 +2,28 @@
 #![feature(result_contains_err)]
 
 #[macro_use]
-extern crate rocket;
-
-#[macro_use]
-extern crate rocket_okapi;
-
-#[macro_use]
-extern crate rocket_contrib;
-use rocket_cors;
-
-#[macro_use]
 extern crate diesel;
-
 #[macro_use]
 extern crate diesel_migrations;
-
+#[macro_use(error)]
+extern crate log;
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
+#[macro_use]
+extern crate rocket_okapi;
 #[macro_use]
 extern crate validator_derive;
 
-#[macro_use(error)] extern crate log;
-
 use dotenv::dotenv;
+use rocket_contrib::json::JsonValue;
+use rocket_cors;
+use rocket_cors::Cors;
+use rocket_oauth2::OAuth2;
+use rocket_okapi::routes_with_openapi;
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
+
 
 mod config;
 mod db;
@@ -48,12 +49,6 @@ mod microsoft;
 mod bitbucket;
 mod vcs;
 mod sync;
-
-use rocket_contrib::json::JsonValue;
-use rocket_cors::Cors;
-use rocket_oauth2::OAuth2;
-use rocket_okapi::{routes_with_openapi};
-use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 #[catch(404)]
 fn not_found() -> JsonValue {
@@ -98,6 +93,8 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::delete_account,
                 security::routes::has_password,
                 security::routes::create_password,
+                sync::routes::post_sync_client,
+                sync::routes::delete_sync_client,
                 user::routes::get_user_id,
                 security::routes::change_password,
                 user::routes::get_user,

@@ -1,8 +1,7 @@
-use crate::{commit, repository};
+use crate::{commit, repository, sync};
 use crate::db::Conn;
 use crate::errors::{Error};
 use crate::security::api_key::ApiKey;
-use crate::security;
 use crate::commit::resource::LastCommitHash;
 
 pub fn find_last_commit_hash(
@@ -14,8 +13,10 @@ pub fn find_last_commit_hash(
 ) -> Result<LastCommitHash, Error> {
     let repository = repository::db::find(&conn, &user, &provider, &repo)?;
 
-    if api_key.key != *security::config::API_KEY.read().unwrap() {
-        return Err(Error::AuthorizationError("Invalid API key!"));
+    let client = sync::db::find_by_api_key(conn, &api_key.key)
+        .map_err(|_| Error::AuthorizationError("Unauthorized repository update!"))?;
+    if repository.sync_client.is_some() && repository.sync_client.unwrap() != client.id {
+        return Err(Error::AuthorizationError("Unauthorized repository update!"));
     }
 
     let last_commit = commit::db::find_last_by_repository_id(&conn, repository.id);
