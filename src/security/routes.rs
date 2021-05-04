@@ -254,7 +254,7 @@ pub fn bitbucket_callback(conn: Conn, token: TokenResponse<Bitbucket>, cookies: 
 fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) -> Redirect
     where TokenResponse<T>: LoginType
 {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get(&security::config::JWT_COOKIE) {
         if let Some(auth_user) = security::jwt::get_auth_user_from_token(&conn, client_token.value()) {
             if let Err(_) = rt.block_on(security::service::oauth_register(&conn, &token, auth_user.user_id)) {

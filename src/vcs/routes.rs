@@ -24,7 +24,7 @@ pub fn get_accessible_repositories(
 ) -> Result<Json<Vec<VcsRepository>>, Error> {
     let params = params.into_inner();
     let repo_name = params.name.as_ref().map(|s| &**s);
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let repos = rt.block_on(
         fetch_accessible_repositories(
             &conn,
@@ -53,7 +53,7 @@ pub fn post_start_tracking_repository(
     let clone_url = extractor.extract("clone_url", repo.clone_url);
     extractor.check()?;
 
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let res = rt.block_on(start_tracking_repository(&conn, &clone_url, auth_user.user_id))?;
     Ok(Json(res))
 }
