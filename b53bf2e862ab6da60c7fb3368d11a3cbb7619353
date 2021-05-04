@@ -1,0 +1,7 @@
+[ver:1,total:480,branch:feature/API-79]
+Cargo.toml:171,1620147600:171,m
+src/vcs/mod.rs:140,1620147600:140,r
+src/vcs/routes.rs:80,1620147600:80,m
+Cargo.lock:49,1620147600:49,m
+src/security/routes.rs:20,1620147600:20,m
+.gtm/Cargo-> Build `Run gtm-api`.app:20,1620147600:20,r
