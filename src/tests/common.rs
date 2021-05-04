@@ -35,6 +35,22 @@ pub fn setup() -> String {
     jwt_val["jwt"].as_str().unwrap().to_string()
 }
 
+pub fn get_admin_jwt() -> String {
+    let client = Client::new(gtm_api::rocket()).unwrap();
+    let mut response = client.post("/services/gtm/api/auth/login")
+        .header(ContentType::JSON)
+        .body(json!({
+            "username": "admin@admin",
+            "password": "password",
+        }).to_string())
+        .dispatch();
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.content_type(), Some(ContentType::JSON));
+
+    let jwt_val: Value = serde_json::from_str(&response.body_string().unwrap()).unwrap();
+    jwt_val["jwt"].as_str().unwrap().to_string()
+}
+
 pub fn teardown(jwt: &str) {
     let client = Client::new(gtm_api::rocket()).unwrap();
     let response = client.delete("/services/gtm/api/auth/account")
