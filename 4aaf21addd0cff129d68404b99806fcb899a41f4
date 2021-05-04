@@ -1,0 +1,13 @@
+[ver:1,total:2760,branch:feature/API-74]
+src/tests/group_access.rs:1661,1620118800:1661,m
+.gtm/Cargo-> Test tests->->group_access->->test_group_access_timeline.app:313,1620118800:313,r
+src/group/routes.rs:206,1620118800:206,r
+src/tests/mod.rs:180,1620115200:180,m
+.gtm/Cargo-> Build `Test tests->->group_access->->test_group_access_timeline`.app:104,1620118800:104,r
+.gtm/Cargo-> Build `Test main->->test`.app:98,1620118800:98,r
+src/group_access/routes.rs:88,1620118800:88,r
+src/tests/timeline.rs:60,1620118800:60,r
+.gtm/Cargo-> Test main->->test.app:14,1620118800:14,r
+src/tests/user.rs:12,1620118800:12,r
+src/group_access/service.rs:12,1620118800:12,r
+src/group_access/resource.rs:12,1620118800:12,r
