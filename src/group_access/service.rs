@@ -67,7 +67,7 @@ pub fn delete_group_accesses(
         let user = extractor.extract("user", group_access.user);
         let group = extractor.extract("group", group_access.group);
         extractor.check()?;
-        count += group_access::db::delete(&conn, user, group).unwrap_or(0);
+        count += group_access::db::delete(conn, user, group).unwrap_or(0);
     }
     Ok(count)
 }

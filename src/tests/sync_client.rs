@@ -1,7 +1,6 @@
 use rocket::http::{ContentType, Status};
 use rocket::local::Client;
 use serde_json::{json};
-use validator::HasLen;
 
 use crate::tests::common::{bearer_header, create_sync_client_api_key, setup, teardown, teardown_api_key};
 use crate::tests::common::random_string;
@@ -10,7 +9,7 @@ use crate::tests::common::random_string;
 fn test_create_private_sync_client() {
     let jwt = setup();
     let api_key = create_sync_client_api_key(&jwt, 2);
-    assert!(api_key.length() > 16);
+    assert!(api_key.len() > 16);
 
     teardown_api_key(&jwt, &api_key);
     teardown(&jwt);
@@ -20,7 +19,7 @@ fn test_create_private_sync_client() {
 fn test_create_public_sync_client() {
     let jwt = setup();
     let api_key = create_sync_client_api_key(&jwt, 1);
-    assert!(api_key.length() > 16);
+    assert!(api_key.len() > 16);
 
     teardown_api_key(&jwt, &api_key);
     teardown(&jwt);
