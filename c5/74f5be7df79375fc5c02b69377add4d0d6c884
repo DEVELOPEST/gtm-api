@@ -1,0 +1,16 @@
+[ver:1,total:2340,branch:feature/API-74]
+src/tests/group_access.rs:587,1620126000:587,m
+src/tests/group.rs:465,1620126000:456,1620129600:9,m
+src/group/routes.rs:319,1620126000:199,1620129600:120,r
+src/role/routes.rs:240,1620129600:240,r
+.gtm/Cargo-> Build `Test main->->test`.app:160,1620126000:44,1620129600:116,r
+.gtm/Cargo-> Build `Test tests->->group_access->->test_group_access_delete`.app:111,1620126000:111,r
+src/tests/timeline.rs:99,1620126000:99,m
+.gtm/Cargo-> Test tests->->group_access->->test_group_access_delete.app:72,1620126000:72,r
+src/group_access/service.rs:70,1620126000:70,m
+src/group_access/routes.rs:57,1620126000:57,r
+.gtm/Cargo-> Test main->->test.app:55,1620129600:55,r
+src/tests/mod.rs:45,1620126000:45,m
+.gtm/Cargo-> Test tests->->group->->test_group_stats.app:32,1620126000:32,r
+src/tests/sync_client.rs:20,1620126000:20,m
+.gtm/Cargo-> Test tests->->group->->test_group_access_delete.app:8,1620126000:8,r
