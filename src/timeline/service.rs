@@ -1,7 +1,7 @@
 use crate::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper, SubdirLevelTimelineJsonEntry};
 use crate::timeline::mapper::{map_timeline, map_activity, map_subdir_level_timeline, cut_path};
 use crate::timeline::db::{fetch_timeline};
-use crate::file::db::{fetch_pathless_file_edits, fetch_file_edits};
+use crate::domain::file::db::{fetch_pathless_file_edits, fetch_file_edits};
 use diesel::PgConnection;
 use crate::errors::Error;
 use std::collections::HashMap;

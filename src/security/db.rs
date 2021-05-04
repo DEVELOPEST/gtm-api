@@ -4,8 +4,8 @@ use diesel::result::Error;
 use crate::schema::{login_types, logins, users};
 use crate::security::model::Login;
 use crate::security::model::LoginType;
-use crate::user;
-use crate::user::model::User;
+use crate::domain::user;
+use crate::domain::user::model::User;
 
 pub fn exists_oauth_login(conn: &PgConnection, user_id: i32, login_type: i32) -> bool {
     use diesel::dsl::exists;

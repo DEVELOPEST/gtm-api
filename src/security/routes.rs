@@ -6,16 +6,16 @@ use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::db::Conn;
+use crate::domain::db::Conn;
 use crate::errors::{Error, FieldValidator, ValidationErrors};
 use crate::errors::Error::Custom;
 use crate::security;
 use crate::security::oauth::{Bitbucket, GitHub, GitLab, GitLabTalTech, LoginType, Microsoft};
 use crate::security::resource::JwtResponse;
 use crate::security::service;
-use crate::user;
-use crate::user::db::UserCreationError;
-use crate::user::model::{AuthUser};
+use crate::domain::user;
+use crate::domain::user::db::UserCreationError;
+use crate::domain::user::model::{AuthUser};
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct LoginDto {

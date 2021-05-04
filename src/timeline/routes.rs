@@ -5,11 +5,11 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::{security, timeline};
-use crate::db::Conn;
+use crate::domain::db::Conn;
+use crate::domain::role::model::ADMIN;
+use crate::domain::user::model::AuthUser;
 use crate::errors::{Error, FieldValidator};
-use crate::role::model::ADMIN;
 use crate::timeline::resources::{ActivityJson, IntervalJson, SubdirLevelTimelineJsonWrapper};
-use crate::user::model::AuthUser;
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewTimelineData {

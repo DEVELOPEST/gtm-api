@@ -4,9 +4,9 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::db::Conn;
+use crate::domain::db::Conn;
 use crate::errors::{Error, FieldValidator};
-use crate::user::model::AuthUser;
+use crate::domain::user::model::AuthUser;
 use crate::vcs::resource::{TrackedRepository, VcsRepository};
 use crate::vcs::service::{fetch_accessible_repositories, start_tracking_repository};
 
