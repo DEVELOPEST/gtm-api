@@ -9,6 +9,7 @@ use crate::domain::db::Conn;
 use crate::domain::file::resource::NewFileData;
 use crate::errors::Error;
 use crate::security::api_key::ApiKey;
+use rocket::request::Form;
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewCommitData {
@@ -37,8 +38,9 @@ pub struct CommitHashParams {
 pub fn get_commit_hash(
     conn: Conn,
     api_key: ApiKey,
-    params: CommitHashParams,
+    params: Form<CommitHashParams>,
 ) -> Result<Json<LastCommitHash>, Error> {
+    let params = params.into_inner();
     Ok(Json(commit::service::find_last_commit_hash(
         &conn,
         &api_key,

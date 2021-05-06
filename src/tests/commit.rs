@@ -53,7 +53,8 @@ fn test_get_last_commit_hash() {
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(response.content_type(), Some(ContentType::JSON));
 
-    let mut response = client.get(format!("/services/gtm/api/commits/{}/{}/{}/hash", provider, user, repo))
+    let mut response = client.get(
+        format!("/services/gtm/api/commits/hash?provider={}&user={}&repo={}", provider, user, repo))
         .header(api_key_header(&api_key))
         .header(ContentType::JSON)
         .dispatch();
