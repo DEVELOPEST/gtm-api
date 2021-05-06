@@ -36,6 +36,7 @@ pub struct SubdirTimelineParams {
     depth: Option<i32>,
     time_threshold: Option<f64>,
     lines_threshold: Option<i64>,
+    cumulative: Option<bool>,
 }
 
 #[openapi]
@@ -115,25 +116,29 @@ pub fn get_subdir_level_timeline(
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
-    let timeline_params = params.into_inner();
+    let params = params.into_inner();
 
-    let mut validator = FieldValidator::validate(&timeline_params);
-    let start = validator.extract("start", timeline_params.start);
-    let end = validator.extract("end", timeline_params.end);
-    let interval = validator.extract("interval", timeline_params.interval);
-    let timezone = validator.extract("timezone", timeline_params.timezone);
-    let depth = validator.extract("depth", timeline_params.depth);
+    let mut validator = FieldValidator::validate(&params);
+    let start = validator.extract("start", params.start);
+    let end = validator.extract("end", params.end);
+    let interval = validator.extract("interval", params.interval);
+    let timezone = validator.extract("timezone", params.timezone);
+    let depth = validator.extract("depth", params.depth);
+    let cumulative = params.cumulative.unwrap_or(false);
 
-    let time_threshold_multiplier = (match &*interval {
+    let mut time_threshold_multiplier = (match &*interval {
         "year" => 365.0,
         "month" => 30.0,
         "week" => 7.0,
         "day" => 1.0,
         _ => 1.0,
     } as f64).sqrt();
-    let time_threshold = timeline_params.time_threshold
+    if cumulative {
+        time_threshold_multiplier *= 2.0;
+    }
+    let time_threshold = params.time_threshold
         .unwrap_or(((end - start) as f64).sqrt() * time_threshold_multiplier / 5000.0);
-    let line_threshold = timeline_params.lines_threshold
+    let line_threshold = params.lines_threshold
         .unwrap_or((((end - start) as f64).sqrt() * time_threshold_multiplier / 51.0) as i64);
     // TODO: validate depth?
     validator.validate_timeline_period(start, end, &interval);
@@ -149,6 +154,7 @@ pub fn get_subdir_level_timeline(
         &interval,
         time_threshold,
         line_threshold,
+        cumulative,
     )?;
 
     Ok(Json(timeline))

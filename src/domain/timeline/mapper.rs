@@ -53,16 +53,18 @@ pub fn map_activity(
     let interval = &*interval.to_lowercase();
     let mut intervals = generate_activity_interval(interval);
 
+
     for item in data {
         let time_point = get_datetime_tz_from_seconds(item.timestamp, &tz);
         for activity in intervals.iter_mut() {
-            if activity.id == match interval {
+            let id = match interval {
                 "day" => time_point.hour() as i32,
                 "week" => time_point.weekday().number_from_monday() as i32,
                 "month" => time_point.day0() as i32,
                 "year" => time_point.month0() as i32,
                 _ => 0,
-            } {
+            };
+            if !cumulative && activity.id == id || cumulative && activity.id >= id {
                 activity.time += item.time;
                 activity.lines_added += item.lines_added;
                 activity.lines_removed += item.lines_deleted;
@@ -80,6 +82,7 @@ pub fn map_subdir_level_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
+    cumulative: bool,
 ) -> Vec<SubdirLevelTimelineJson> {
     let tz: Tz = timezone.parse().unwrap();
     let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
@@ -95,7 +98,8 @@ pub fn map_subdir_level_timeline(
             continue;
         }
         for i in 0..intervals.len() {
-            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
+            if (intervals[i].start.timestamp() <= item.timestamp || cumulative)
+                && item.timestamp < intervals[i].end.timestamp() {
                 let cut_path = cut_path(&item.path, depth);
                 let entry = intervals[i].directories.get_mut(&cut_path);
                 if entry.is_some() {
@@ -103,19 +107,19 @@ pub fn map_subdir_level_timeline(
                     entry.time += item.time;
                     entry.lines_added += item.lines_added;
                     entry.lines_removed += item.lines_deleted;
-                    entry.commits.insert(item.commit_hash);
+                    entry.commits.insert(item.commit_hash.clone());
                     entry.users.insert(item.user.to_string());
                 } else {
                     intervals[i].directories.insert(cut_path.clone(), SubdirLevelTimelineEntry {
                         path: cut_path,
                         time: item.time,
-                        commits: HashSet::from_iter(std::iter::repeat(item.commit_hash).take(1)),
+                        commits: HashSet::from_iter(std::iter::repeat(item.commit_hash.clone()).take(1)),
                         lines_added: item.lines_added,
                         lines_removed: item.lines_deleted,
-                        users: HashSet::from_iter(std::iter::repeat(item.user).take(1)),
+                        users: HashSet::from_iter(std::iter::repeat(item.user.clone()).take(1)),
                     });
                 }
-                break;
+                if !cumulative { break };
             }
         }
     }

@@ -95,7 +95,6 @@ impl SubdirLevelTimelineEntry {
 }
 
 #[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 pub struct IntervalJson {
     pub start: String,
     pub end: String,
@@ -104,7 +103,6 @@ pub struct IntervalJson {
 }
 
 #[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 pub struct ActivityJson {
     pub label: String,
     pub label_key: i32,
@@ -115,15 +113,13 @@ pub struct ActivityJson {
 }
 
 #[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJson {
     pub start: String,
     pub end: String,
     pub directories: HashMap<String, SubdirLevelTimelineJsonEntry>,
 }
 
-#[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Clone, JsonSchema)]
 pub struct SubdirLevelTimelineJsonEntry {
     pub path: String,
     pub time: f64,
@@ -134,7 +130,6 @@ pub struct SubdirLevelTimelineJsonEntry {
 }
 
 #[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 pub struct SubdirLevelTimelineJsonWrapper {
     pub paths: Vec<String>,
     pub data: Vec<SubdirLevelTimelineJson>,
