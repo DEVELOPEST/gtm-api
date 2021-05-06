@@ -1,0 +1,12 @@
+[ver:1,total:1020,branch:feature/API-79]
+src/domain/commit/routes.rs:266,1620306000:266,m
+.gtm/Cargo-> Build `Test main->->test`.app:216,1620151200:120,1620154800:96,r
+src/vcs/routes.rs:180,1620151200:180,r
+.gtm/Cargo-> Test main->->test.app:144,1620154800:144,r
+doc/server-setup.md:120,1620151200:120,r
+src/lib.rs:25,1620151200:25,m
+src/domain/group/routes.rs:18,1620306000:18,r
+src/domain/mod.rs:17,1620151200:17,m
+src/domain/group/mapper.rs:16,1620306000:16,m
+.gtm/Cargo-> Build `Run gtm-api`.app:10,1620151200:10,r
+src/domain/timeline/mapper.rs:8,1620151200:8,m
