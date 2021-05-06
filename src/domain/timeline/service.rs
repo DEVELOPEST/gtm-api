@@ -13,9 +13,10 @@ pub fn get_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
+    cumulative: bool,
 ) -> Vec<IntervalJson> {
     let timeline = fetch_timeline(conn, group_name, start, end);
-    map_timeline(timeline, start, end, timezone, interval)
+    map_timeline(timeline, start, end, timezone, interval, cumulative)
 }
 
 pub fn get_activity_timeline(
@@ -25,9 +26,10 @@ pub fn get_activity_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
+    cumulative: bool,
 ) -> Result<Vec<ActivityJson>, Error> {
     let data = fetch_pathless_file_edits(conn, group_name, start, end)?;
-    Ok(map_activity(data, timezone, interval))
+    Ok(map_activity(data, timezone, interval, cumulative))
 }
 
 pub fn get_subdir_level_timeline(
@@ -38,8 +40,8 @@ pub fn get_subdir_level_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
-    time_threshold: f32,
-    lines_threshold: i32,
+    time_threshold: f64,
+    lines_threshold: i64,
 ) -> Result<SubdirLevelTimelineJsonWrapper, Error> {
     let file_edits_data = fetch_file_edits(conn, group_name, start, end)?;
     let mut paths = file_edits_data.iter()
@@ -52,8 +54,8 @@ pub fn get_subdir_level_timeline(
             .map(|mut entry| {
                 entry.directories = entry.directories.into_iter()
                     .filter(|(_, data)| {
-                        data.time > time_threshold as f64
-                            && data.lines_added + data.lines_removed > lines_threshold as i64
+                        data.time > time_threshold
+                            || data.lines_added + data.lines_removed > lines_threshold
                     })
                     .collect::<HashMap<String, SubdirLevelTimelineJsonEntry>>();
                 entry

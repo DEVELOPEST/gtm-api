@@ -19,11 +19,12 @@ pub struct NewTimelineData {
 }
 
 #[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
-pub struct Period {
+pub struct TimelineParams {
     start: Option<i64>,
     end: Option<i64>,
     interval: Option<String>,
     timezone: Option<String>,
+    cumulative: Option<bool>,
 }
 
 #[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
@@ -33,8 +34,8 @@ pub struct SubdirTimelineParams {
     interval: Option<String>,
     timezone: Option<String>,
     depth: Option<i32>,
-    time_threshold: Option<f32>,
-    lines_threshold: Option<i32>,
+    time_threshold: Option<f64>,
+    lines_threshold: Option<i64>,
 }
 
 #[openapi]
@@ -42,22 +43,31 @@ pub struct SubdirTimelineParams {
 pub fn get_timeline(
     auth_user: AuthUser,
     group_name: String,
-    params: Form<Period>,
+    params: Form<TimelineParams>,
     conn: Conn,
 ) -> Result<Json<Vec<IntervalJson>>, Error> {
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
-    let period = params.into_inner();
-    let mut validator = FieldValidator::validate(&period);
-    let start = validator.extract("start", period.start);
-    let end = validator.extract("end", period.end);
-    let interval = validator.extract("interval", period.interval);
-    let timezone = validator.extract("timezone", period.timezone);
+    let params = params.into_inner();
+    let mut validator = FieldValidator::validate(&params);
+    let start = validator.extract("start", params.start);
+    let end = validator.extract("end", params.end);
+    let interval = validator.extract("interval", params.interval);
+    let timezone = validator.extract("timezone", params.timezone);
+    let cumulative = params.cumulative.unwrap_or(false);
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
 
-    let timeline = timeline::service::get_timeline(&conn, &group_name, start, end, &timezone, &interval);
+    let timeline = timeline::service::get_timeline(
+        &conn,
+        &group_name,
+        start,
+        end,
+        &timezone,
+        &interval,
+        cumulative,
+    );
     Ok(Json(timeline))
 }
 
@@ -66,18 +76,19 @@ pub fn get_timeline(
 pub fn get_activity_timeline(
     auth_user: AuthUser,
     group_name: String,
-    params: Form<Period>,
+    params: Form<TimelineParams>,
     conn: Conn,
 ) -> Result<Json<Vec<ActivityJson>>, Error> {
     if auth_user.require_role(&ADMIN).is_err() {
         security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
     }
-    let period = params.into_inner();
-    let mut validator = FieldValidator::validate(&period);
-    let start = validator.extract("start", period.start);
-    let end = validator.extract("end", period.end);
-    let interval = validator.extract("interval", period.interval);
-    let timezone = validator.extract("timezone", period.timezone);
+    let params = params.into_inner();
+    let mut validator = FieldValidator::validate(&params);
+    let start = validator.extract("start", params.start);
+    let end = validator.extract("end", params.end);
+    let interval = validator.extract("interval", params.interval);
+    let timezone = validator.extract("timezone", params.timezone);
+    let cumulative = params.cumulative.unwrap_or(false);
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;
 
@@ -88,6 +99,7 @@ pub fn get_activity_timeline(
         end,
         &timezone,
         &interval,
+        cumulative,
     )?;
     Ok(Json(timeline))
 }
@@ -111,10 +123,18 @@ pub fn get_subdir_level_timeline(
     let interval = validator.extract("interval", timeline_params.interval);
     let timezone = validator.extract("timezone", timeline_params.timezone);
     let depth = validator.extract("depth", timeline_params.depth);
+
+    let time_threshold_multiplier = (match &*interval {
+        "year" => 365.0,
+        "month" => 30.0,
+        "week" => 7.0,
+        "day" => 1.0,
+        _ => 1.0,
+    } as f64).sqrt();
     let time_threshold = timeline_params.time_threshold
-        .unwrap_or((end - start) as f32 / 200000.0);  // ~20 min per week
+        .unwrap_or(((end - start) as f64).sqrt() * time_threshold_multiplier / 5000.0);
     let line_threshold = timeline_params.lines_threshold
-        .unwrap_or(((end - start) / 6048000) as i32);  // ~10 lines per week
+        .unwrap_or((((end - start) as f64).sqrt() * time_threshold_multiplier / 51.0) as i64);
     // TODO: validate depth?
     validator.validate_timeline_period(start, end, &interval);
     validator.check()?;

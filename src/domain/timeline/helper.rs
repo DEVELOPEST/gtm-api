@@ -1,6 +1,8 @@
-use chrono::{Datelike, DateTime, TimeZone};
-use crate::domain::timeline::resources::{Activity};
+use std::default::Default;
 
+use chrono::{Datelike, DateTime, TimeZone};
+
+use crate::domain::timeline::resources::Activity;
 
 pub trait DateTimeExt<Tz: TimeZone> {
     fn next_month(&self) -> DateTime<Tz>;
@@ -73,7 +75,7 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
                     time: 0,
                     lines_added: 0,
                     lines_removed: 0,
-                    users: vec![],
+                    users: Default::default(),
                 })
             }
         },
@@ -86,7 +88,7 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
                     time: 0,
                     lines_added: 0,
                     lines_removed: 0,
-                    users: vec![],
+                    users: Default::default(),
                 })
             }
         },
@@ -98,7 +100,7 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
                     time: 0,
                     lines_added: 0,
                     lines_removed: 0,
-                    users: vec![],
+                    users: Default::default(),
                 })
             }
         },
@@ -110,7 +112,7 @@ pub fn generate_activity_interval(interval: &str) -> Vec<Activity> {
                     time: 0,
                     lines_added: 0,
                     lines_removed: 0,
-                    users: vec![]
+                    users: Default::default(),
                 })
             }
         }

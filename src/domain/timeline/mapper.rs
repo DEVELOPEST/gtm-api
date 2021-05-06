@@ -1,13 +1,13 @@
+use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 use std::time::{Duration, UNIX_EPOCH};
 
 use chrono::{Datelike, DateTime, Timelike, Utc};
 use chrono_tz::Tz;
 
-use crate::domain::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH};
+use crate::domain::timeline::dwh::{FileEditDWH, PathlessFileEditDWH, TimelineDWH};
 use crate::domain::timeline::helper::{generate_activity_interval, generate_intervals};
-use crate::domain::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry};
-use std::collections::{HashMap, HashSet};
-use std::iter::FromIterator;
+use crate::domain::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineEntry, SubdirLevelTimelineJson};
 
 pub fn map_timeline(
     data: Vec<TimelineDWH>,
@@ -15,6 +15,7 @@ pub fn map_timeline(
     end: i64,
     timezone: &str,
     interval: &str,
+    cumulative: bool,
 ) -> Vec<IntervalJson> {
     let tz: Tz = timezone.parse().unwrap();
     let start_tz: DateTime<Tz> = get_datetime_tz_from_seconds(start, &tz);
@@ -28,12 +29,13 @@ pub fn map_timeline(
         });
     for item in data {
         for i in 0..intervals.len() {
-            if intervals[i].start.timestamp() <= item.timestamp && item.timestamp < intervals[i].end.timestamp() {
+            if (intervals[i].start.timestamp() <= item.timestamp || cumulative)
+                && item.timestamp < intervals[i].end.timestamp() {
                 intervals[i].time += item.time;
                 if !intervals[i].users.contains(&item.user) {
                     intervals[i].users.push(item.user.to_string());
                 }
-                break;
+                if !cumulative { break; }
             }
         }
     }
@@ -45,6 +47,7 @@ pub fn map_activity(
     data: Vec<PathlessFileEditDWH>,
     timezone: &str,
     interval: &str,
+    cumulative: bool,
 ) -> Vec<ActivityJson> {
     let tz: Tz = timezone.parse().unwrap();
     let interval = &*interval.to_lowercase();
@@ -52,23 +55,21 @@ pub fn map_activity(
 
     for item in data {
         let time_point = get_datetime_tz_from_seconds(item.timestamp, &tz);
-        let i = intervals.iter().position(|a| {
-            a.id == match interval {
+        for activity in intervals.iter_mut() {
+            if activity.id == match interval {
                 "day" => time_point.hour() as i32,
                 "week" => time_point.weekday().number_from_monday() as i32,
                 "month" => time_point.day0() as i32,
                 "year" => time_point.month0() as i32,
                 _ => 0,
+            } {
+                activity.time += item.time;
+                activity.lines_added += item.lines_added;
+                activity.lines_removed += item.lines_deleted;
+                activity.users.insert(item.user.clone());
             }
-        }).unwrap();
-        intervals[i].time += item.time;
-        intervals[i].lines_added += item.lines_added;
-        intervals[i].lines_removed += item.lines_deleted;
-        if !intervals[i].users.contains(&item.user) {
-            intervals[i].users.push(item.user);
         }
     }
-
     intervals.into_iter().map(|x| x.attach()).collect()
 }
 

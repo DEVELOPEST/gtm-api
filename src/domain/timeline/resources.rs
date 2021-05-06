@@ -27,7 +27,7 @@ pub struct Activity {
     pub time: i64,
     pub lines_added: i64,
     pub lines_removed: i64,
-    pub users: Vec<String>,
+    pub users: HashSet<String>,
 }
 
 #[derive(Debug)]
