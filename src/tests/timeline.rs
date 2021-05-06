@@ -216,7 +216,7 @@ fn test_subdirs_timeline() {
     let paths = paths.unwrap();
 
     assert_eq!(data.len(), 8);
-    assert_eq!(paths.len(), 1);
+    assert_eq!(paths.len(), 2);
 
     teardown_api_key(&jwt, &api_key);
     teardown(&jwt);
