@@ -1,0 +1,5 @@
+[ver:1,total:480,branch:feature/API-79]
+.gtm/Cargo-> Build `Test main->->test`.app:316,1620309600:316,r
+src/tests/commit.rs:110,1620309600:110,m
+src/domain/commit/routes.rs:47,1620309600:47,m
+src/domain/group/routes.rs:7,1620309600:7,r
