@@ -29,7 +29,6 @@ mod domain;
 mod errors;
 mod schema;
 mod setup;
-mod timeline;
 mod security;
 mod common;
 mod vcs;
@@ -93,9 +92,9 @@ pub fn rocket() -> rocket::Rocket {
                 domain::group::routes::get_group_export,
                 domain::group::routes::get_groups_with_access,
                 domain::group::routes::get_groups_without_access,
-                timeline::routes::get_timeline,
-                timeline::routes::get_activity_timeline,
-                timeline::routes::get_subdir_level_timeline,
+                domain::timeline::routes::get_timeline,
+                domain::timeline::routes::get_activity_timeline,
+                domain::timeline::routes::get_subdir_level_timeline,
                 domain::role::routes::add_role_to_user,
                 domain::role::routes::delete_role_from_user,
                 domain::group_access::routes::post_group_accesses,

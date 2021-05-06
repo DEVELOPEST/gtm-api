@@ -10,3 +10,4 @@ pub mod role;
 pub mod user_role_member;
 pub mod group_access;
 pub mod sync;
+pub mod timeline;

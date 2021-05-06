@@ -1,5 +1,5 @@
 use chrono::{Datelike, DateTime, TimeZone};
-use crate::timeline::resources::{Activity};
+use crate::domain::timeline::resources::{Activity};
 
 
 pub trait DateTimeExt<Tz: TimeZone> {

@@ -2,8 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::timeline::resources::TimelineJson;
-use crate::timeline::routes::NewTimelineData;
+use crate::domain::timeline::resources::TimelineJson;
+use crate::domain::timeline::routes::NewTimelineData;
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewFileData {

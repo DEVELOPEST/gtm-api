@@ -6,8 +6,8 @@ use crate::errors::{Error, FieldValidator};
 use crate::domain::file::model::{File};
 use crate::domain::file::resource::{NewFileData, FileJson};
 use crate::schema::files;
-use crate::timeline;
-use crate::timeline::dwh::{FileEditDWH, PathlessFileEditDWH};
+use crate::domain::timeline;
+use crate::domain::timeline::dwh::{FileEditDWH, PathlessFileEditDWH};
 
 #[derive(Insertable)]
 #[table_name = "files"]

@@ -5,9 +5,9 @@ use diesel::prelude::*;
 use crate::common::sql::GROUP_CHILDREN_QUERY;
 use crate::errors::{FieldValidator, Error};
 use crate::schema::timeline;
-use crate::timeline::dwh::TimelineDWH;
-use crate::timeline::model::{Timeline};
-use crate::timeline::routes::NewTimelineData;
+use crate::domain::timeline::dwh::TimelineDWH;
+use crate::domain::timeline::model::{Timeline};
+use crate::domain::timeline::routes::NewTimelineData;
 
 #[derive(Insertable)]
 #[table_name = "timeline"]

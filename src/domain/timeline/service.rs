@@ -1,6 +1,6 @@
-use crate::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper, SubdirLevelTimelineJsonEntry};
-use crate::timeline::mapper::{map_timeline, map_activity, map_subdir_level_timeline, cut_path};
-use crate::timeline::db::{fetch_timeline};
+use crate::domain::timeline::resources::{IntervalJson, ActivityJson, SubdirLevelTimelineJsonWrapper, SubdirLevelTimelineJsonEntry};
+use crate::domain::timeline::mapper::{map_timeline, map_activity, map_subdir_level_timeline, cut_path};
+use crate::domain::timeline::db::{fetch_timeline};
 use crate::domain::file::db::{fetch_pathless_file_edits, fetch_file_edits};
 use diesel::PgConnection;
 use crate::errors::Error;

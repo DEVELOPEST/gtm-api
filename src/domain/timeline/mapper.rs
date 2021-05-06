@@ -3,9 +3,9 @@ use std::time::{Duration, UNIX_EPOCH};
 use chrono::{Datelike, DateTime, Timelike, Utc};
 use chrono_tz::Tz;
 
-use crate::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH};
-use crate::timeline::helper::{generate_activity_interval, generate_intervals};
-use crate::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry};
+use crate::domain::timeline::dwh::{PathlessFileEditDWH, TimelineDWH, FileEditDWH};
+use crate::domain::timeline::helper::{generate_activity_interval, generate_intervals};
+use crate::domain::timeline::resources::{ActivityJson, Interval, IntervalJson, SubdirLevelTimeline, SubdirLevelTimelineJson, SubdirLevelTimelineEntry};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 

@@ -25,15 +25,26 @@ pub struct NewCommitData {
     pub files: Vec<NewFileData>,
 }
 
-#[openapi]
-#[get("/commits/<provider>/<user>/<repo>/hash")]
-pub fn get_commit_hash(
-    conn: Conn,
-    api_key: ApiKey,
+#[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
+pub struct CommitHashParams {
     provider: String,
     user: String,
     repo: String,
+}
+
+#[openapi]
+#[get("/commits/hash?<params..>")]
+pub fn get_commit_hash(
+    conn: Conn,
+    api_key: ApiKey,
+    params: CommitHashParams,
 ) -> Result<Json<LastCommitHash>, Error> {
-    Ok(Json(commit::service::find_last_commit_hash(&conn, &api_key, &user, &provider, &repo)?))
+    Ok(Json(commit::service::find_last_commit_hash(
+        &conn,
+        &api_key,
+        &params.user,
+        &params.provider,
+        &params.repo)?
+    ))
 }
 

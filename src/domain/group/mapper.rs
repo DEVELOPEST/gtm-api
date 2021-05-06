@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-use crate::domain::group::resource::{GroupFileStatsJson, GroupUserStatsJson, GroupExportDataJson};
-use crate::domain::group::dwh::{GroupFileStats, GroupFileStatsWrapper, GroupUserStats, GroupExportData};
-use crate::timeline::mapper::cut_path;
+use crate::domain::group::dwh::{GroupExportData, GroupFileStats, GroupFileStatsWrapper, GroupUserStats};
+use crate::domain::group::resource::{GroupExportDataJson, GroupFileStatsJson, GroupUserStatsJson};
+use crate::domain::timeline::mapper::cut_path;
 
 pub fn map_group_file_stats(data: &Vec<GroupFileStats>, depth: i32) -> Vec<GroupFileStatsJson> {
     let mut result: HashMap<String, GroupFileStatsWrapper> = Default::default();

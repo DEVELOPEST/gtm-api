@@ -1,4 +1,4 @@
-use crate::timeline::resources::TimelineJson;
+use crate::domain::timeline::resources::TimelineJson;
 
 #[derive(Queryable)]
 pub struct Timeline {

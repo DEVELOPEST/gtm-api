@@ -4,12 +4,13 @@ use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::{security, timeline};
 use crate::domain::db::Conn;
 use crate::domain::role::model::ADMIN;
+use crate::domain::timeline;
+use crate::domain::timeline::resources::{ActivityJson, IntervalJson, SubdirLevelTimelineJsonWrapper};
 use crate::domain::user::model::AuthUser;
 use crate::errors::{Error, FieldValidator};
-use crate::timeline::resources::{ActivityJson, IntervalJson, SubdirLevelTimelineJsonWrapper};
+use crate::security;
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct NewTimelineData {

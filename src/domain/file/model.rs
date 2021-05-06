@@ -1,4 +1,4 @@
-use crate::timeline::resources::TimelineJson;
+use crate::domain::timeline::resources::TimelineJson;
 use crate::domain::file::resource::FileJson;
 
 #[derive(Queryable)]
