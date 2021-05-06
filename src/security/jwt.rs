@@ -11,11 +11,11 @@ use rocket::response::status;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::db::Conn;
-use crate::role;
+use crate::domain::db::Conn;
+use crate::domain::role;
+use crate::domain::user::model::{AuthUser, User};
 use crate::security::AuthError;
 use crate::security::config;
-use crate::user::model::{AuthUser, User};
 
 const TOKEN_DURATION: i64 = 24 * 60 * 60; // seconds
 

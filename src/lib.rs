@@ -24,31 +24,14 @@ use rocket_oauth2::OAuth2;
 use rocket_okapi::routes_with_openapi;
 use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
-
 mod config;
-mod db;
+mod domain;
 mod errors;
 mod schema;
 mod setup;
-mod repository;
-mod user;
-mod timeline;
 mod security;
-mod group_group_member;
-mod group;
-mod file;
 mod common;
-mod commit;
-mod role;
-mod user_role_member;
-mod group_access;
-mod email;
-mod github;
-mod gitlab;
-mod microsoft;
-mod bitbucket;
 mod vcs;
-mod sync;
 
 #[catch(404)]
 fn not_found() -> JsonValue {
@@ -72,8 +55,7 @@ fn get_docs() -> SwaggerUIConfig {
 pub fn rocket() -> rocket::Rocket {
     dotenv().ok();
     rocket::ignite()
-        .mount(
-            "/services/gtm/api/",
+        .mount("/services/gtm/api/",
             routes_with_openapi![
                 security::routes::login,
                 security::routes::register,
@@ -93,37 +75,37 @@ pub fn rocket() -> rocket::Rocket {
                 security::routes::delete_account,
                 security::routes::has_password,
                 security::routes::create_password,
-                sync::routes::post_sync_client,
-                sync::routes::delete_sync_client,
-                user::routes::get_user_id,
                 security::routes::change_password,
-                user::routes::get_user,
-                user::routes::get_users,
-                commit::routes::get_commit_hash,
-                repository::routes::post_repository,
-                repository::routes::put_repository,
-                repository::routes::delete_repository,
-                group::routes::post_group_parents,
-                group::routes::post_group_children,
-                group::routes::get_groups,
-                group::routes::get_group_stats,
-                group::routes::get_group_export,
-                group::routes::get_groups_with_access,
-                group::routes::get_groups_without_access,
-                timeline::routes::get_timeline,
-                timeline::routes::get_activity_timeline,
-                timeline::routes::get_subdir_level_timeline,
-                role::routes::add_role_to_user,
-                role::routes::delete_role_from_user,
-                group_access::routes::post_group_accesses,
-                group_access::routes::delete_group_accesses,
-                group_access::routes::toggle_recursive_access,
+                domain::sync::routes::post_sync_client,
+                domain::sync::routes::delete_sync_client,
+                domain::user::routes::get_user_id,
+                domain::user::routes::get_user,
+                domain::user::routes::get_users,
+                domain::commit::routes::get_commit_hash,
+                domain::repository::routes::post_repository,
+                domain::repository::routes::put_repository,
+                domain::repository::routes::delete_repository,
+                domain::group::routes::post_group_parents,
+                domain::group::routes::post_group_children,
+                domain::group::routes::get_groups,
+                domain::group::routes::get_group_stats,
+                domain::group::routes::get_group_export,
+                domain::group::routes::get_groups_with_access,
+                domain::group::routes::get_groups_without_access,
+                domain::timeline::routes::get_timeline,
+                domain::timeline::routes::get_activity_timeline,
+                domain::timeline::routes::get_subdir_level_timeline,
+                domain::role::routes::add_role_to_user,
+                domain::role::routes::delete_role_from_user,
+                domain::group_access::routes::post_group_accesses,
+                domain::group_access::routes::delete_group_accesses,
+                domain::group_access::routes::toggle_recursive_access,
                 vcs::routes::get_accessible_repositories,
                 vcs::routes::post_start_tracking_repository,
             ],
         )
         .mount("/services/gtm/api/swagger", make_swagger_ui(&get_docs()))
-        .attach(db::Conn::fairing())
+        .attach(domain::db::Conn::fairing())
         .attach(setup::migrate_database())
         .attach(cors_fairing())
         .attach(security::config::manage())
