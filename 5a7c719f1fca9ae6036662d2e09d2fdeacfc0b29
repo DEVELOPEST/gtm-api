@@ -1,5 +1,0 @@
-[ver:1,total:480,branch:master]
-src/domain/timeline/service.rs:422,1620370800:352,1620374400:70,m
-.git/COMMIT_EDITMSG:30,1620374400:30,r
-.gtm/Cargo-> Build `Run gtm-api`.app:18,1620370800:8,1620374400:10,r
-src/domain/timeline/routes.rs:10,1620374400:10,m
