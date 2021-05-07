@@ -47,8 +47,8 @@ pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i6
     let day_timeline: Vec<TimelineDWH> = sql_query(format!("
     {}
     SELECT coalesce(users.username, commits.email) AS user,
-           timeline.time,
-           timeline.timestamp
+           timeline.time                           AS time,
+           timeline.timestamp                      AS timestamp
     FROM timeline
         INNER JOIN files ON timeline.file = files.id
         INNER JOIN commits ON files.commit = commits.id
