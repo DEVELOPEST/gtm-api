@@ -27,3 +27,4 @@ jobs:
         with:
           name: gtm-api
           path: ./target/release/gtm-api
+          retention-days: 7

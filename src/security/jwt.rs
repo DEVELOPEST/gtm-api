@@ -11,11 +11,11 @@ use rocket::response::status;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::db::Conn;
-use crate::role;
+use crate::domain::db::Conn;
+use crate::domain::role;
+use crate::domain::user::model::{AuthUser, User};
 use crate::security::AuthError;
 use crate::security::config;
-use crate::user::model::{AuthUser, User};
 
 const TOKEN_DURATION: i64 = 24 * 60 * 60; // seconds
 
@@ -38,7 +38,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthUser {
         let conn = request.guard::<Conn>().unwrap();
         if let Some(auth_header) = request.headers().get_one("Authorization") {
             let auth_str = auth_header.to_string();
-            if auth_str.starts_with("Bearer") {
+            if auth_str.to_lowercase().starts_with("bearer") {
                 let token = auth_str[6..auth_str.len()].trim();
                 if let Some(auth_user) = get_auth_user_from_token(&conn, token) {
                     return Outcome::Success(auth_user);
