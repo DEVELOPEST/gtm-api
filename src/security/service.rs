@@ -2,14 +2,14 @@ use crypto::scrypt::{scrypt_check, scrypt_simple, ScryptParams};
 use diesel::PgConnection;
 use rocket_oauth2::TokenResponse;
 
-use crate::{common, security, user};
-use crate::email;
-use crate::errors::{Error};
-use crate::group_access;
+use crate::{common, security};
+use crate::domain::{email, user};
+use crate::domain::group_access;
+use crate::domain::user::db::UserCreationError;
+use crate::domain::user::model::User;
+use crate::domain::user_role_member;
+use crate::errors::Error;
 use crate::security::oauth::LoginType;
-use crate::user::db::UserCreationError;
-use crate::user::model::User;
-use crate::user_role_member;
 
 pub fn new_user(
     conn: &PgConnection,

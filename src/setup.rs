@@ -1,7 +1,6 @@
 use rocket::fairing::AdHoc;
 
-use crate::db::Conn;
-
+use crate::domain::db::Conn;
 
 embed_migrations!();
 

@@ -2,21 +2,22 @@ use diesel::PgConnection;
 use futures::future;
 use rand::seq::SliceRandom;
 
-use crate::{github, security};
-use crate::bitbucket;
-use crate::bitbucket::resource::BitbucketRepo;
 use crate::common::git;
 use crate::common::git::GitRepo;
+use crate::domain::group_access;
+use crate::domain::repository;
+use crate::domain::sync;
 use crate::errors::Error;
-use crate::github::resource::GithubRepo;
-use crate::gitlab;
-use crate::gitlab::resource::GitlabRepo;
-use crate::gitlab::service::{GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
-use crate::group_access;
-use crate::repository;
+use crate::security;
 use crate::security::constants::{BITBUCKET_LOGIN_TYPE, GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE};
 use crate::security::model::Login;
-use crate::sync;
+use crate::vcs::bitbucket;
+use crate::vcs::bitbucket::resource::BitbucketRepo;
+use crate::vcs::github;
+use crate::vcs::github::resource::GithubRepo;
+use crate::vcs::gitlab;
+use crate::vcs::gitlab::resource::GitlabRepo;
+use crate::vcs::gitlab::service::{GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
 use crate::vcs::resource::{TrackedRepository, VcsRepository};
 
 pub async fn fetch_accessible_repositories(conn: &PgConnection, user_id: i32, name: Option<&str>) -> Result<Vec<VcsRepository>, Error> {
