@@ -1,0 +1,34 @@
+name: Test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - develop
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+      - name: Install cargo dependencies
+        run: |
+          cargo install diesel_cli --no-default-features --features "postgres"
+      - name: Start test db
+        run: |
+          docker-compose up -d
+          sleep 3
+          diesel migration run
+          cargo test || true  # Allow failure as there seems to be bug with first migration
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --package gtm-api
