@@ -1,0 +1,6 @@
+[ver:1,total:660,branch:feature/API-81]
+Cargo.toml:180,1620550800:180,r
+src/domain/group/routes.rs:180,1620385200:180,r
+.github/workflows/deploy.yml:150,1620381600:150,r
+LICENCE:120,1620550800:120,m
+src/domain/timeline/service.rs:30,1620381600:30,r
