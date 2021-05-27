@@ -6,7 +6,7 @@
 ## Create production config
 ```bash
 mkdir -p /etc/gtm/gtm-api && cd /etc/gtm/gtm-api
-sudo nano Rocket.toml
+sudo vim Rocket.toml
 ```
 Now paste your config.  
 Detailed instructions can be found [here](https://rocket.rs/v0.4/guide/configuration/)  
