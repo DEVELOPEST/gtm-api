@@ -22,3 +22,7 @@ sudo apt install -y libpq-dev
 ```bash
 cargo build -p gtm-api
 ```
+
+## Contributing
+We are happy to welcome all contributions!  
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
