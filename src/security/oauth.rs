@@ -2,15 +2,15 @@ use async_trait::async_trait;
 use reqwest::Error;
 use rocket_oauth2::TokenResponse;
 
-use crate::bitbucket::resource::BitbucketUser;
+use crate::vcs::bitbucket::resource::BitbucketUser;
 use crate::common::git::{GitRepo, RepoCredentials};
-use crate::github::resource::GithubUser;
-use crate::github::service::{fetch_emails_from_github, fetch_github_user, fetch_repos_from_github};
-use crate::gitlab::resource::GitlabUser;
-use crate::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab, GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
-use crate::microsoft::resource::MicrosoftUser;
-use crate::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
-use crate::bitbucket::service::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
+use crate::vcs::github::resource::GithubUser;
+use crate::vcs::github::service::{fetch_emails_from_github, fetch_github_user, fetch_repos_from_github};
+use crate::vcs::gitlab::resource::GitlabUser;
+use crate::vcs::gitlab::service::{fetch_emails_from_gitlab, fetch_gitlab_user, fetch_repos_from_gitlab, GITLAB_COM_DOMAIN, GITLAB_TALTECH_DOMAIN};
+use crate::vcs::microsoft::resource::MicrosoftUser;
+use crate::vcs::microsoft::service::{fetch_emails_from_microsoft, fetch_microsoft_user};
+use crate::vcs::bitbucket::service::{fetch_bitbucket_user, fetch_emails_from_bitbucket, fetch_repos_from_bitbucket};
 use crate::security::constants::{GITHUB_LOGIN_TYPE, GITLAB_LOGIN_TYPE, TALTECH_LOGIN_TYPE, MICROSOFT_LOGIN_TYPE, BITBUCKET_LOGIN_TYPE};
 
 #[async_trait]
@@ -56,7 +56,7 @@ impl LoginType for TokenResponse<GitHub> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_github(&self.access_token()).await?;
+        let repos = fetch_repos_from_github(&self.access_token(), None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -86,7 +86,7 @@ impl LoginType for TokenResponse<GitLab> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN).await?;
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_COM_DOMAIN, None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -111,12 +111,11 @@ impl LoginType for TokenResponse<GitLabTalTech> {
 
     async fn fetch_emails(&self) -> Result<Vec<String>, Error> {
         let emails_res = fetch_emails_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
-        let emails = emails_res.iter().map(|email| email.email.clone()).collect();
-        Ok(emails)
+        Ok(emails_res.iter().map(|email| email.email.clone()).collect())
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN).await?;
+        let repos = fetch_repos_from_gitlab(&self.access_token(), GITLAB_TALTECH_DOMAIN, None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())
@@ -175,7 +174,7 @@ impl LoginType for TokenResponse<Bitbucket> {
     }
 
     async fn fetch_accessible_repositories(&self) -> Result<Vec<RepoCredentials>, Error> {
-        let repos = fetch_repos_from_bitbucket(&self.access_token()).await?;
+        let repos = fetch_repos_from_bitbucket(&self.access_token(), None).await?;
         Ok(repos.into_iter()
             .filter_map(|r| r.get_repo_credentials())
             .collect())

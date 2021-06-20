@@ -6,16 +6,16 @@ use rocket_okapi::{JsonSchema, openapi};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::db::Conn;
+use crate::domain::db::Conn;
 use crate::errors::{Error, FieldValidator, ValidationErrors};
 use crate::errors::Error::Custom;
 use crate::security;
 use crate::security::oauth::{Bitbucket, GitHub, GitLab, GitLabTalTech, LoginType, Microsoft};
 use crate::security::resource::JwtResponse;
 use crate::security::service;
-use crate::user;
-use crate::user::db::UserCreationError;
-use crate::user::model::{AuthUser};
+use crate::domain::user;
+use crate::domain::user::db::UserCreationError;
+use crate::domain::user::model::{AuthUser};
 
 #[derive(Deserialize, Validate, JsonSchema)]
 pub struct LoginDto {
@@ -194,7 +194,7 @@ pub fn create_password(
 #[openapi(skip)]
 #[get("/oauth/login/github")]
 pub fn github_login(oauth2: OAuth2<GitHub>, mut cookies: Cookies<'_>) -> Redirect {
-    oauth2.get_redirect(&mut cookies, &["user:email"]).unwrap()
+    oauth2.get_redirect(&mut cookies, &["user:email read:org"]).unwrap()
 }
 
 #[openapi(skip)]
@@ -254,7 +254,7 @@ pub fn bitbucket_callback(conn: Conn, token: TokenResponse<Bitbucket>, cookies: 
 fn oauth_callback<T>(conn: Conn, token: TokenResponse<T>, cookies: Cookies<'_>) -> Redirect
     where TokenResponse<T>: LoginType
 {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     if let Some(client_token) = cookies.get(&security::config::JWT_COOKIE) {
         if let Some(auth_user) = security::jwt::get_auth_user_from_token(&conn, client_token.value()) {
             if let Err(_) = rt.block_on(security::service::oauth_register(&conn, &token, auth_user.user_id)) {

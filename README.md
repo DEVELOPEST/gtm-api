@@ -1,19 +1,16 @@
-# gtm-api
+<p align="center">
+    <img src="./readme/logo.svg" width="256" height="256" alt="logo">
+</p>
+
+# GTM backend
 ![Develop](https://github.com/DEVELOPEST/gtm-api/workflows/Develop/badge.svg)
 ![Deploy](https://github.com/DEVELOPEST/gtm-api/workflows/Deploy/badge.svg)
+  
+Backend application GTM time-tracking system.
+Publicly hosted at [https://cs.ttu.ee/services/gtm/api](https://cs.ttu.ee/services/gtm/api)
 
 ## Endpoints 
-
-### Commits 
-- GET `/commits/<provider>/<user>/<repo>/hash`
-
-### Repositories 
-- POST `/repositories`
-- PUT `/repositories`
-- POST `/repositories/<group_name>/groups`
-
-### Users
-- POST `/users`
+Endpoints are documented [here](https://cs.ttu.ee/services/gtm/api/swagger/index.html)
 
 ## Building
 **Install dependencies**
@@ -25,3 +22,7 @@ sudo apt install -y libpq-dev
 ```bash
 cargo build -p gtm-api
 ```
+
+## Contributing
+We are happy to welcome all contributions!  
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
