@@ -1,0 +1,6 @@
+[ver:1,total:900,branch:feature/API-70]
+src/main.rs:300,1624190400:180,1624194000:120,r
+Cargo.toml:180,1624194000:180,m
+src/lib.rs:180,1624190400:180,r
+src/timeline/service.rs:180,1624190400:180,r
+.git/COMMIT_EDITMSG:60,1624194000:60,r
