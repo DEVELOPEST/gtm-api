@@ -1,0 +1,14 @@
+[ver:1,total:2940,branch:feature/API-70]
+src/domain/timeline/service.rs:560,1624370400:200,1624374000:360,r
+src/domain/timeline/db.rs.orig:560,1624366800:560,r
+.git/index:400,1624366800:380,1624370400:20,r
+src/domain/timeline/mapper.rs.orig:350,1624366800:350,r
+src/domain/timeline/routes.rs:216,1624690800:216,m
+src/domain/user_role_member/db.rs:180,1624381200:180,r
+src/domain/group/db.rs:180,1624384800:180,r
+src/security/routes.rs:160,1624208400:160,r
+src/domain/timeline/resources.rs.orig:150,1624366800:150,r
+src/errors.rs:80,1624208400:80,r
+.git/COMMIT_EDITMSG:72,1624690800:72,r
+src/main.rs:20,1624370400:20,r
+.gitignore:12,1624690800:12,m
