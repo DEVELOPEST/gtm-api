@@ -36,3 +36,4 @@
 # *.ipr
 .idea/
 /.gtm/
+*.orig
