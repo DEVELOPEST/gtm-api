@@ -1,3 +1,17 @@
 [ver:1,total:240,branch:feature/API-70]
 .github/workflows/test.yml:210,1629054000:210,m
 .git/COMMIT_EDITMSG:30,1629054000:30,r
+
+[ver:1,total:2340,branch:feature/API-70]
+src/setup.rs:635,1625857200:180,1629050400:455,m
+src/domain/timeline/resources.rs:500,1624903200:260,1624906800:240,r
+src/main.rs:240,1628247600:240,r
+Cargo.toml:220,1629050400:220,m
+src/domain/timeline/routes.rs:220,1624903200:40,1624906800:180,r
+docker-compose.yml:180,1629050400:180,r
+src/domain/db/mod.rs:170,1629050400:170,r
+.github/workflows/test.yml:90,1629054000:90,m
+.git/COMMIT_EDITMSG:30,1629054000:30,r
+diesel.toml:20,1629050400:20,r
+src/lib.rs:20,1629050400:20,r
+src/config.rs:15,1629050400:15,r
