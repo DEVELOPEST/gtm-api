@@ -5,7 +5,6 @@ use std::iter::FromIterator;
 use schemars::JsonSchema;
 
 #[derive(Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 pub struct TimelineJson {
     pub id: i32,
     pub timestamp: i64,
@@ -133,4 +132,67 @@ pub struct SubdirLevelTimelineJsonEntry {
 pub struct SubdirLevelTimelineJsonWrapper {
     pub paths: Vec<String>,
     pub data: Vec<SubdirLevelTimelineJson>,
+}
+
+#[derive(Debug)]
+pub struct TimelineComparisonEntry<Tz: TimeZone> {
+    pub start: DateTime<Tz>,
+    pub end: DateTime<Tz>,
+    pub time: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub commits: HashSet<String>,
+    pub users: HashSet<String>,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct ComparisonJsonWrapper {
+    pub branches: Vec<String>,
+    pub users: Vec<String>,
+    pub repos: Vec<String>,
+    pub time: ComparisonStatJson,
+    pub commits: ComparisonStatJson,
+    pub lines_added: ComparisonStatJson,
+    pub lines_removed: ComparisonStatJson,
+    pub timeline: Vec<TimelineComparisonJsonEntry>,
+    pub filtered_timeline: Vec<TimelineComparisonJsonEntry>,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct ComparisonStatJson {
+    pub total: f64,
+    pub highlighted: f64,
+    pub rank: i32,
+    pub data: Vec<ComparisonStatJsonEntry>,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct ComparisonStatJsonEntry {
+    pub rank: i32,
+    pub value: f64,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct TimelineComparisonJsonEntry {
+    pub start: String,
+    pub end: String,
+    pub time: f64,
+    pub commits: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub users: i64,
+}
+
+impl<Tz: TimeZone> From<TimelineComparisonEntry<Tz>> for TimelineComparisonJsonEntry {
+    fn from(e: TimelineComparisonEntry<Tz>) -> Self {
+        TimelineComparisonJsonEntry {
+            start: format!("{:?}{}", e.start.naive_local(), e.start.offset().fix()),
+            end: format!("{:?}{}", e.end.naive_local(), e.end.offset().fix()),
+            time: (e.time as f64 / 60.0 / 60.0 * 10.0).round() / 10.0,
+            commits: e.commits.len() as i64,
+            lines_added: e.lines_added,
+            lines_removed: e.lines_removed,
+            users: e.users.len() as i64,
+        }
+    }
 }

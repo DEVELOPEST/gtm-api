@@ -1,13 +1,15 @@
 use rocket::request::Form;
 use rocket_contrib::json::Json;
-use rocket_okapi::{JsonSchema, openapi};
+use rocket_okapi::{openapi, JsonSchema};
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::domain::db::Conn;
 use crate::domain::role::model::ADMIN;
 use crate::domain::timeline;
-use crate::domain::timeline::resources::{ActivityJson, IntervalJson, SubdirLevelTimelineJsonWrapper};
+use crate::domain::timeline::resources::{
+    ActivityJson, ComparisonJsonWrapper, IntervalJson, SubdirLevelTimelineJsonWrapper,
+};
 use crate::domain::user::model::AuthUser;
 use crate::errors::{Error, FieldValidator};
 use crate::security;
@@ -132,13 +134,16 @@ pub fn get_subdir_level_timeline(
         "week" => 7.0,
         "day" => 1.0,
         _ => 1.0,
-    } as f64).sqrt();
+    } as f64)
+        .sqrt();
     if cumulative {
         time_threshold_multiplier *= 2.0;
     }
-    let time_threshold = params.time_threshold
+    let time_threshold = params
+        .time_threshold
         .unwrap_or(((end - start) as f64).sqrt() * time_threshold_multiplier / 5000.0);
-    let line_threshold = params.lines_threshold
+    let line_threshold = params
+        .lines_threshold
         .unwrap_or((((end - start) as f64).sqrt() * time_threshold_multiplier / 51.0) as i64);
     // TODO: validate depth?
     validator.validate_timeline_period(start, end, &interval);
@@ -157,5 +162,70 @@ pub fn get_subdir_level_timeline(
         cumulative,
     )?;
 
+    Ok(Json(timeline))
+}
+
+// TODO: Switch to vec in rocket 0.5.0
+#[derive(FromForm, Default, Validate, Deserialize, JsonSchema)]
+pub struct ComparisonParams {
+    groups: Option<String>,
+    repo: Option<String>,
+    branch: Option<String>,
+    user: Option<String>,
+    start: Option<i64>,
+    end: Option<i64>,
+    interval: Option<String>,
+    timezone: Option<String>,
+}
+
+#[openapi]
+#[get("/comparison/timeline?<params..>")]
+pub fn get_timeline_comparison(
+    auth_user: AuthUser,
+    params: Form<ComparisonParams>,
+    conn: Conn,
+) -> Result<Json<ComparisonJsonWrapper>, Error> {
+    let params = params.into_inner();
+    let mut validator = FieldValidator::validate(&params);
+    let groups: Vec<String> = validator
+        .extract("groups", params.groups)
+        .split(",")
+        .map(|s| s.to_string())
+        .collect();
+    let repos = params
+        .repo
+        .unwrap_or("".to_string())
+        .split(",")
+        .map(|r| r.parse::<i32>().unwrap_or(-1))
+        .collect();
+    let branches = params
+        .branch
+        .unwrap_or("".to_string())
+        .split(",")
+        .filter(|s| s.len() > 0)
+        .map(|s| s.to_string())
+        .collect();
+    let users = params
+        .user
+        .unwrap_or("".to_string())
+        .split(",")
+        .map(|u| u.to_string())
+        .collect();
+    let start = validator.extract("start", params.start);
+    let end = validator.extract("end", params.end);
+    let interval = validator.extract("interval", params.interval);
+    let timezone = validator.extract("timezone", params.timezone);
+    validator.validate_timeline_period(start, end, &interval);
+    validator.check()?;
+
+    if auth_user.require_role(&ADMIN).is_err() {
+        for group_name in &groups {
+            security::service::check_group_access(&conn, auth_user.user_id, &group_name)?;
+        }
+    }
+
+    let timeline = timeline::service::get_timeline_comparison(
+        &conn, &groups, &repos, &branches, &users, start, end, &timezone, &interval,
+    )?;
     Ok(Json(timeline))
 }

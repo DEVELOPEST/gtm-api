@@ -1,7 +1,7 @@
 
-use rocket::{Outcome, Request, request};
+use rocket::{Request, request};
 use rocket::http::Status;
-use rocket::request::FromRequest;
+use rocket::request::{FromRequest, Outcome};
 use rocket::response::status;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};

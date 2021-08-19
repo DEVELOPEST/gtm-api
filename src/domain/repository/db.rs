@@ -122,7 +122,7 @@ pub fn delete_repo(conn: &PgConnection, repo_id: i32) -> Result<usize, Error> {
 }
 
 
-pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result<Vec<Repository>, Error> {
+pub fn find_all_repository_ids_in_group(conn: &PgConnection, name: &str) -> Result<Vec<Repository>, Error> {
     let res = sql_query("
     WITH RECURSIVE q AS
         (
@@ -139,7 +139,7 @@ pub fn find_all_repositories_in_group(conn: &PgConnection, name: &str) -> Result
         ON      m.parent = q.child
         WHERE   q.depth < 100
         )
-    SELECT * FROM repositories
+    SELECT repositories.id FROM repositories
     WHERE repositories.group IN (
         SELECT  q.child
         FROM    q
