@@ -48,7 +48,9 @@ pub fn fetch_timeline(conn: &PgConnection, group_name: &str, start: i64, end: i6
     {}
     SELECT coalesce(users.username, commits.email) AS user,
            timeline.time                           AS time,
-           timeline.timestamp                      AS timestamp
+           timeline.timestamp                      AS timestamp,
+           files.lines_added                       AS lines_added,
+           files.lines_deleted                     AS lines_removed
     FROM timeline
         INNER JOIN files ON timeline.file = files.id
         INNER JOIN commits ON files.commit = commits.id

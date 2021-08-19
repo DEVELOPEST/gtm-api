@@ -26,9 +26,5 @@ jobs:
           docker-compose up -d
           sleep 3
           diesel migration run
-          # cargo test --test-threads 1 || true  # Allow failure as there seems to be bug with first migration
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --package gtm-api -- --test-threads 1
+          cargo test || true  # Allow failure as there seems to be bug with first migration
+          cargo test
