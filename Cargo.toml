@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = "0.4.6"
+rocket = "0.4.10"
 rocket_cors = { version = "0.5.1", default-features = false }
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.44"
@@ -35,6 +35,6 @@ okapi = { version = "0.5.0-alpha-1", features = ["derive_json_schema"] }
 
 
 [dependencies.rocket_contrib]
-version = "0.4.7"
+version = "0.4.10"
 default-features = false
 features = ["json", "diesel_postgres_pool"]
