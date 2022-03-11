@@ -12,7 +12,7 @@ pub trait DateTimeExt<Tz: TimeZone> {
 impl<Tz: TimeZone> DateTimeExt<Tz> for DateTime<Tz> {
     fn next_month(&self) -> DateTime<Tz> {
         self.with_month(self.month() + 1)
-            .unwrap_or(self.with_year(self.year() + 1).unwrap().with_month(1).unwrap())
+            .unwrap_or_else(|| self.with_year(self.year() + 1).unwrap().with_month(1).unwrap())
     }
 
     fn next_year(&self) -> DateTime<Tz> {

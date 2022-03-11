@@ -10,7 +10,7 @@ use crate::errors::Error;
 pub fn add_group_relations(conn: &Conn, parents_vec: Vec<String>, children_vec: Vec<String>) -> Result<(), Error> {
     for child in children_vec {
         let relation_child = group::db::find(&conn, &child)
-            .unwrap_or(group::db::create(&conn, &child).unwrap());
+            .unwrap_or_else(|_| group::db::create(&conn, &child).unwrap());
 
         for parent in &parents_vec {
             let relation_parent = if !group::db::exists(&conn, &parent) {
