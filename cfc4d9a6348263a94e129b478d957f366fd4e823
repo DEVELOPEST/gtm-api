@@ -1,0 +1,6 @@
+[ver:1,total:480,branch:master]
+src/domain/group/service.rs:270,1646989200:270,m
+src/domain/timeline/helper.rs:60,1646989200:60,m
+.git/COMMIT_EDITMSG:60,1646989200:60,r
+.git/MERGE_MSG:60,1646989200:60,d
+src/domain/group_access/service.rs:30,1646989200:30,r
